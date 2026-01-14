@@ -1,0 +1,563 @@
+// !$*UTF8*$!
+{
+	archiveVersion = 1;
+	classes = {
+	};
+	objectVersion = 77;
+	objects = {
+
+/* Begin PBXContainerItemProxy section */
+		7E79EE4F2F1683FF00D2D070 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E79EE352F1683FE00D2D070 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E79EE3C2F1683FE00D2D070;
+			remoteInfo = HydroBar;
+		};
+		7E79EE592F1683FF00D2D070 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 7E79EE352F1683FE00D2D070 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 7E79EE3C2F1683FE00D2D070;
+			remoteInfo = HydroBar;
+		};
+/* End PBXContainerItemProxy section */
+
+/* Begin PBXFileReference section */
+		7E79EE3D2F1683FE00D2D070 /* HydroBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HydroBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E79EE4E2F1683FF00D2D070 /* HydroBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HydroBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+		7E79EE582F1683FF00D2D070 /* HydroBarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HydroBarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
+/* End PBXFileReference section */
+
+/* Begin PBXFileSystemSynchronizedRootGroup section */
+		7E79EE3F2F1683FE00D2D070 /* HydroBar */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HydroBar;
+			sourceTree = "<group>";
+		};
+		7E79EE512F1683FF00D2D070 /* HydroBarTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HydroBarTests;
+			sourceTree = "<group>";
+		};
+		7E79EE5B2F1683FF00D2D070 /* HydroBarUITests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = HydroBarUITests;
+			sourceTree = "<group>";
+		};
+/* End PBXFileSystemSynchronizedRootGroup section */
+
+/* Begin PBXFrameworksBuildPhase section */
+		7E79EE3A2F1683FE00D2D070 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E79EE4B2F1683FF00D2D070 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E79EE552F1683FF00D2D070 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXFrameworksBuildPhase section */
+
+/* Begin PBXGroup section */
+		7E79EE342F1683FE00D2D070 = {
+			isa = PBXGroup;
+			children = (
+				7E79EE3F2F1683FE00D2D070 /* HydroBar */,
+				7E79EE512F1683FF00D2D070 /* HydroBarTests */,
+				7E79EE5B2F1683FF00D2D070 /* HydroBarUITests */,
+				7E79EE3E2F1683FE00D2D070 /* Products */,
+			);
+			sourceTree = "<group>";
+		};
+		7E79EE3E2F1683FE00D2D070 /* Products */ = {
+			isa = PBXGroup;
+			children = (
+				7E79EE3D2F1683FE00D2D070 /* HydroBar.app */,
+				7E79EE4E2F1683FF00D2D070 /* HydroBarTests.xctest */,
+				7E79EE582F1683FF00D2D070 /* HydroBarUITests.xctest */,
+			);
+			name = Products;
+			sourceTree = "<group>";
+		};
+/* End PBXGroup section */
+
+/* Begin PBXNativeTarget section */
+		7E79EE3C2F1683FE00D2D070 /* HydroBar */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E79EE622F1683FF00D2D070 /* Build configuration list for PBXNativeTarget "HydroBar" */;
+			buildPhases = (
+				7E79EE392F1683FE00D2D070 /* Sources */,
+				7E79EE3A2F1683FE00D2D070 /* Frameworks */,
+				7E79EE3B2F1683FE00D2D070 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			fileSystemSynchronizedGroups = (
+				7E79EE3F2F1683FE00D2D070 /* HydroBar */,
+			);
+			name = HydroBar;
+			packageProductDependencies = (
+			);
+			productName = HydroBar;
+			productReference = 7E79EE3D2F1683FE00D2D070 /* HydroBar.app */;
+			productType = "com.apple.product-type.application";
+		};
+		7E79EE4D2F1683FF00D2D070 /* HydroBarTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E79EE652F1683FF00D2D070 /* Build configuration list for PBXNativeTarget "HydroBarTests" */;
+			buildPhases = (
+				7E79EE4A2F1683FF00D2D070 /* Sources */,
+				7E79EE4B2F1683FF00D2D070 /* Frameworks */,
+				7E79EE4C2F1683FF00D2D070 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7E79EE502F1683FF00D2D070 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				7E79EE512F1683FF00D2D070 /* HydroBarTests */,
+			);
+			name = HydroBarTests;
+			packageProductDependencies = (
+			);
+			productName = HydroBarTests;
+			productReference = 7E79EE4E2F1683FF00D2D070 /* HydroBarTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
+		7E79EE572F1683FF00D2D070 /* HydroBarUITests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 7E79EE682F1683FF00D2D070 /* Build configuration list for PBXNativeTarget "HydroBarUITests" */;
+			buildPhases = (
+				7E79EE542F1683FF00D2D070 /* Sources */,
+				7E79EE552F1683FF00D2D070 /* Frameworks */,
+				7E79EE562F1683FF00D2D070 /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				7E79EE5A2F1683FF00D2D070 /* PBXTargetDependency */,
+			);
+			fileSystemSynchronizedGroups = (
+				7E79EE5B2F1683FF00D2D070 /* HydroBarUITests */,
+			);
+			name = HydroBarUITests;
+			packageProductDependencies = (
+			);
+			productName = HydroBarUITests;
+			productReference = 7E79EE582F1683FF00D2D070 /* HydroBarUITests.xctest */;
+			productType = "com.apple.product-type.bundle.ui-testing";
+		};
+/* End PBXNativeTarget section */
+
+/* Begin PBXProject section */
+		7E79EE352F1683FE00D2D070 /* Project object */ = {
+			isa = PBXProject;
+			attributes = {
+				BuildIndependentTargetsInParallel = 1;
+				LastSwiftUpdateCheck = 1620;
+				LastUpgradeCheck = 1620;
+				TargetAttributes = {
+					7E79EE3C2F1683FE00D2D070 = {
+						CreatedOnToolsVersion = 16.2;
+					};
+					7E79EE4D2F1683FF00D2D070 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 7E79EE3C2F1683FE00D2D070;
+					};
+					7E79EE572F1683FF00D2D070 = {
+						CreatedOnToolsVersion = 16.2;
+						TestTargetID = 7E79EE3C2F1683FE00D2D070;
+					};
+				};
+			};
+			buildConfigurationList = 7E79EE382F1683FE00D2D070 /* Build configuration list for PBXProject "HydroBar" */;
+			developmentRegion = en;
+			hasScannedForEncodings = 0;
+			knownRegions = (
+				en,
+				Base,
+				fr,
+				es,
+				it,
+			);
+			mainGroup = 7E79EE342F1683FE00D2D070;
+			minimizedProjectReferenceProxies = 1;
+			preferredProjectObjectVersion = 77;
+			productRefGroup = 7E79EE3E2F1683FE00D2D070 /* Products */;
+			projectDirPath = "";
+			projectRoot = "";
+			targets = (
+				7E79EE3C2F1683FE00D2D070 /* HydroBar */,
+				7E79EE4D2F1683FF00D2D070 /* HydroBarTests */,
+				7E79EE572F1683FF00D2D070 /* HydroBarUITests */,
+			);
+		};
+/* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		7E79EE3B2F1683FE00D2D070 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E79EE4C2F1683FF00D2D070 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E79EE562F1683FF00D2D070 /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
+
+/* Begin PBXSourcesBuildPhase section */
+		7E79EE392F1683FE00D2D070 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E79EE4A2F1683FF00D2D070 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		7E79EE542F1683FF00D2D070 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		7E79EE502F1683FF00D2D070 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E79EE3C2F1683FE00D2D070 /* HydroBar */;
+			targetProxy = 7E79EE4F2F1683FF00D2D070 /* PBXContainerItemProxy */;
+		};
+		7E79EE5A2F1683FF00D2D070 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 7E79EE3C2F1683FE00D2D070 /* HydroBar */;
+			targetProxy = 7E79EE592F1683FF00D2D070 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
+
+/* Begin XCBuildConfiguration section */
+		7E79EE602F1683FF00D2D070 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = dwarf;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_DYNAMIC_NO_PIC = NO;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_OPTIMIZATION_LEVEL = 0;
+				GCC_PREPROCESSOR_DEFINITIONS = (
+					"DEBUG=1",
+					"$(inherited)",
+				);
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MTL_ENABLE_DEBUG_INFO = INCLUDE_SOURCE;
+				MTL_FAST_MATH = YES;
+				ONLY_ACTIVE_ARCH = YES;
+				SDKROOT = macosx;
+				SWIFT_ACTIVE_COMPILATION_CONDITIONS = "DEBUG $(inherited)";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_OPTIMIZATION_LEVEL = "-Onone";
+			};
+			name = Debug;
+		};
+		7E79EE612F1683FF00D2D070 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_SEARCH_USER_PATHS = NO;
+				ASSETCATALOG_COMPILER_GENERATE_SWIFT_ASSET_SYMBOL_EXTENSIONS = YES;
+				CLANG_ANALYZER_NONNULL = YES;
+				CLANG_ANALYZER_NUMBER_OBJECT_CONVERSION = YES_AGGRESSIVE;
+				CLANG_CXX_LANGUAGE_STANDARD = "gnu++20";
+				CLANG_ENABLE_MODULES = YES;
+				CLANG_ENABLE_OBJC_ARC = YES;
+				CLANG_ENABLE_OBJC_WEAK = YES;
+				CLANG_WARN_BLOCK_CAPTURE_AUTORELEASING = YES;
+				CLANG_WARN_BOOL_CONVERSION = YES;
+				CLANG_WARN_COMMA = YES;
+				CLANG_WARN_CONSTANT_CONVERSION = YES;
+				CLANG_WARN_DEPRECATED_OBJC_IMPLEMENTATIONS = YES;
+				CLANG_WARN_DIRECT_OBJC_ISA_USAGE = YES_ERROR;
+				CLANG_WARN_DOCUMENTATION_COMMENTS = YES;
+				CLANG_WARN_EMPTY_BODY = YES;
+				CLANG_WARN_ENUM_CONVERSION = YES;
+				CLANG_WARN_INFINITE_RECURSION = YES;
+				CLANG_WARN_INT_CONVERSION = YES;
+				CLANG_WARN_NON_LITERAL_NULL_CONVERSION = YES;
+				CLANG_WARN_OBJC_IMPLICIT_RETAIN_SELF = YES;
+				CLANG_WARN_OBJC_LITERAL_CONVERSION = YES;
+				CLANG_WARN_OBJC_ROOT_CLASS = YES_ERROR;
+				CLANG_WARN_QUOTED_INCLUDE_IN_FRAMEWORK_HEADER = YES;
+				CLANG_WARN_RANGE_LOOP_ANALYSIS = YES;
+				CLANG_WARN_STRICT_PROTOTYPES = YES;
+				CLANG_WARN_SUSPICIOUS_MOVE = YES;
+				CLANG_WARN_UNGUARDED_AVAILABILITY = YES_AGGRESSIVE;
+				CLANG_WARN_UNREACHABLE_CODE = YES;
+				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
+				COPY_PHASE_STRIP = NO;
+				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
+				ENABLE_NS_ASSERTIONS = NO;
+				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
+				GCC_C_LANGUAGE_STANDARD = gnu17;
+				GCC_NO_COMMON_BLOCKS = YES;
+				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
+				GCC_WARN_ABOUT_RETURN_TYPE = YES_ERROR;
+				GCC_WARN_UNDECLARED_SELECTOR = YES;
+				GCC_WARN_UNINITIALIZED_AUTOS = YES_AGGRESSIVE;
+				GCC_WARN_UNUSED_FUNCTION = YES;
+				GCC_WARN_UNUSED_VARIABLE = YES;
+				LOCALIZATION_PREFERS_STRING_CATALOGS = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MTL_ENABLE_DEBUG_INFO = NO;
+				MTL_FAST_MATH = YES;
+				SDKROOT = macosx;
+				SWIFT_COMPILATION_MODE = wholemodule;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+			};
+			name = Release;
+		};
+		7E79EE632F1683FF00D2D070 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HydroBar/HydroBar.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"HydroBar/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Debug;
+		};
+		7E79EE642F1683FF00D2D070 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
+				CODE_SIGN_ENTITLEMENTS = HydroBar/HydroBar.entitlements;
+				CODE_SIGN_STYLE = Manual;
+				COMBINE_HIDPI_IMAGES = YES;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_ASSET_PATHS = "\"HydroBar/Preview Content\"";
+				DEVELOPMENT_TEAM = "";
+				ENABLE_HARDENED_RUNTIME = YES;
+				ENABLE_PREVIEWS = YES;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
+				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
+				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+				);
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBar;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				PROVISIONING_PROFILE_SPECIFIER = "";
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+			};
+			name = Release;
+		};
+		7E79EE662F1683FF00D2D070 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HydroBar.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HydroBar";
+			};
+			name = Debug;
+		};
+		7E79EE672F1683FF00D2D070 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MACOSX_DEPLOYMENT_TARGET = 15.1;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/HydroBar.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/HydroBar";
+			};
+			name = Release;
+		};
+		7E79EE692F1683FF00D2D070 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = HydroBar;
+			};
+			name = Debug;
+		};
+		7E79EE6A2F1683FF00D2D070 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				GENERATE_INFOPLIST_FILE = YES;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarUITests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TEST_TARGET_NAME = HydroBar;
+			};
+			name = Release;
+		};
+/* End XCBuildConfiguration section */
+
+/* Begin XCConfigurationList section */
+		7E79EE382F1683FE00D2D070 /* Build configuration list for PBXProject "HydroBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E79EE602F1683FF00D2D070 /* Debug */,
+				7E79EE612F1683FF00D2D070 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7E79EE622F1683FF00D2D070 /* Build configuration list for PBXNativeTarget "HydroBar" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E79EE632F1683FF00D2D070 /* Debug */,
+				7E79EE642F1683FF00D2D070 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7E79EE652F1683FF00D2D070 /* Build configuration list for PBXNativeTarget "HydroBarTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E79EE662F1683FF00D2D070 /* Debug */,
+				7E79EE672F1683FF00D2D070 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		7E79EE682F1683FF00D2D070 /* Build configuration list for PBXNativeTarget "HydroBarUITests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				7E79EE692F1683FF00D2D070 /* Debug */,
+				7E79EE6A2F1683FF00D2D070 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+/* End XCConfigurationList section */
+	};
+	rootObject = 7E79EE352F1683FE00D2D070 /* Project object */;
+}
