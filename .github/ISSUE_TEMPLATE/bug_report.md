@@ -1,6 +1,6 @@
 ---
 name: Bug Report
-about: Signaler un bug pour aider à améliorer HydroBar
+about: Signaler un bug pour améliorer HydroBar
 title: '[BUG] '
 labels: bug
 assignees: ''
@@ -19,18 +19,22 @@ Une description claire et concise du bug.
 
 ## ✅ Comportement Attendu
 
-Une description claire de ce qui devrait se passer.
+Ce qui devrait se passer.
+
+## ❌ Comportement Actuel
+
+Ce qui se passe actuellement.
 
 ## 📸 Captures d'écran
 
-Si applicable, ajoutez des captures d'écran pour aider à expliquer le problème.
+Si applicable, ajoutez des captures d'écran.
 
 ## 💻 Environnement
 
-- **macOS Version** : [ex: macOS 14.2]
-- **HydroBar Version** : [ex: 1.0]
-- **Architecture** : [Apple Silicon / Intel]
+- **Version de macOS** : [ex: macOS 14.0]
+- **Version d'HydroBar** : [ex: 1.0]
+- **Architecture** : [ex: Apple Silicon / Intel]
 
-## 📋 Informations Additionnelles
+## 📝 Informations Additionnelles
 
-Ajoutez tout autre contexte sur le problème ici.
+Toute autre information pertinente.

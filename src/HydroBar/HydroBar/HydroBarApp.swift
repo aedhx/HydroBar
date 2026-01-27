@@ -86,16 +86,22 @@ struct MenuBarIconView: View {
     private var pieRingView: some View {
         GeometryReader { geometry in
             ZStack {
+                let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
+                let radius = min(geometry.size.width, geometry.size.height) / 2 - 0.5
+                
                 // Camembert - cercle de fond complet (gris)
                 Circle()
                     .fill(Color(white: 0.5, opacity: 0.2))
                 
+                // Bordure visible quand progress est 0 pour améliorer la visibilité
+                if displayProgress == 0 {
+                    Circle()
+                        .stroke(Color(white: 0.6, opacity: 0.4), lineWidth: 1.5)
+                }
+                
                 // Camembert - partie remplie avec Path
                 if displayProgress > 0 {
                     Path { path in
-                        let center = CGPoint(x: geometry.size.width / 2, y: geometry.size.height / 2)
-                        let radius = min(geometry.size.width, geometry.size.height) / 2
-                        
                         // Commencer au centre
                         path.move(to: center)
                         
@@ -157,9 +163,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
     
     func setupStatusBar() {
+        // La longueur sera ajustée dans updateStatusBarIcon selon le style
         statusItem = NSStatusBar.system.statusItem(withLength: NSStatusItem.variableLength)
         
         guard let button = statusItem?.button else { return }
+        
+        // Configurer le bouton pour un meilleur alignement
+        button.imagePosition = .imageOnly
+        button.imageHugsTitle = true
         
         // Créer la vue SwiftUI pour l'icône avec un hosting controller
         updateStatusBarIcon()
@@ -191,13 +202,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             guard let self = self,
                   let button = self.statusItem?.button else { return }
             
-            // Retirer l'ancienne vue
-            button.subviews.forEach { $0.removeFromSuperview() }
-            
             let manager = HydrationManager.shared
             
             if manager.menuBarIconStyle == .percentage {
                 // Mode pourcentage : utiliser NSImage pour un rendu plus fiable
+                // Retirer les vues SwiftUI
+                button.subviews.forEach { $0.removeFromSuperview() }
+                self.hostingController = nil
+                
+                // Utiliser une longueur variable pour le texte
+                self.statusItem?.length = NSStatusItem.variableLength
+                
                 let percentage = Int((manager.currentMl / manager.targetMl) * 100)
                 let isGoalReached = manager.currentMl >= manager.targetMl
                 
@@ -207,16 +222,26 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                     button.title = ""
                 }
             } else {
-                // Mode pie ring : utiliser SwiftUI
+                // Mode pie ring : utiliser SwiftUI avec longueur fixe pour centrage
                 button.image = nil
                 button.title = ""
                 
+                // Utiliser une longueur fixe pour garantir un centrage correct
+                self.statusItem?.length = 24
+                
+                // Retirer les anciennes vues
+                button.subviews.forEach { $0.removeFromSuperview() }
+                
                 self.hostingController = NSHostingController(rootView: MenuBarIconView(manager: manager))
                 
-                let width: CGFloat = 20
-                let height: CGFloat = 22
+                let iconSize: CGFloat = 18
+                let buttonFrame = button.bounds
                 
-                self.hostingController?.view.frame = NSRect(x: 0, y: 0, width: width, height: height)
+                // Centrer la vue dans le bouton (le bouton a une hauteur standard de ~22px)
+                let xOffset = max(0, (buttonFrame.width - iconSize) / 2)
+                let yOffset = max(0, (buttonFrame.height - iconSize) / 2)
+                
+                self.hostingController?.view.frame = NSRect(x: xOffset, y: yOffset, width: iconSize, height: iconSize)
                 self.hostingController?.view.wantsLayer = true
                 self.hostingController?.view.layer?.backgroundColor = NSColor.clear.cgColor
                 
@@ -304,7 +329,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         if popover.isShown {
             popover.performClose(sender)
         } else {
-            popover.show(relativeTo: sender.bounds, of: sender, preferredEdge: .minY)
+            // Calculer le rectangle relatif centré sur le bouton
+            let buttonBounds = sender.bounds
+            let centerX = buttonBounds.midX
+            let centerRect = NSRect(
+                x: centerX - 1,
+                y: buttonBounds.minY,
+                width: 2,
+                height: buttonBounds.height
+            )
+            popover.show(relativeTo: centerRect, of: sender, preferredEdge: .minY)
         }
     }
     
@@ -368,7 +402,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     @objc func showAbout() {
         let alert = NSAlert()
         alert.messageText = String(localized: "Hydrobar", comment: "App name")
-        alert.informativeText = String(localized: "Hydration tracking app for macOS\nVersion 2.0", comment: "About dialog text")
+        alert.informativeText = String(localized: "Hydration tracking app for macOS\nVersion 1.0\n\nMade by Antoine Deshoux - https://adx.cool", comment: "About dialog text")
         alert.alertStyle = .informational
         alert.addButton(withTitle: String(localized: "OK", comment: "OK button"))
         alert.runModal()

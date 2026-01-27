@@ -503,22 +503,22 @@ struct SettingsView: View {
                 .pickerStyle(.menu)
             }
             
-            // Toggle pour activer le mode debug (tout en bas)
-            Divider()
-                .padding(.vertical, 2)
-            
-            VStack(alignment: .leading, spacing: 8) {
-                Toggle(isOn: $manager.debugModeEnabled) {
-                    HStack {
-                        Image(systemName: "ladybug.fill")
-                            .font(.system(size: 12))
-                            .foregroundColor(.orange)
-                        Text("Debug Mode", comment: "Debug mode toggle label")
-                            .font(.system(size: 13, weight: .regular))
-                    }
-                }
-                .toggleStyle(.switch)
-            }
+            // Toggle pour activer le mode debug (caché pour la distribution)
+            // Divider()
+            //     .padding(.vertical, 2)
+            // 
+            // VStack(alignment: .leading, spacing: 8) {
+            //     Toggle(isOn: $manager.debugModeEnabled) {
+            //         HStack {
+            //             Image(systemName: "ladybug.fill")
+            //                 .font(.system(size: 12))
+            //                 .foregroundColor(.orange)
+            //             Text("Debug Mode", comment: "Debug mode toggle label")
+            //                 .font(.system(size: 13, weight: .regular))
+            //         }
+            //     }
+            //     .toggleStyle(.switch)
+            // }
         }
         .padding(20) // HIG: Padding standard de 20pt pour les fenêtres
         .frame(maxWidth: .infinity, alignment: .leading)

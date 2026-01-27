@@ -60,6 +60,24 @@ Version 1.0
 EOF
 fi
 
+# Chercher et copier l'image PNG du logo/icône (si disponible)
+DMG_LOGO=""
+# Chercher dans plusieurs emplacements et noms possibles
+for location in "$SCRIPT_DIR/HydroBar-icon.png" "$SCRIPT_DIR/logo.png" "$SCRIPT_DIR/icon.png" "$SCRIPT_DIR/dmg-assets/HydroBar-icon.png" "$SCRIPT_DIR/../HydroBar-icon.png"; do
+    if [ -f "$location" ]; then
+        DMG_LOGO="$location"
+        break
+    fi
+done
+
+if [ -n "$DMG_LOGO" ]; then
+    echo "🖼️  Copie de l'image du logo..."
+    cp "$DMG_LOGO" "$DMG_DIR/HydroBar-icon.png"
+    echo "✅ Image du logo ajoutée au DMG"
+else
+    echo "ℹ️  Aucune image de logo trouvée (optionnel)"
+fi
+
 # Chercher l'image de fond du DMG (supporte PNG, JPG, JPEG)
 DMG_BACKGROUND=""
 # Chercher dans plusieurs emplacements et formats
@@ -137,6 +155,12 @@ tell application "Finder"
         end try
         set position of item "$APP_NAME" of container window to {160, 205}
         set position of item "Applications" of container window to {360, 205}
+        try
+            set position of item "HydroBar-icon.png" of container window to {160, 100}
+        end try
+        try
+            set position of item "README.txt" of container window to {360, 100}
+        end try
         close
         open
         update without registering applications
@@ -159,6 +183,12 @@ tell application "Finder"
         set icon size of viewOptions to 72
         set position of item "$APP_NAME" of container window to {160, 205}
         set position of item "Applications" of container window to {360, 205}
+        try
+            set position of item "HydroBar-icon.png" of container window to {160, 100}
+        end try
+        try
+            set position of item "README.txt" of container window to {360, 100}
+        end try
         close
         open
         update without registering applications

@@ -1016,6 +1016,9 @@
         }
       }
     },
+    "Hydration tracking app for macOS\nVersion 1.0\n\nMade by Antoine Deshoux - https://adx.cool" : {
+      "comment" : "About dialog text"
+    },
     "Hydration tracking app for macOS\nVersion 2.0" : {
       "extractionState" : "manual",
       "localizations" : {

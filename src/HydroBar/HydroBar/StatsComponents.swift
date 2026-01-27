@@ -135,22 +135,16 @@ struct WeeklyChartView: View {
                     .cornerRadius(4, style: .continuous)
                     .opacity(selectedDay?.id == entry.id ? 1.0 : 0.8)
                 }
-                
-                // Ligne d'objectif à 100%
-                RuleMark(y: .value("Goal", 1.0))
-                    .lineStyle(StrokeStyle(lineWidth: 1, dash: [5]))
-                    .foregroundStyle(Color.gray.opacity(0.5))
-                    .annotation(position: .trailing, alignment: .center) {
-                        Text("Goal", comment: "Goal line annotation on chart")
-                            .font(.system(size: 10, weight: .medium))
-                            .foregroundColor(.secondary)
-                            .padding(.leading, 4)
-                    }
             }
             .environment(\.locale, Locale(identifier: "fr_FR"))
             .chartXAxis {
                 AxisMarks(values: .stride(by: .day)) { value in
-                    AxisValueLabel(format: .dateTime.weekday(.abbreviated).locale(Locale(identifier: "fr_FR")))
+                    AxisValueLabel {
+                        if let date = value.as(Date.self) {
+                            Text(shortDayName(for: date))
+                                .font(.system(size: 10))
+                        }
+                    }
                     AxisGridLine()
                 }
             }
@@ -188,7 +182,7 @@ struct WeeklyChartView: View {
                         )
                 }
             }
-            .padding(.horizontal, 20)
+            .padding(.horizontal, 16)
             .overlay(alignment: .topTrailing) {
                 if let selected = selectedDay {
                     VStack(alignment: .trailing, spacing: 4) {
@@ -229,6 +223,42 @@ struct WeeklyChartView: View {
         formatter.locale = Locale(identifier: "fr_FR")
         formatter.dateFormat = "EEEE d MMM"
         return formatter.string(from: date).capitalized
+    }
+    
+    private func shortDayName(for date: Date) -> String {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        let dateStart = calendar.startOfDay(for: date)
+        
+        // Si c'est aujourd'hui, afficher "Aj" (2 lettres)
+        if calendar.isDate(dateStart, inSameDayAs: today) {
+            // Utiliser "Aj" pour "Aujourd'hui" ou les 2 premières lettres de "Today"
+            let todayText = String(localized: "Today", comment: "Label for today's date")
+            if todayText.count >= 2 {
+                return String(todayText.prefix(2)).uppercased()
+            }
+            return "Aj"
+        }
+        
+        // Obtenir le numéro du jour de la semaine (1 = dimanche, 2 = lundi, etc.)
+        let weekday = calendar.component(.weekday, from: date)
+        
+        // Mapping selon la locale (français par défaut)
+        let locale = Locale.current
+        let isFrench = locale.language.languageCode?.identifier == "fr" || locale.identifier.hasPrefix("fr")
+        
+        let dayNames: [String]
+        if isFrench {
+            // Français : lu, ma, me, je, ve, sa, di
+            dayNames = ["di", "lu", "ma", "me", "je", "ve", "sa"]
+        } else {
+            // Anglais : Su, Mo, Tu, We, Th, Fr, Sa
+            dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
+        }
+        
+        // weekday: 1 = dimanche, 2 = lundi, ..., 7 = samedi
+        let index = (weekday - 1) % 7
+        return dayNames[index]
     }
 }
 

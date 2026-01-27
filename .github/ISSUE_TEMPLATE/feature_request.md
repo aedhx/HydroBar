@@ -1,27 +1,27 @@
 ---
 name: Feature Request
-about: Proposer une nouvelle fonctionnalité pour HydroBar
+about: Proposer une nouvelle fonctionnalité
 title: '[FEATURE] '
 labels: enhancement
 assignees: ''
 ---
 
-## 🚀 Description de la Fonctionnalité
+## 💡 Description de la Feature
 
-Une description claire et concise de la fonctionnalité que vous souhaitez.
+Une description claire et concise de la fonctionnalité souhaitée.
 
-## 💡 Pourquoi cette fonctionnalité ?
+## 🎯 Problème à Résoudre
 
-Expliquez pourquoi cette fonctionnalité serait utile. Quel problème résout-elle ?
+Quel problème cette feature résout-elle ? (optionnel)
 
-## 🎨 Proposition de Design
+## 💭 Solution Proposée
 
-Si vous avez des idées sur l'interface ou l'implémentation, décrivez-les ici.
+Comment imaginez-vous cette fonctionnalité ?
 
 ## 🔄 Alternatives Considérées
 
-Décrivez les alternatives que vous avez considérées.
+Avez-vous envisagé d'autres solutions ?
 
-## 📋 Informations Additionnelles
+## 📝 Informations Additionnelles
 
-Ajoutez tout autre contexte ou captures d'écran sur la fonctionnalité ici.
+Toute autre information pertinente (mockups, exemples, etc.)

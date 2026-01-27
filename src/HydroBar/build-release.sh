@@ -49,6 +49,20 @@ if [ ! -d "$APP_PATH" ]; then
     exit 1
 fi
 
+# Ad Hoc Signing (optionnel mais recommandé pour réduire certains avertissements)
+echo "🔐 Application de l'ad hoc signing..."
+if command -v codesign &> /dev/null; then
+    # Supprimer d'abord toute signature existante
+    codesign --remove-signature "$APP_PATH" 2>/dev/null || true
+    # Appliquer l'ad hoc signing
+    codesign --force --deep --sign - "$APP_PATH" 2>/dev/null || {
+        echo "⚠️  Ad hoc signing échoué (non bloquant, l'application fonctionnera quand même)"
+    }
+    echo "✅ Ad hoc signing appliqué"
+else
+    echo "ℹ️  codesign non disponible, signature ignorée"
+fi
+
 echo "✅ Build terminé avec succès!"
 echo "📍 Application disponible à: $APP_PATH"
 echo ""

@@ -122,12 +122,12 @@ Temporary Items
 *.ipa
 *.zip
 
-# Keep build scripts but ignore build outputs
+# Build outputs
 src/HydroBar/build/
 src/HydroBar/*.dmg
 
-# Keep DMG in root for releases
-!HydroBar-v1.0.dmg
+# Keep DMG in root for releases (optional - comment out if you don't want to track DMG)
+# !HydroBar-v1.0.dmg
 
 # IDE
 .vscode/
@@ -142,3 +142,14 @@ src/HydroBar/*.dmg
 # Temporary files
 *.tmp
 *.temp
+
+# Cursor IDE
+.cursor/
+
+# Optional: Uncomment if you don't want to track these assets
+# src/HydroBar/DMG-background.png
+# src/HydroBar/HydroBar-icon.png
+
+# Documentation drafts (optional)
+Untitled
+*.pdf
