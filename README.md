@@ -50,6 +50,15 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **System-wide functionality**: works from any application
 - **Intuitive recorder interface** to set your preferred shortcuts
 - **Accessibility permission** required (one-time setup)
+- **Stream Deck compatible**: Use your configured shortcuts with Elgato Stream Deck for one-click hydration tracking
+
+<div align="center">
+
+![Stream Deck Integration](Resources/stream-deck.png)
+
+*Configure your Stream Deck buttons to trigger HydroBar shortcuts for instant water intake logging with a single press.*
+
+</div>
 
 ### 🎨 Modern Interface
 - **Clean, minimal design** following macOS design principles
