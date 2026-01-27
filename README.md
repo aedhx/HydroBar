@@ -1,6 +1,6 @@
-# 💧 HydroBar
-
 <div align="center">
+
+# 💧 HYDROBAR
 
 ![macOS](https://img.shields.io/badge/macOS-12.0+-black?style=for-the-badge&logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange?style=for-the-badge&logo=swift)
@@ -9,6 +9,8 @@
 **Native macOS menu bar app for tracking your daily hydration**
 
 [Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Building](#-building-from-source)
+
+![Hero Banner](Resources/hero-banner.png)
 
 </div>
 
@@ -119,24 +121,24 @@ open HydroBar.xcodeproj
 ## 📸 Screenshots
 
 ### Main View
-The main interface displays your daily hydration progress with an animated circular progress ring showing your current percentage, quick preset buttons (20cl, 50cl, 75cl), and a Hold-to-Add feature for continuous water intake.
+The main interface displays your daily hydration progress with an animated circular progress ring showing your current percentage (68% in this example), quick preset buttons (20cl, 50cl, 75cl), and a Hold-to-Add feature for continuous water intake. The interface shows your current intake (137.5 cl) versus your daily goal (200 cl).
 
-![Main View](https://github.com/aedhx/HydroBar/raw/main/Resources/main-view.png)
+![Main View](Resources/main-view.png)
 
 ### Statistics
-View your hydration data with a weekly bar chart showing your progress over 7 days, and a 30-day heatmap visualizing your consistency. Key metrics include daily average and weekly totals.
+View your hydration data with a weekly bar chart showing your progress over 7 days, and a 30-day heatmap visualizing your consistency. Key metrics include daily average (2.0 L) and weekly totals (14.2 L). The chart uses color coding: green bars indicate goal achievement, blue bars show progress.
 
-![Statistics View](https://github.com/aedhx/HydroBar/raw/main/Resources/statistics-view.png)
+![Statistics View](Resources/statistics-view.png)
 
 ### Settings
-Customize your experience: set daily goals, choose units (ml, cl, L, oz), configure menu bar icon style (Pie Ring or Percentage), set up notifications, assign keyboard shortcuts, and select your preferred language.
+Customize your experience: set daily goals, choose units (ml, cl, L, oz), configure menu bar icon style (Pie Ring or Percentage), set up notifications, assign keyboard shortcuts, and select your preferred language. The settings interface is clean and organized, making it easy to personalize your hydration tracking.
 
-![Settings View](https://github.com/aedhx/HydroBar/raw/main/Resources/settings-view.png)
+![Settings View](Resources/settings-view.png)
 
 ### Notifications
-Smart reminders with customizable intervals. Notifications integrate seamlessly with macOS and respect your Focus Mode settings.
+Smart reminders with customizable intervals. Notifications integrate seamlessly with macOS and respect your Focus Mode settings. The notification displays the app icon and a friendly reminder message to stay hydrated.
 
-![Notifications](https://github.com/aedhx/HydroBar/raw/main/Resources/notifications.png)
+![Notifications](Resources/notifications.png)
 
 ---
 
