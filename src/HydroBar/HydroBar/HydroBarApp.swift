@@ -371,27 +371,68 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
     }
     
+    private static let repositoryURL = URL(string: "https://github.com/aedhx/HydroBar")!
+    
+    private var currentAppVersion: String {
+        (Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String) ?? "1.0"
+    }
+    
     func showContextMenu(for sender: NSStatusBarButton) {
         let menu = NSMenu()
         
-        // Option 1: Ajouter 25cl / 250ml
+        // Version tout en haut (affichage seul)
+        let versionItem = NSMenuItem(title: String(localized: "Version", comment: "Context menu label for app version") + " \(currentAppVersion)", action: nil, keyEquivalent: "")
+        versionItem.isEnabled = false
+        menu.addItem(versionItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        // Ajouter 25cl / 250ml
         let addWaterItem = NSMenuItem(title: String(localized: "Add 25cl / 250ml", comment: "Menu item to add water"), action: #selector(addWater), keyEquivalent: "")
         addWaterItem.target = self
         menu.addItem(addWaterItem)
         
         menu.addItem(NSMenuItem.separator())
         
-        // Option 2: A propos
+        // Sous-menu : Raccourcis clavier configurés
+        let shortcutsTitle = String(localized: "Keyboard Shortcuts", comment: "Context menu submenu for configured shortcuts")
+        let shortcutsItem = NSMenuItem(title: shortcutsTitle, action: nil, keyEquivalent: "")
+        let shortcutsSubmenu = NSMenu()
+        let presetCount = HydrationManager.shared.presetsMl.count
+        for index in 0..<presetCount {
+            let key = "shortcut_preset_\(index)"
+            let presetLabel = String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1)
+            let displayText: String
+            if let data = UserDefaults.standard.data(forKey: key),
+               let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data) {
+                displayText = "\(presetLabel): \(shortcut.displayString)"
+            } else {
+                displayText = "\(presetLabel): —"
+            }
+            let item = NSMenuItem(title: displayText, action: nil, keyEquivalent: "")
+            item.isEnabled = false
+            shortcutsSubmenu.addItem(item)
+        }
+        shortcutsItem.submenu = shortcutsSubmenu
+        menu.addItem(shortcutsItem)
+        
+        // À propos
         let aboutItem = NSMenuItem(title: String(localized: "About", comment: "Menu item for about"), action: #selector(showAbout), keyEquivalent: "")
         aboutItem.target = self
         menu.addItem(aboutItem)
         
-        // Option 3: Quitter
+        // Ouvrir le dépôt (sources)
+        let repoItem = NSMenuItem(title: String(localized: "View Repository", comment: "Menu item to open GitHub repository"), action: #selector(openRepository), keyEquivalent: "")
+        repoItem.target = self
+        menu.addItem(repoItem)
+        
+        menu.addItem(NSMenuItem.separator())
+        
+        // Quitter
         let quitItem = NSMenuItem(title: String(localized: "Quit", comment: "Menu item to quit app"), action: #selector(quitApp), keyEquivalent: "q")
         quitItem.target = self
         menu.addItem(quitItem)
         
-        // Afficher le menu
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height), in: sender)
     }
     
@@ -401,11 +442,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     
     @objc func showAbout() {
         let alert = NSAlert()
-        alert.messageText = String(localized: "Hydrobar", comment: "App name")
-        alert.informativeText = String(localized: "Hydration tracking app for macOS\nVersion 1.0\n\nMade by Antoine Deshoux - https://adx.cool", comment: "About dialog text")
+        alert.messageText = String(localized: "HydroBar", comment: "App name")
+        let versionText = String(format: String(localized: "Hydration tracking app for macOS\nVersion %@\n\nMade by Antoine Deshoux - https://adx.cool", comment: "About dialog text"), currentAppVersion)
+        alert.informativeText = versionText
         alert.alertStyle = .informational
         alert.addButton(withTitle: String(localized: "OK", comment: "OK button"))
         alert.runModal()
+    }
+    
+    @objc func openRepository() {
+        NSWorkspace.shared.open(Self.repositoryURL)
     }
     
     @objc func quitApp() {

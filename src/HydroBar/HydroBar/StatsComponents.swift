@@ -300,7 +300,7 @@ struct MonthlyHeatmapView: View {
                 
                 // Cellules pour chaque jour
                 ForEach(monthlyData) { entry in
-                    heatmapCell(for: entry, colorScheme: colorScheme)
+                    heatmapCell(for: entry, manager: manager, colorScheme: colorScheme)
                 }
             }
             .padding(.horizontal, 20)
@@ -350,10 +350,11 @@ struct MonthlyHeatmapView: View {
         }
     }
     
-    private func heatmapCell(for entry: HistoryEntry, colorScheme: ColorScheme) -> some View {
+    private func heatmapCell(for entry: HistoryEntry, manager: HydrationManager, colorScheme: ColorScheme) -> some View {
         let percentage = entry.targetMl > 0 ? (entry.amountMl / entry.targetMl) : 0
         let color = colorForPercentage(percentage, colorScheme: colorScheme)
         let hasGlow = percentage >= 1.5
+        let tooltipText = heatmapTooltipText(for: entry, manager: manager)
         
         return Rectangle()
             .fill(color)
@@ -364,6 +365,25 @@ struct MonthlyHeatmapView: View {
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 0.5)
             )
+            .help(tooltipText)
+    }
+    
+    private func heatmapTooltipText(for entry: HistoryEntry, manager: HydrationManager) -> String {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        formatter.timeStyle = .none
+        formatter.doesRelativeDateFormatting = false
+        let dateString = formatter.string(from: entry.date)
+        
+        if entry.amountMl <= 0 {
+            return String(format: String(localized: "No activity on %@", comment: "Heatmap tooltip when no hydration"), dateString)
+        }
+        
+        let amountStr = manager.displayValue(for: entry.amountMl)
+        let targetStr = manager.displayValue(for: entry.targetMl)
+        let percentage = entry.targetMl > 0 ? Int(round((entry.amountMl / entry.targetMl) * 100)) : 0
+        
+        return String(format: String(localized: "%@ / %@ (%d%% of goal) on %@", comment: "Heatmap tooltip with amount and date"), amountStr, targetStr, percentage, dateString)
     }
     
     private func colorForPercentage(_ percentage: Double, colorScheme: ColorScheme) -> Color {

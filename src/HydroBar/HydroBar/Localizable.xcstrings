@@ -14,6 +14,17 @@
         }
       }
     },
+    "%@ / %@ (%d%% of goal) on %@" : {
+      "comment" : "Heatmap tooltip with amount and date",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "new",
+            "value" : "%1$@ / %2$@ (%3$d%% of goal) on %4$@"
+          }
+        }
+      }
+    },
     "%lld%%" : {
 
     },
@@ -275,6 +286,12 @@
           }
         }
       }
+    },
+    "Check for Updates" : {
+      "comment" : "Button to check for app updates"
+    },
+    "Checking…" : {
+      "comment" : "Button label while checking for updates"
     },
     "Consistency (30 days)" : {
       "extractionState" : "manual",
@@ -1016,8 +1033,22 @@
         }
       }
     },
-    "Hydration tracking app for macOS\nVersion 1.0\n\nMade by Antoine Deshoux - https://adx.cool" : {
-      "comment" : "About dialog text"
+    "Hydration tracking app for macOS\nVersion %@\n\nMade by Antoine Deshoux - https://adx.cool" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Hydration tracking app for macOS\nVersion %@\n\nMade by Antoine Deshoux - https://adx.cool"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Application de suivi d'hydratation pour macOS\nVersion %@\n\nPar Antoine Deshoux - https://adx.cool"
+          }
+        }
+      }
     },
     "Hydration tracking app for macOS\nVersion 2.0" : {
       "extractionState" : "manual",
@@ -1133,6 +1164,26 @@
           "stringUnit" : {
             "state" : "translated",
             "value" : "Hydrobar"
+          }
+        }
+      }
+    },
+    "HydroBar" : {
+      "comment" : "App name"
+    },
+    "Keyboard Shortcuts" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Keyboard Shortcuts"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Raccourcis clavier"
           }
         }
       }
@@ -1609,6 +1660,9 @@
         }
       }
     },
+    "No activity on %@" : {
+      "comment" : "Heatmap tooltip when no hydration"
+    },
     "None" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -1726,6 +1780,9 @@
           }
         }
       }
+    },
+    "Open Download Page" : {
+      "comment" : "Button to open GitHub release page"
     },
     "Percentage" : {
 
@@ -2784,6 +2841,32 @@
         }
       }
     },
+    "UPDATES" : {
+      "comment" : "Settings section title for updates"
+    },
+    "Version" : {
+      "comment" : "Context menu label for app version\nLabel for current app version"
+    },
+    "Version %@ is available." : {
+      "comment" : "Message when update is available"
+    },
+    "View Repository" : {
+      "extractionState" : "manual",
+      "localizations" : {
+        "en" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "View Repository"
+          }
+        },
+        "fr" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Voir le dépôt"
+          }
+        }
+      }
+    },
     "Weekly Total" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2901,6 +2984,9 @@
           }
         }
       }
+    },
+    "You're up to date." : {
+      "comment" : "Message when no update is available"
     }
   },
   "version" : "1.0"

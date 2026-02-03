@@ -124,6 +124,7 @@ enum NotificationInterval: String, CaseIterable {
 struct SettingsView: View {
     @ObservedObject var manager: HydrationManager
     @Binding var currentView: ViewType
+    @StateObject private var updateChecker = GitHubUpdateChecker()
     @State private var targetValue: String = ""
     @State private var presetValues: [String] = ["", "", ""]
     @State private var customMinutes: String = "60"
@@ -469,6 +470,88 @@ struct SettingsView: View {
                 Divider()
                     .padding(.vertical, 2)
             }
+            
+            // Section Vérification des mises à jour
+            VStack(alignment: .leading, spacing: 8) {
+                Text("UPDATES", comment: "Settings section title for updates")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+                
+                HStack(alignment: .center, spacing: 8) {
+                    Text("Version", comment: "Label for current app version")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                    Text(verbatim: updateChecker.currentAppVersion)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(.primary)
+                    Spacer()
+                }
+                
+                Button(action: { updateChecker.checkForUpdates() }) {
+                    HStack(spacing: 6) {
+                        if updateChecker.isChecking {
+                            ProgressView()
+                                .scaleEffect(0.7)
+                            Text("Checking…", comment: "Button label while checking for updates")
+                        } else {
+                            Image(systemName: "arrow.clockwise")
+                                .font(.system(size: 12))
+                            Text("Check for Updates", comment: "Button to check for app updates")
+                        }
+                    }
+                    .font(.system(size: 13, weight: .medium))
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .background(Color.blue.opacity(0.15))
+                    .foregroundColor(.blue)
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                .disabled(updateChecker.isChecking)
+                
+                if let result = updateChecker.result {
+                    Group {
+                        switch result {
+                        case .upToDate:
+                            HStack(spacing: 6) {
+                                Image(systemName: "checkmark.circle.fill")
+                                    .foregroundColor(.green)
+                                Text("You're up to date.", comment: "Message when no update is available")
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        case .updateAvailable(let version, let url):
+                            VStack(alignment: .leading, spacing: 6) {
+                                HStack(spacing: 6) {
+                                    Image(systemName: "arrow.down.circle.fill")
+                                        .foregroundColor(.blue)
+                                    Text(String(format: String(localized: "Version %@ is available.", comment: "Message when update is available"), version))
+                                        .font(.system(size: 12))
+                                        .foregroundColor(.primary)
+                                }
+                                Button(action: { updateChecker.openUpdateURL(url) }) {
+                                    Text("Open Download Page", comment: "Button to open GitHub release page")
+                                        .font(.system(size: 12, weight: .medium))
+                                }
+                                .buttonStyle(.plain)
+                            }
+                        case .error(let message):
+                            HStack(spacing: 6) {
+                                Image(systemName: "exclamationmark.triangle.fill")
+                                    .foregroundColor(.orange)
+                                Text(message)
+                                    .font(.system(size: 12))
+                                    .foregroundColor(.secondary)
+                            }
+                        }
+                    }
+                    .padding(.top, 4)
+                }
+            }
+            
+            Divider()
+                .padding(.vertical, 2)
             
             // Section Langue (en bas)
             VStack(alignment: .leading, spacing: 8) {

@@ -22,6 +22,82 @@ struct Shortcut: Codable, Equatable {
         self.keyCode = keyCode
         self.modifiers = modifiers
     }
+    
+    /// Formatted string for display (e.g. "⌘ P", "⌘⇧ P")
+    var displayString: String {
+        var parts: [String] = []
+        let modifiers = NSEvent.ModifierFlags(rawValue: UInt(self.modifiers))
+        if modifiers.contains(.control) { parts.append("⌃") }
+        if modifiers.contains(.option) { parts.append("⌥") }
+        if modifiers.contains(.shift) { parts.append("⇧") }
+        if modifiers.contains(.command) { parts.append("⌘") }
+        if let keySymbol = Self.keyCodeToSymbol(keyCode) {
+            parts.append(keySymbol)
+        } else {
+            parts.append("Key(\(keyCode))")
+        }
+        return parts.isEmpty ? "—" : parts.joined(separator: " ")
+    }
+    
+    private static func keyCodeToSymbol(_ keyCode: Int) -> String? {
+        switch keyCode {
+        case VirtualKeyCodes.zero: return "0"
+        case VirtualKeyCodes.one: return "1"
+        case VirtualKeyCodes.two: return "2"
+        case VirtualKeyCodes.three: return "3"
+        case VirtualKeyCodes.four: return "4"
+        case VirtualKeyCodes.five: return "5"
+        case VirtualKeyCodes.six: return "6"
+        case VirtualKeyCodes.seven: return "7"
+        case VirtualKeyCodes.eight: return "8"
+        case VirtualKeyCodes.nine: return "9"
+        case VirtualKeyCodes.a: return "A"
+        case VirtualKeyCodes.b: return "B"
+        case VirtualKeyCodes.c: return "C"
+        case VirtualKeyCodes.d: return "D"
+        case VirtualKeyCodes.e: return "E"
+        case VirtualKeyCodes.f: return "F"
+        case VirtualKeyCodes.g: return "G"
+        case VirtualKeyCodes.h: return "H"
+        case VirtualKeyCodes.i: return "I"
+        case VirtualKeyCodes.j: return "J"
+        case VirtualKeyCodes.k: return "K"
+        case VirtualKeyCodes.l: return "L"
+        case VirtualKeyCodes.m: return "M"
+        case VirtualKeyCodes.n: return "N"
+        case VirtualKeyCodes.o: return "O"
+        case VirtualKeyCodes.p: return "P"
+        case VirtualKeyCodes.q: return "Q"
+        case VirtualKeyCodes.r: return "R"
+        case VirtualKeyCodes.s: return "S"
+        case VirtualKeyCodes.t: return "T"
+        case VirtualKeyCodes.u: return "U"
+        case VirtualKeyCodes.v: return "V"
+        case VirtualKeyCodes.w: return "W"
+        case VirtualKeyCodes.x: return "X"
+        case VirtualKeyCodes.y: return "Y"
+        case VirtualKeyCodes.z: return "Z"
+        case VirtualKeyCodes.space: return "Space"
+        case VirtualKeyCodes.returnKey: return "↩"
+        case VirtualKeyCodes.enter: return "⌤"
+        case VirtualKeyCodes.tab: return "⇥"
+        case VirtualKeyCodes.delete: return "⌫"
+        case VirtualKeyCodes.escape: return "⎋"
+        case VirtualKeyCodes.f1: return "F1"
+        case VirtualKeyCodes.f2: return "F2"
+        case VirtualKeyCodes.f3: return "F3"
+        case VirtualKeyCodes.f4: return "F4"
+        case VirtualKeyCodes.f5: return "F5"
+        case VirtualKeyCodes.f6: return "F6"
+        case VirtualKeyCodes.f7: return "F7"
+        case VirtualKeyCodes.f8: return "F8"
+        case VirtualKeyCodes.f9: return "F9"
+        case VirtualKeyCodes.f10: return "F10"
+        case VirtualKeyCodes.f11: return "F11"
+        case VirtualKeyCodes.f12: return "F12"
+        default: return nil
+        }
+    }
 }
 
 // MARK: - GlobalHotkeyManager
