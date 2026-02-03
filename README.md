@@ -35,7 +35,7 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 ### 📊 Advanced Statistics
 - **Weekly bar chart** showing your progress over the last 7 days
-- **30-day heatmap** visualizing your consistency
+- **30-day heatmap** visualizing your consistency (hover any day to see date and amount, like GitHub’s contribution graph)
 - **Key metrics**: daily average, weekly total, current streak
 - **Color-coded indicators** (green for goal achieved, blue for in progress)
 
@@ -81,10 +81,11 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **Manual language selection** available in settings
 
 ### 🔄 Additional Features
+- **Check for updates** in Settings: compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available
 - **Undo/Redo support** (Cmd+Z) to correct mistakes
 - **Complete history** saved locally on your Mac
-- **Data persistence** across app restarts
-- **Privacy-first**: all data stays on your device, no cloud sync
+- **Data persistence** across app restarts and updates
+- **Privacy-first**: all data stays on your device, no cloud sync (only optional outbound request to GitHub API for update check)
 
 ---
 
@@ -92,7 +93,7 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 ### Method 1: Direct Download (Recommended)
 
-1. Download `HydroBar-v1.0.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
+1. Download `HydroBar-v1.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
 2. Double-click the DMG file to mount it
 3. Drag `HydroBar.app` to your Applications folder
 4. Open Applications and launch HydroBar
@@ -140,7 +141,7 @@ View your hydration data with a weekly bar chart showing your progress over 7 da
 ![Statistics View](Resources/statistics-view.png)
 
 ### Settings
-Customize your experience: set daily goals, choose units (ml, cl, L, oz), configure menu bar icon style (Pie Ring or Percentage), set up notifications, assign keyboard shortcuts, and select your preferred language. The settings interface is clean and organized, making it easy to personalize your hydration tracking.
+Customize your experience: set daily goals, choose units (ml, cl, L, oz), configure menu bar icon style (Pie Ring or Percentage), set up notifications, assign keyboard shortcuts, **check for updates** (compares with GitHub Releases), and select your preferred language. The settings interface is clean and organized, making it easy to personalize your hydration tracking.
 
 ![Settings View](Resources/settings-view.png)
 
@@ -164,7 +165,13 @@ Smart reminders with customizable intervals. Notifications integrate seamlessly 
 ### Menu Bar Icon
 
 - **Click** the icon to open the main popover
-- **Right-click** for quick actions menu
+- **Right-click** for the context menu:
+  - **Version** at the top (current app version)
+  - **Add 25cl / 250ml** quick action
+  - **Keyboard Shortcuts** submenu: view configured shortcuts for each preset
+  - **About** (version and credits)
+  - **View Repository** (open GitHub sources)
+  - **Quit**
 - **Icon styles**: Progress ring (default) or percentage display
 - **Badge indicator**: Red dot appears when reminders are active
 
@@ -172,7 +179,7 @@ Smart reminders with customizable intervals. Notifications integrate seamlessly 
 
 Access detailed statistics by clicking the chart icon in the main view:
 - **Weekly chart**: Bar graph showing daily progress
-- **Monthly heatmap**: Color-coded grid showing 30-day consistency
+- **Monthly heatmap**: Color-coded grid showing 30-day consistency; **hover any day** to see a tooltip with the date and hydration amount (or “No activity”)
 - **Key metrics**: Average daily intake and weekly totals
 
 ---
@@ -235,10 +242,12 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 ### Key Components
 
 - `HydrationManager.swift`: Core business logic, persistence, history management (MVVM ViewModel)
-- `HydroBarApp.swift`: App lifecycle, menu bar setup, notifications
+- `HydroBarApp.swift`: App lifecycle, menu bar setup, context menu, notifications
 - `MainView.swift`: Main interface with progress ring and quick actions
-- `SettingsView.swift`: Configuration and preferences
+- `SettingsView.swift`: Configuration, preferences, and update check (UPDATES section)
 - `StatisticsView.swift`: Weekly and monthly statistics visualization
+- `StatsComponents.swift`: Heatmap with hover tooltips, KPI cards, weekly chart
+- `GitHubUpdateChecker.swift`: Check for new releases via GitHub API
 - `GlobalHotkeyManager.swift`: System-wide keyboard shortcut handling
 - `FocusModeMonitor.swift`: macOS Focus Mode integration
 - `Localizable.xcstrings`: Multi-language support (9 languages)
@@ -248,7 +257,7 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 ## 🔒 Privacy & Security
 
 - ✅ **100% local storage**: All data stays on your Mac
-- ✅ **No internet connection** required
+- ✅ **Optional network use**: Only for “Check for updates” in Settings (GitHub API, no tracking)
 - ✅ **No tracking or analytics**
 - ✅ **Open source**: Code is publicly available for review
 - ✅ **No data collection**: We don't collect any personal information
