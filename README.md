@@ -132,6 +132,10 @@ open HydroBar.xcodeproj
 
 Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: add water with presets (0.3 L, 0.5 L, 1 L) or a custom amount in ml, without leaving your keyboard.
 
+<img width="795" height="494" alt="image" src="https://github.com/user-attachments/assets/023802c0-beb7-4455-90a9-008b13614967" />
+<img width="795" height="494" alt="image" src="https://github.com/user-attachments/assets/023802c0-beb7-4455-90a9-008b13614967" />
+
+
 **Requirements:** HydroBar installed and running in the menu bar, and Raycast.
 
 | Command | Description |
