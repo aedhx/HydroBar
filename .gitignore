@@ -146,6 +146,10 @@ src/HydroBar/*.dmg
 # Cursor IDE
 .cursor/
 
+# Raycast extension
+raycast-hydrobar/node_modules/
+raycast-hydrobar/dist/
+
 # Optional: Uncomment if you don't want to track these assets
 # src/HydroBar/DMG-background.png
 # src/HydroBar/HydroBar-icon.png

@@ -8,7 +8,7 @@
 
 **Native macOS menu bar app for tracking your daily hydration**
 
-[Features](#-features) • [Installation](#-installation) • [Usage](#-usage) • [Building](#-building-from-source)
+[Features](#-features) • [Installation](#-installation) • [Raycast](#raycast-extension) • [Usage](#-usage) • [Building](#-building-from-source)
 
 ![Hero Banner](Resources/hero-banner.png)
 
@@ -125,6 +125,30 @@ open HydroBar.xcodeproj
 - macOS 12.0 (Monterey) or later
 - Xcode 14.0 or later
 - Swift 5.0+
+
+---
+
+## Raycast Extension
+
+Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: add water with presets (0.3 L, 0.5 L, 1 L) or a custom amount in ml, without leaving your keyboard.
+
+**Requirements:** HydroBar installed and running in the menu bar, and Raycast.
+
+| Command | Description |
+|--------|-------------|
+| **Add Water – 0.3 L** | Log preset 1 (e.g. small glass) |
+| **Add Water – 0.5 L** | Log preset 2 |
+| **Add Water – 1 L** | Log preset 3 |
+| **Add Water (Custom)** | Log a custom amount in ml (e.g. 250) |
+
+**Install:**
+
+1. Download `hydrobar-raycast-extension.zip` from the [Releases](https://github.com/aedhx/HydroBar/releases) page (or clone the repo and run `./package-raycast-extension.sh` to create the zip).
+2. Unzip, then in a terminal: `cd raycast-hydrobar && npm install`.
+3. In Raycast: **Settings → Extensions → Add Extension → Add from folder** → select the `raycast-hydrobar` folder.
+4. Run `npm run dev` in the `raycast-hydrobar` folder so the commands appear in Raycast (you can leave this running in the background).
+
+Then search for **HydroBar** or **Add Water** in Raycast to use the commands. See [raycast-hydrobar/README.md](raycast-hydrobar/README.md) for details and troubleshooting.
 
 ---
 
