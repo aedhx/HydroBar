@@ -409,6 +409,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "HydroBar verifies that water intake data has been saved to Apple Health.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "HydroBar writes your water intake to Apple Health to keep your health data in one place.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -440,6 +442,8 @@
 				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_LSUIElement = YES;
+				INFOPLIST_KEY_NSHealthShareUsageDescription = "HydroBar verifies that water intake data has been saved to Apple Health.";
+				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "HydroBar writes your water intake to Apple Health to keep your health data in one place.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
