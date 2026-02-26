@@ -31,7 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   1. App Group entitlement is present on both the main app target and the widget extension target, and the app launches cleanly with a clean build
   2. Every water addition, undo, and midnight reset writes a `HydrationSnapshot` to the shared App Group UserDefaults container, readable from outside the main app process
   3. HealthKit and file read-write entitlements are present and the app passes a sandbox validation check without warnings
-**Plans**: TBD
+**Plans**: Plan 01 complete (entitlements pass — pending human-verify checkpoint)
 
 ### Phase 2: Widgets
 **Goal**: Users can see their hydration progress in three native macOS widget sizes, and each widget updates automatically after every water addition, undo, or daily reset
@@ -62,6 +62,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 0/TBD | Not started | - |
+| 1. Foundation | 1/TBD | In progress | - |
 | 2. Widgets | 0/TBD | Not started | - |
 | 3. HealthKit + Export | 0/TBD | Not started | - |

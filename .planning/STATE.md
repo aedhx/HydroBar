@@ -13,17 +13,17 @@
 ## Current Position
 
 **Phase:** 1 — Foundation
-**Plan:** None started
-**Status:** Not started
+**Plan:** 1 complete (awaiting human-verify checkpoint)
+**Status:** In progress
 
 **Milestone progress:**
 ```
-Phase 1 [          ] Not started
+Phase 1 [##        ] 1/? plans complete
 Phase 2 [          ] Not started
 Phase 3 [          ] Not started
 ```
 
-**Overall v1.2:** 0% complete
+**Overall v1.2:** ~7% complete
 
 ---
 
@@ -36,6 +36,8 @@ Phase 3 [          ] Not started
 | JSON-only export for v1.2 | CSV deferred to v2; JSON covers backup use case without extra complexity |
 | App Group UserDefaults (not file-based sharing) | ~200 bytes per snapshot, no Core Data overhead, atomic writes |
 | All entitlements in a single upfront pass | Prevents compounding signing failures across sessions |
+| HealthKit usage keys via INFOPLIST_KEY_* build settings | Project uses GENERATE_INFOPLIST_FILE = YES; no standalone Info.plist exists |
+| Widget entitlements: App Group only | Widget is read-only consumer — no HealthKit or file access needed |
 
 ## Critical Prerequisites
 
@@ -64,10 +66,10 @@ None currently.
 
 ## Session Continuity
 
-**Last updated:** 2026-02-26
-**Last action:** Roadmap created — 3 phases, 14/14 requirements mapped
+**Last updated:** 2026-02-27
+**Last action:** Completed 01-foundation-01-PLAN.md (entitlements pass) — awaiting human-verify checkpoint
 
-**To resume:** Run `/gsd:plan-phase 1` to plan Foundation phase.
+**To resume:** User approves Xcode build verification, then continue 01-foundation-01 plan (checkpoint approved) or move to next plan.
 
 ---
 
@@ -77,5 +79,7 @@ None currently.
 |--------|-------|
 | Phases defined | 3 |
 | Requirements mapped | 14/14 |
-| Plans written | 0 |
-| Plans complete | 0 |
+| Plans written | 1 |
+| Plans complete | 1 (pending human-verify) |
+| Duration (01-foundation-01) | ~15 min |
+| Files modified (01-foundation-01) | 3 |
