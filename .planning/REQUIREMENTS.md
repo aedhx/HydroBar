@@ -78,26 +78,26 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | — | Pending |
-| INFRA-02 | — | Pending |
-| INFRA-03 | — | Pending |
-| WIDG-01 | — | Pending |
-| WIDG-02 | — | Pending |
-| WIDG-03 | — | Pending |
-| WIDG-04 | — | Pending |
-| HLTH-01 | — | Pending |
-| HLTH-02 | — | Pending |
-| HLTH-03 | — | Pending |
-| HLTH-04 | — | Pending |
-| EXPO-01 | — | Pending |
-| EXPO-02 | — | Pending |
-| EXPO-03 | — | Pending |
+| INFRA-01 | Phase 1 | Pending |
+| INFRA-02 | Phase 1 | Pending |
+| INFRA-03 | Phase 1 | Pending |
+| WIDG-01 | Phase 2 | Pending |
+| WIDG-02 | Phase 2 | Pending |
+| WIDG-03 | Phase 2 | Pending |
+| WIDG-04 | Phase 2 | Pending |
+| HLTH-01 | Phase 3 | Pending |
+| HLTH-02 | Phase 3 | Pending |
+| HLTH-03 | Phase 3 | Pending |
+| HLTH-04 | Phase 3 | Pending |
+| EXPO-01 | Phase 3 | Pending |
+| EXPO-02 | Phase 3 | Pending |
+| EXPO-03 | Phase 3 | Pending |
 
 **Coverage:**
 - v1.2 requirements: 14 total
-- Mapped to phases: 0
-- Unmapped: 14 ⚠️
+- Mapped to phases: 14
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-26*
-*Last updated: 2026-02-26 after initial definition*
+*Last updated: 2026-02-26 after roadmap creation*
