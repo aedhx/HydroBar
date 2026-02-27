@@ -55,7 +55,7 @@
 		3CF515A02F511B2100AD603E /* HydroBarWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HydroBarWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CF515A22F511B2100AD603E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		3CF515A42F511B2100AD603E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
-		7E1A000200000001 /* AppGroupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppGroupStore.swift; sourceTree = "<group>"; };
+		7E1A000200000001 /* AppGroupStore.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = AppGroupStore.swift; path = HydroBarWidget/AppGroupStore.swift; sourceTree = SOURCE_ROOT; };
 		7E79EE3D2F1683FE00D2D070 /* HydroBar.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = HydroBar.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E79EE4E2F1683FF00D2D070 /* HydroBarTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HydroBarTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		7E79EE582F1683FF00D2D070 /* HydroBarUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HydroBarUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -140,6 +140,14 @@
 			name = Frameworks;
 			sourceTree = "<group>";
 		};
+		3CF5165B2F5195FA00AD603E /* Shared */ = {
+			isa = PBXGroup;
+			children = (
+				7E1A000200000001 /* AppGroupStore.swift */,
+			);
+			name = Shared;
+			sourceTree = "<group>";
+		};
 		7E79EE342F1683FE00D2D070 = {
 			isa = PBXGroup;
 			children = (
@@ -149,16 +157,8 @@
 				3CF515A62F511B2100AD603E /* HydroBarWidget */,
 				3CF515A12F511B2100AD603E /* Frameworks */,
 				7E79EE3E2F1683FE00D2D070 /* Products */,
+				3CF5165B2F5195FA00AD603E /* Recovered References */,
 			);
-			sourceTree = "<group>";
-		};
-		7E1A000300000001 /* SharedSources */ = {
-			isa = PBXGroup;
-			children = (
-				7E1A000200000001 /* AppGroupStore.swift */,
-			);
-			name = SharedSources;
-			path = HydroBarWidget;
 			sourceTree = "<group>";
 		};
 		7E79EE3E2F1683FE00D2D070 /* Products */ = {
