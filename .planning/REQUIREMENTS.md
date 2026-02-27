@@ -9,8 +9,8 @@ Requirements for v1.2 release. Each maps to roadmap phases.
 
 ### Infrastructure
 
-- [ ] **INFRA-01**: App Group shared container configured for main app and widget extension
-- [ ] **INFRA-02**: Hydration data (currentMl, targetMl, presets, history) mirrored to shared UserDefaults
+- [x] **INFRA-01**: App Group shared container configured for main app and widget extension
+- [x] **INFRA-02**: Hydration data (currentMl, targetMl, presets, history) mirrored to shared UserDefaults
 - [x] **INFRA-03**: Entitlements updated (App Group, HealthKit, file read-write)
 
 ### Widgets
@@ -78,8 +78,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| INFRA-01 | Phase 1 | Pending |
-| INFRA-02 | Phase 1 | Pending |
+| INFRA-01 | Phase 1 | Complete |
+| INFRA-02 | Phase 1 | Complete |
 | INFRA-03 | Phase 1 | Complete |
 | WIDG-01 | Phase 2 | Pending |
 | WIDG-02 | Phase 2 | Pending |

@@ -17,7 +17,7 @@ HydroBar v1.1 is a complete, shipping macOS menu bar app. v1.2 adds three bounde
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation** - App Group, shared data container, and all entitlements — the prerequisite gate for everything in v1.2
+- [x] **Phase 1: Foundation** - App Group, shared data container, and all entitlements — the prerequisite gate for everything in v1.2 (completed 2026-02-27)
 - [ ] **Phase 2: Widgets** - WidgetKit extension with small, medium, and large widget views, live-refreshing on every water addition
 - [ ] **Phase 3: HealthKit + Export** - HealthKit write integration and JSON data export, both independent of widget work
 
@@ -62,6 +62,6 @@ Phases execute in numeric order: 1 → 2 → 3
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation | 1/TBD | In progress | - |
+| 1. Foundation | 2/2 | Complete   | 2026-02-27 |
 | 2. Widgets | 0/TBD | Not started | - |
 | 3. HealthKit + Export | 0/TBD | Not started | - |
