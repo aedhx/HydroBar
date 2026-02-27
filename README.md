@@ -100,11 +100,22 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 ### Method 1: Direct Download (Recommended)
 
 1. Download `HydroBar-v1.2.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
-2. Double-click the DMG file to mount it
-3. Drag `HydroBar.app` to your Applications folder
-4. Open Applications and launch HydroBar
-5. **First launch**: Right-click on the app > **Open** (required to bypass Gatekeeper security)
-6. Click **"Open"** in the security dialog
+2. Mount the DMG and drag `HydroBar.app` into your Applications folder
+3. **First launch** — macOS may block the app because it is not notarized. Use one of the methods below.
+
+**If macOS says "app is damaged" or "cannot be opened":**
+
+> **Method 1 — Terminal (most reliable):**
+> ```bash
+> xattr -cr /Applications/HydroBar.app
+> ```
+> Then double-click the app normally.
+
+> **Method 2 — System Settings:**
+> Open the app once (it will be blocked), then go to **System Settings → Privacy & Security** → click **Open Anyway**.
+
+> **Method 3 — Right-click:**
+> Right-click `HydroBar.app` → **Open** → **Open** in the dialog.
 
 ### Required Permissions
 
@@ -304,7 +315,11 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 
 ### Gatekeeper Notice
 
-HydroBar is not signed with an Apple Developer certificate (which requires a paid account). On first launch, macOS will show a security warning. This is normal for open-source applications. Simply right-click > Open to proceed.
+HydroBar is not signed with a paid Apple Developer certificate. macOS may show a "damaged" or "cannot be opened" warning. This is expected — run the following command in Terminal to remove the quarantine flag, then open normally:
+
+```bash
+xattr -cr /Applications/HydroBar.app
+```
 
 ---
 
