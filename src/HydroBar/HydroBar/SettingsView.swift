@@ -4,7 +4,6 @@
 //
 //  Created by Antoine DX on 13/01/2026.
 //
-
 import SwiftUI
 import UserNotifications
 
@@ -128,21 +127,19 @@ struct SettingsView: View {
     @State private var targetValue: String = ""
     @State private var presetValues: [String] = ["", "", ""]
     @State private var customMinutes: String = "60"
-    
+    @State private var debugTapCount: Int = 0
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            // Section Style Icône Menu Bar
-            VStack(alignment: .leading, spacing: 8) {
+        ScrollView {
+        VStack(alignment: .leading, spacing: 14) {
+            // Section Style Icône Menu Bar + Unités (groupées)
+            VStack(alignment: .leading, spacing: 6) {
                 Text("MENU BAR ICON STYLE", comment: "Settings section title for menu bar icon style")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                
                 Picker("", selection: Binding(
                     get: { manager.menuBarIconStyle },
-                    set: { newValue in
-                        manager.menuBarIconStyle = newValue
-                    }
+                    set: { manager.menuBarIconStyle = $0 }
                 )) {
                     ForEach(MenuBarIconStyle.allCases, id: \.self) { style in
                         Text(style.rawValue).tag(style)
@@ -151,14 +148,11 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 .frame(maxWidth: .infinity)
             }
-            
-            // Section Unités
-            VStack(alignment: .leading, spacing: 8) {
+
+            VStack(alignment: .leading, spacing: 6) {
                 Text("UNITS", comment: "Settings section title for units")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                
                 Picker("", selection: Binding(
                     get: { manager.selectedUnit },
                     set: { newValue in
@@ -175,12 +169,11 @@ struct SettingsView: View {
             }
             
             // Section Objectif
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("DAILY GOAL", comment: "Settings section title for daily goal")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                
+
                 HStack(spacing: 8) {
                     TextField("", text: $targetValue)
                         .textFieldStyle(.roundedBorder)
@@ -200,12 +193,12 @@ struct SettingsView: View {
             }
             
             // Section Verres Rapides
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("QUICK PRESETS", comment: "Settings section title for quick presets")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                
+
+
                 HStack(spacing: 10) {
                     ForEach(Array(manager.presetsMl.enumerated()), id: \.offset) { index, preset in
                         VStack(spacing: 6) {
@@ -236,6 +229,7 @@ struct SettingsView: View {
                             .textFieldStyle(.roundedBorder)
                             .font(.system(size: 14, weight: .medium))
                             .multilineTextAlignment(.center)
+                            .frame(maxWidth: .infinity)
                             
                             Image(systemName: iconForPreset(at: index))
                                 .font(.system(size: iconSizeForPreset(at: index)))
@@ -246,13 +240,13 @@ struct SettingsView: View {
             }
             
             // Section Raccourcis clavier
-            VStack(alignment: .leading, spacing: 8) {
-                Text("KEYBOARD SHORTCUTS", comment: "Settings section title for keyboard shortcuts")
+            VStack(alignment: .leading, spacing: 6) {
+                Text("Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
-                
-                VStack(alignment: .leading, spacing: 8) {
+
+                VStack(alignment: .leading, spacing: 6) {
                     ForEach(Array(manager.presetsMl.enumerated()), id: \.offset) { index, _ in
                         HStack(alignment: .center, spacing: 12) {
                             Text(String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1))
@@ -269,15 +263,14 @@ struct SettingsView: View {
             }
             
             Divider()
-                .padding(.vertical, 2)
-            
+
             // Section Rappels
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("REMINDERS", comment: "Settings section title for reminders")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                
+
+
                 // Toggle Activer les rappels
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "bell.fill")
@@ -319,7 +312,8 @@ struct SettingsView: View {
                         }
                     }
                     .pickerStyle(.segmented)
-                    
+                    .frame(maxWidth: .infinity)
+
                     // Champ Custom si Perso sélectionné
                     if manager.notificationInterval == .custom {
                         HStack(spacing: 8) {
@@ -404,15 +398,14 @@ struct SettingsView: View {
             }
             
             Divider()
-                .padding(.vertical, 2)
-            
-            // Section Debug (si activée)
+
+            // Section Debug (si activée — accès via 5 taps sur le numéro de version)
             if manager.debugModeEnabled {
-                VStack(alignment: .leading, spacing: 8) {
+                VStack(alignment: .leading, spacing: 6) {
                     Text("DEBUG", comment: "Settings section title for debug")
                         .font(.system(size: 11, weight: .semibold))
                         .foregroundColor(.secondary)
-                        .textCase(.uppercase)
+
                     
                     VStack(alignment: .leading, spacing: 8) {
                         // Bouton pour générer de fausses données
@@ -470,16 +463,14 @@ struct SettingsView: View {
                 }
                 
                 Divider()
-                    .padding(.vertical, 2)
             }
-            
+
             // Section Vérification des mises à jour
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("UPDATES", comment: "Settings section title for updates")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
-                
+
                 HStack(alignment: .center, spacing: 8) {
                     Text("Version", comment: "Label for current app version")
                         .font(.system(size: 13))
@@ -487,7 +478,19 @@ struct SettingsView: View {
                     Text(verbatim: updateChecker.currentAppVersion)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.primary)
+                        .onTapGesture {
+                            debugTapCount += 1
+                            if debugTapCount >= 5 {
+                                debugTapCount = 0
+                                manager.debugModeEnabled.toggle()
+                            }
+                        }
                     Spacer()
+                    if manager.debugModeEnabled {
+                        Image(systemName: "ladybug.fill")
+                            .font(.system(size: 10))
+                            .foregroundColor(.orange)
+                    }
                 }
                 
                 Button(action: { updateChecker.checkForUpdates() }) {
@@ -553,15 +556,35 @@ struct SettingsView: View {
             }
             
             Divider()
-                .padding(.vertical, 2)
-            
+
             // Section Raycast Extension
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("INTEGRATIONS", comment: "Settings section title for integrations")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
 
+
+                // Widget
+                HStack(spacing: 8) {
+                    Image(systemName: "rectangle.on.rectangle")
+                        .font(.system(size: 12))
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text("macOS Widget", comment: "Widget integration label")
+                            .font(.system(size: 13, weight: .medium))
+                        Text("Right-click your desktop → Edit Widgets → HydroBar", comment: "Widget install instructions")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary.opacity(0.8))
+                    }
+                    Spacer()
+                }
+                .frame(maxWidth: .infinity)
+                .padding(.vertical, 8)
+                .padding(.horizontal, 10)
+                .background(Color.blue.opacity(0.08))
+                .foregroundColor(.blue)
+                .cornerRadius(8)
+
+                // Raycast
                 Button(action: {
                     if let url = URL(string: "https://github.com/aedhx/HydroBar/tree/main/raycast-hydrobar") {
                         NSWorkspace.shared.open(url)
@@ -588,14 +611,13 @@ struct SettingsView: View {
             }
 
             Divider()
-                .padding(.vertical, 2)
 
             // Section Langue (en bas)
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: 6) {
                 Text("LANGUAGE", comment: "Settings section title for language")
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
-                    .textCase(.uppercase)
+
                 
                 Picker("", selection: Binding(
                     get: { manager.appLanguage },
@@ -640,14 +662,9 @@ struct SettingsView: View {
             //     .toggleStyle(.switch)
             // }
         }
-        .padding(20) // HIG: Padding standard de 20pt pour les fenêtres
+        .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(.regularMaterial)
-        .cornerRadius(10) // HIG: Rayon de coin standard pour macOS (8-12pt)
-        .overlay(
-            RoundedRectangle(cornerRadius: 10)
-                .stroke(Color(NSColor.separatorColor), lineWidth: 0.5) // HIG: Utiliser separatorColor système
-        )
+        } // ScrollView
         .onAppear {
             // Initialiser presetValues avec la bonne taille
             if presetValues.count < manager.presetsMl.count {

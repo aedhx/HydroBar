@@ -1171,13 +1171,28 @@
     "HydroBar" : {
       "comment" : "App name"
     },
+    "INTEGRATIONS" : {
+      "comment" : "Settings section title for integrations"
+    },
     "Keyboard Shortcuts" : {
       "extractionState" : "manual",
       "localizations" : {
+        "de" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Tastenkürzel"
+          }
+        },
         "en" : {
           "stringUnit" : {
             "state" : "translated",
             "value" : "Keyboard Shortcuts"
+          }
+        },
+        "es" : {
+          "stringUnit" : {
+            "state" : "translated",
+            "value" : "Atajos de teclado"
           }
         },
         "fr" : {
@@ -1185,40 +1200,11 @@
             "state" : "translated",
             "value" : "Raccourcis clavier"
           }
-        }
-      }
-    },
-    "KEYBOARD SHORTCUTS" : {
-      "extractionState" : "manual",
-      "localizations" : {
-        "de" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "TASTENKÜRZEL"
-          }
-        },
-        "en" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "KEYBOARD SHORTCUTS"
-          }
-        },
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ATAJOS DE TECLADO"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "RACCOURCIS CLAVIER"
-          }
         },
         "it" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "SCORCIATOIE DA TASTIERA"
+            "value" : "Scorciatoie da tastiera"
           }
         },
         "ja" : {
@@ -1230,13 +1216,13 @@
         "nl" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "TOETSENBORD SNELTOETSEN"
+            "value" : "Toetsenbord sneltoetsen"
           }
         },
         "pt" : {
           "stringUnit" : {
             "state" : "translated",
-            "value" : "ATALHOS DE TECLADO"
+            "value" : "Atalhos de teclado"
           }
         },
         "zh-Hans" : {
@@ -1423,6 +1409,9 @@
           }
         }
       }
+    },
+    "macOS Widget" : {
+      "comment" : "Widget integration label"
     },
     "MENU BAR ICON STYLE" : {
       "extractionState" : "manual",
@@ -2023,6 +2012,9 @@
         }
       }
     },
+    "Raycast Extension" : {
+      "comment" : "Button to open Raycast extension page"
+    },
     "REMINDERS" : {
       "extractionState" : "manual",
       "localizations" : {
@@ -2199,6 +2191,12 @@
           }
         }
       }
+    },
+    "Right-click desktop → Edit Widgets" : {
+      "comment" : "Widget promo banner subtitle"
+    },
+    "Right-click your desktop → Edit Widgets → HydroBar" : {
+      "comment" : "Widget install instructions"
     },
     "Settings" : {
       "extractionState" : "manual",
@@ -2925,6 +2923,9 @@
           }
         }
       }
+    },
+    "Widget available" : {
+      "comment" : "Widget promo banner title"
     },
     "You're unstoppable!" : {
       "extractionState" : "manual",
