@@ -157,3 +157,6 @@ raycast-hydrobar/dist/
 # Documentation drafts (optional)
 Untitled
 *.pdf
+
+# GSD planning directory
+.planning/
