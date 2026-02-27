@@ -127,8 +127,6 @@ class HydrationManager: ObservableObject {
                 scheduleNotifications()
                 checkReminderStatus()
             }
-            // Notifier le changement pour la synchronisation
-            objectWillChange.send()
         }
     }
     
@@ -162,18 +160,17 @@ class HydrationManager: ObservableObject {
             self.objectWillChange.send()
         }
     }
-    @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing {
-        didSet {
-            // Notifier le changement pour mettre à jour l'icône
-            objectWillChange.send()
-        }
-    }
+    @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing
     
     // MARK: - Published Properties
     @Published var currentMl: Double = 0.0 {
         didSet {
             storedCurrentMl = currentMl
-            saveTodayEntry()
+            // Defer @Published mutations (history, historyEntries) to avoid
+            // "Publishing changes from within view updates" warnings.
+            DispatchQueue.main.async { [weak self] in
+                self?.saveTodayEntry()
+            }
         }
     }
     
@@ -195,15 +192,19 @@ class HydrationManager: ObservableObject {
     // MARK: - Computed Properties
     var targetMl: Double {
         get { storedTargetMl }
-        set { storedTargetMl = newValue }
+        set {
+            storedTargetMl = newValue
+            syncToAppGroup()
+        }
     }
-    
+
     var selectedUnit: AppUnit {
         get {
             AppUnit(rawValue: storedSelectedUnitRaw) ?? .cl
         }
         set {
             storedSelectedUnitRaw = newValue.rawValue
+            syncToAppGroup()
         }
     }
     
@@ -248,11 +249,16 @@ class HydrationManager: ObservableObject {
         
         // Démarrer la surveillance du Focus Mode
         FocusModeMonitor.shared.startMonitoring(manager: self)
-        
+
         // Activer la synchronisation automatique si elle était activée
         if focusModeAutoSync {
             FocusModeMonitor.shared.setAutoSync(true)
         }
+
+        // Apply any water added via widget buttons while the app was closed
+        applyPendingWidgetDelta()
+        // Observe future widget taps while the app is running in background
+        setupAppGroupObserver()
     }
     
     deinit {
@@ -924,6 +930,26 @@ class HydrationManager: ObservableObject {
         }
     }
     
+    // MARK: - Widget → App Sync
+
+    /// Observes the shared App Group UserDefaults for widget button taps.
+    private func setupAppGroupObserver() {
+        NotificationCenter.default.addObserver(
+            forName: UserDefaults.didChangeNotification,
+            object: UserDefaults(suiteName: AppGroupStore.suiteName),
+            queue: .main
+        ) { [weak self] _ in
+            self?.applyPendingWidgetDelta()
+        }
+    }
+
+    /// Consumes ml queued by widget `AddWaterIntent` and applies it to HydrationManager.
+    func applyPendingWidgetDelta() {
+        let delta = AppGroupStore.consumePendingDelta()
+        guard delta > 0 else { return }
+        addWater(amount: delta)
+    }
+
     // MARK: - App Group Sync
 
     /// Writes the current hydration state to the shared App Group container for widget access.
@@ -940,11 +966,17 @@ class HydrationManager: ObservableObject {
         )
         AppGroupStore.write(snapshot)
 
-        // Trigger widget timeline refresh — widget process reads from AppGroupStore
-        // reloadTimelines(ofKind:) is throttled by WidgetKit — call it after every mutation;
-        // WidgetKit will debounce if called too frequently
-        WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
+        // Debounce widget reload: cancel pending reload and schedule a new one 0.5s later.
+        // This prevents hammering WidgetKit 20x/sec during hold-to-add.
+        widgetReloadWorkItem?.cancel()
+        let work = DispatchWorkItem {
+            WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
+        }
+        widgetReloadWorkItem = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
     }
+
+    private var widgetReloadWorkItem: DispatchWorkItem?
 
     /// Builds the last 7 days of HistoryEntrySnapshot values for the widget.
     /// Uses historyEntries (30-day canonical source). Synthesizes today's entry from

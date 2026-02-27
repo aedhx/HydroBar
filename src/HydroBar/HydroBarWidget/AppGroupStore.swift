@@ -16,6 +16,7 @@ struct HydrationSnapshot: Codable {
     let weekHistory: [HistoryEntrySnapshot]
 
     var progress: Double { min(currentMl / max(targetMl, 1.0), 1.0) }
+    var rawProgress: Double { currentMl / max(targetMl, 1.0) }
 
     // Placeholder for widget gallery preview
     static let placeholder = HydrationSnapshot(
@@ -46,6 +47,7 @@ struct AppGroupStore {
     // MARK: - Keys
     private enum Key {
         static let snapshot = "widget_snapshot_v1"
+        static let pendingDelta = "widget_pending_delta_ml"
     }
 
     // MARK: - Write (called by main app only)
@@ -54,6 +56,21 @@ struct AppGroupStore {
     static func write(_ snapshot: HydrationSnapshot) {
         guard let encoded = try? JSONEncoder().encode(snapshot) else { return }
         defaults.set(encoded, forKey: Key.snapshot)
+    }
+
+    // MARK: - Pending Delta (widget → main app sync)
+
+    /// Accumulates ml added via widget buttons. Main app consumes and clears on next activation.
+    static func addPendingDelta(_ ml: Double) {
+        let current = defaults.double(forKey: Key.pendingDelta)
+        defaults.set(current + ml, forKey: Key.pendingDelta)
+    }
+
+    /// Returns accumulated pending ml and clears the value atomically.
+    static func consumePendingDelta() -> Double {
+        let delta = defaults.double(forKey: Key.pendingDelta)
+        if delta != 0 { defaults.removeObject(forKey: Key.pendingDelta) }
+        return delta
     }
 
     // MARK: - Read (called by widget TimelineProvider)

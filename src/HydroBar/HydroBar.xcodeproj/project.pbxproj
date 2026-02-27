@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		3CF515A32F511B2100AD603E /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CF515A22F511B2100AD603E /* WidgetKit.framework */; };
+		3C345AE92F51B4D60011D33B /* WidgetKit.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CF515A22F511B2100AD603E /* WidgetKit.framework */; };
 		3CF515A52F511B2100AD603E /* SwiftUI.framework in Frameworks */ = {isa = PBXBuildFile; fileRef = 3CF515A42F511B2100AD603E /* SwiftUI.framework */; };
 		3CF515B22F511B2400AD603E /* HydroBarWidgetExtension.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 3CF515A02F511B2100AD603E /* HydroBarWidgetExtension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		7E1A000100000001 /* AppGroupStore.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7E1A000200000001 /* AppGroupStore.swift */; };
@@ -52,6 +52,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		3C345AB52F51B4550011D33B /* HydroBarWidgetExtension.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = HydroBarWidgetExtension.entitlements; sourceTree = "<group>"; };
 		3CF515A02F511B2100AD603E /* HydroBarWidgetExtension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = HydroBarWidgetExtension.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 		3CF515A22F511B2100AD603E /* WidgetKit.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = WidgetKit.framework; path = System/Library/Frameworks/WidgetKit.framework; sourceTree = SDKROOT; };
 		3CF515A42F511B2100AD603E /* SwiftUI.framework */ = {isa = PBXFileReference; lastKnownFileType = wrapper.framework; name = SwiftUI.framework; path = System/Library/Frameworks/SwiftUI.framework; sourceTree = SDKROOT; };
@@ -103,7 +104,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				3CF515A52F511B2100AD603E /* SwiftUI.framework in Frameworks */,
-				3CF515A32F511B2100AD603E /* WidgetKit.framework in Frameworks */,
+				3C345AE92F51B4D60011D33B /* WidgetKit.framework in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,13 +152,14 @@
 		7E79EE342F1683FE00D2D070 = {
 			isa = PBXGroup;
 			children = (
+				3C345AB52F51B4550011D33B /* HydroBarWidgetExtension.entitlements */,
 				7E79EE3F2F1683FE00D2D070 /* HydroBar */,
 				7E79EE512F1683FF00D2D070 /* HydroBarTests */,
 				7E79EE5B2F1683FF00D2D070 /* HydroBarUITests */,
 				3CF515A62F511B2100AD603E /* HydroBarWidget */,
 				3CF515A12F511B2100AD603E /* Frameworks */,
 				7E79EE3E2F1683FE00D2D070 /* Products */,
-				3CF5165B2F5195FA00AD603E /* Recovered References */,
+				3CF5165B2F5195FA00AD603E /* Shared */,
 			);
 			sourceTree = "<group>";
 		};
@@ -405,6 +407,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = HydroBarWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -433,9 +436,10 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBar.HydroBarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -450,6 +454,7 @@
 			buildSettings = {
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				ASSETCATALOG_COMPILER_WIDGET_BACKGROUND_COLOR_NAME = WidgetBackground;
+				CODE_SIGN_ENTITLEMENTS = HydroBarWidgetExtension.entitlements;
 				CODE_SIGN_IDENTITY = "Apple Development";
 				"CODE_SIGN_IDENTITY[sdk=macosx*]" = "Apple Development";
 				CODE_SIGN_STYLE = Automatic;
@@ -478,9 +483,10 @@
 					"@executable_path/../../../../Frameworks",
 				);
 				MACOSX_DEPLOYMENT_TARGET = 26.2;
-				MARKETING_VERSION = 1.0;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBar.HydroBarWidget;
 				PRODUCT_NAME = "$(TARGET_NAME)";
+				REGISTER_APP_GROUPS = YES;
 				SKIP_INSTALL = YES;
 				STRING_CATALOG_GENERATE_SYMBOLS = YES;
 				SWIFT_APPROACHABLE_CONCURRENCY = YES;
@@ -639,14 +645,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "HydroBar verifies that water intake data has been saved to Apple Health.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "HydroBar writes your water intake to Apple Health to keep your health data in one place.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -679,14 +683,12 @@
 				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_LSUIElement = YES;
-				INFOPLIST_KEY_NSHealthShareUsageDescription = "HydroBar verifies that water intake data has been saved to Apple Health.";
-				INFOPLIST_KEY_NSHealthUpdateUsageDescription = "HydroBar writes your water intake to Apple Health to keep your health data in one place.";
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/../Frameworks",
 				);
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBar;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				PROVISIONING_PROFILE_SPECIFIER = "";
@@ -705,7 +707,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -723,7 +725,7 @@
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				MACOSX_DEPLOYMENT_TARGET = 15.1;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarTests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -739,7 +741,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;
@@ -755,7 +757,7 @@
 				CURRENT_PROJECT_VERSION = 1;
 				DEAD_CODE_STRIPPING = YES;
 				GENERATE_INFOPLIST_FILE = YES;
-				MARKETING_VERSION = 1.1;
+				MARKETING_VERSION = 1.2;
 				PRODUCT_BUNDLE_IDENTIFIER = com.adxcool.HydroBarUITests;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SWIFT_EMIT_LOC_STRINGS = NO;

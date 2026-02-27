@@ -1,12 +1,74 @@
 //
 //  MainView.swift
 //  HydroBar
-//
+// 
 //  Created by Antoine DX on 13/01/2026.
 //
 
 import SwiftUI
 import AppKit
+
+// MARK: - HoldButton (NSViewRepresentable)
+// Detects mouseDown/mouseUp directly — reliable in menu bar popovers
+// where SwiftUI gestures can be swallowed by the window event chain.
+struct HoldButton: NSViewRepresentable {
+    var label: String
+    var isHolding: Bool
+    var onPress: () -> Void
+    var onRelease: () -> Void
+
+    func makeNSView(context: Context) -> HoldButtonNSView {
+        let view = HoldButtonNSView()
+        view.onPress = onPress
+        view.onRelease = onRelease
+        return view
+    }
+
+    func updateNSView(_ nsView: HoldButtonNSView, context: Context) {
+        nsView.onPress = onPress
+        nsView.onRelease = onRelease
+        nsView.isHolding = isHolding
+        nsView.needsDisplay = true
+    }
+}
+
+class HoldButtonNSView: NSView {
+    var onPress: (() -> Void)?
+    var onRelease: (() -> Void)?
+    var isHolding: Bool = false
+
+    override var acceptsFirstResponder: Bool { true }
+    override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
+
+    override func mouseDown(with event: NSEvent) {
+        onPress?()
+    }
+
+    override func mouseUp(with event: NSEvent) {
+        onRelease?()
+    }
+
+    override func draw(_ dirtyRect: NSRect) {
+        let color = isHolding ? NSColor.systemBlue.withAlphaComponent(0.75) : NSColor.systemBlue
+        let path = NSBezierPath(roundedRect: bounds, xRadius: 8, yRadius: 8)
+        color.setFill()
+        path.fill()
+
+        let label = "Hold to Add"
+        let attrs: [NSAttributedString.Key: Any] = [
+            .font: NSFont.systemFont(ofSize: 14, weight: .medium),
+            .foregroundColor: NSColor.white
+        ]
+        let size = (label as NSString).size(withAttributes: attrs)
+        let rect = NSRect(
+            x: (bounds.width - size.width) / 2,
+            y: (bounds.height - size.height) / 2,
+            width: size.width,
+            height: size.height
+        )
+        (label as NSString).draw(in: rect, withAttributes: attrs)
+    }
+}
 
 enum ViewType {
     case main
@@ -75,6 +137,11 @@ struct MainView: View {
             
             Divider()
             
+            // Bannière widget (one-shot, vue principale uniquement)
+            if currentView == .main {
+                WidgetPromoBanner()
+            }
+
             // Corps - Affichage conditionnel selon la vue
             Group {
                 switch currentView {
@@ -121,13 +188,14 @@ struct MainView: View {
         holdTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
             if isHolding {
                 manager.addWater(amount: 5.0)
-                // Haptic feedback
-                let haptic = NSHapticFeedbackManager.defaultPerformer
-                haptic.perform(.generic, performanceTime: .default)
+                DispatchQueue.main.async {
+                    NSApplication.shared.windows.first(where: { $0.isVisible })?.makeKey()
+                    NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
+                }
             }
         }
     }
-    
+
     private func stopHolding() {
         isHolding = false
         holdTimer?.invalidate()
@@ -163,6 +231,40 @@ struct MainView: View {
             if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
                 appDelegate.updatePopoverSize(height: finalHeight)
             }
+        }
+    }
+}
+
+// MARK: - WidgetPromoBanner
+
+struct WidgetPromoBanner: View {
+    @AppStorage("widgetPromoDismissed") private var dismissed = false
+
+    var body: some View {
+        if !dismissed {
+            HStack(spacing: 10) {
+                Image(systemName: "rectangle.on.rectangle")
+                    .font(.system(size: 13))
+                    .foregroundColor(.blue)
+                VStack(alignment: .leading, spacing: 1) {
+                    Text("Widget available", comment: "Widget promo banner title")
+                        .font(.system(size: 12, weight: .semibold))
+                    Text("Right-click desktop → Edit Widgets", comment: "Widget promo banner subtitle")
+                        .font(.system(size: 10))
+                        .foregroundColor(.secondary)
+                }
+                Spacer()
+                Button(action: { dismissed = true }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+            }
+            .padding(.horizontal, 14)
+            .padding(.vertical, 8)
+            .background(Color.blue.opacity(0.07))
+            .overlay(Rectangle().frame(height: 1).foregroundColor(Color.blue.opacity(0.12)), alignment: .bottom)
         }
     }
 }
@@ -205,27 +307,14 @@ struct MainContentView: View {
             .padding(.horizontal, 20)
             
             // Bouton Hold-to-Add
-            Button(action: {}) {
-                Text("Hold to Add", comment: "Button label for hold-to-add water")
-                    .font(.system(size: 14, weight: .medium))
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding(.vertical, 12)
-                    .background(Color.blue)
-                    .cornerRadius(8)
-            }
-            .buttonStyle(.plain)
-            .simultaneousGesture(
-                DragGesture(minimumDistance: 0)
-                    .onChanged { _ in
-                        if !isHolding {
-                            startHolding()
-                        }
-                    }
-                    .onEnded { _ in
-                        stopHolding()
-                    }
+            HoldButton(
+                label: "Hold to Add",
+                isHolding: isHolding,
+                onPress: { if !isHolding { startHolding() } },
+                onRelease: { stopHolding() }
             )
+            .frame(maxWidth: .infinity)
+            .frame(height: 40)
             .padding(.horizontal, 20)
             
             // Footer - Reset
@@ -260,9 +349,10 @@ struct MainContentView: View {
                 // Ajouter une gorgée sans enregistrer dans undo (on le fera en groupe à la fin)
                 manager.addWater(amount: gulpAmountMl, skipUndo: true)
                 holdTotalAmount += gulpAmountMl
-                // Haptic feedback
-                let haptic = NSHapticFeedbackManager.defaultPerformer
-                haptic.perform(.generic, performanceTime: .default)
+                DispatchQueue.main.async {
+                    NSApplication.shared.windows.first(where: { $0.isVisible })?.makeKey()
+                    NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
+                }
             }
         }
     }
