@@ -149,6 +149,7 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .frame(maxWidth: .infinity)
             }
             
             // Section Unités
@@ -170,6 +171,7 @@ struct SettingsView: View {
                     }
                 }
                 .pickerStyle(.segmented)
+                .frame(maxWidth: .infinity)
             }
             
             // Section Objectif
@@ -553,6 +555,41 @@ struct SettingsView: View {
             Divider()
                 .padding(.vertical, 2)
             
+            // Section Raycast Extension
+            VStack(alignment: .leading, spacing: 8) {
+                Text("INTEGRATIONS", comment: "Settings section title for integrations")
+                    .font(.system(size: 11, weight: .semibold))
+                    .foregroundColor(.secondary)
+                    .textCase(.uppercase)
+
+                Button(action: {
+                    if let url = URL(string: "https://github.com/aedhx/HydroBar/tree/main/raycast-hydrobar") {
+                        NSWorkspace.shared.open(url)
+                    }
+                }) {
+                    HStack(spacing: 8) {
+                        Image(systemName: "bolt.fill")
+                            .font(.system(size: 12))
+                        Text("Raycast Extension", comment: "Button to open Raycast extension page")
+                            .font(.system(size: 13, weight: .medium))
+                        Spacer()
+                        Image(systemName: "arrow.up.right")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding(.vertical, 8)
+                    .padding(.horizontal, 10)
+                    .background(Color.orange.opacity(0.12))
+                    .foregroundColor(.orange)
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+            }
+
+            Divider()
+                .padding(.vertical, 2)
+
             // Section Langue (en bas)
             VStack(alignment: .leading, spacing: 8) {
                 Text("LANGUAGE", comment: "Settings section title for language")
