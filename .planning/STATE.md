@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.2
+milestone_name: milestone
+status: executing
+last_updated: "2026-02-27T09:09:41.318Z"
+progress:
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 2
+  completed_plans: 2
+---
+
 # Project State: HydroBar
 
 ## Project Reference
@@ -13,17 +26,17 @@
 ## Current Position
 
 **Phase:** 1 — Foundation
-**Plan:** 1 complete (awaiting human-verify checkpoint)
+**Plan:** 2 complete (awaiting human-verify checkpoint)
 **Status:** In progress
 
 **Milestone progress:**
 ```
-Phase 1 [##        ] 1/? plans complete
+Phase 1 [####      ] 2/? plans complete
 Phase 2 [          ] Not started
 Phase 3 [          ] Not started
 ```
 
-**Overall v1.2:** ~7% complete
+**Overall v1.2:** ~14% complete
 
 ---
 
@@ -38,6 +51,9 @@ Phase 3 [          ] Not started
 | All entitlements in a single upfront pass | Prevents compounding signing failures across sessions |
 | HealthKit usage keys via INFOPLIST_KEY_* build settings | Project uses GENERATE_INFOPLIST_FILE = YES; no standalone Info.plist exists |
 | Widget entitlements: App Group only | Widget is read-only consumer — no HealthKit or file access needed |
+| Single atomic App Group key (widget_snapshot_v1) | Eliminates partial-state race window during midnight reset or rapid water additions |
+| AppGroupStore.swift in HydroBarWidget/ + explicit PBXBuildFile for main app | PBXFileSystemSynchronizedRootGroup format requires explicit file reference for cross-target sharing |
+| WidgetKit timeline policy .never | HydrationManager is sole trigger via WidgetCenter.reloadTimelines(ofKind: HydroBarWidget) |
 
 ## Critical Prerequisites
 
@@ -66,10 +82,10 @@ None currently.
 
 ## Session Continuity
 
-**Last updated:** 2026-02-27
-**Last action:** Completed 01-foundation-01-PLAN.md (entitlements pass) — awaiting human-verify checkpoint
+**Last updated:** 2026-02-27T09:08:39Z
+**Last action:** Completed 01-foundation-02-PLAN.md (widget data pipeline) — awaiting human-verify checkpoint
 
-**To resume:** User approves Xcode build verification, then continue 01-foundation-01 plan (checkpoint approved) or move to next plan.
+**To resume:** User verifies both targets build (Cmd+B) and App Group container is populated after adding water. Then continue to next plan.
 
 ---
 
@@ -83,3 +99,5 @@ None currently.
 | Plans complete | 1 (pending human-verify) |
 | Duration (01-foundation-01) | ~15 min |
 | Files modified (01-foundation-01) | 3 |
+| Phase 01-foundation P02 | 4 | 3 tasks | 4 files |
+
