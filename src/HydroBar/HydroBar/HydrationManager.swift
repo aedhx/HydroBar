@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import UserNotifications
+import WidgetKit
 
 // MARK: - DailyEntry (legacy, pour compatibilité)
 struct DailyEntry: Codable, Identifiable {
@@ -275,7 +276,10 @@ class HydrationManager: ObservableObject {
                 currentMl = 0.0
                 clearUndoStack() // Vider le stack undo pour le nouveau jour
                 updateLastResetDate()
-                
+
+                // NEW: sync reset state to App Group
+                syncToAppGroup()
+
                 // Notifier le changement
                 DispatchQueue.main.async {
                     self.objectWillChange.send()
@@ -382,17 +386,20 @@ class HydrationManager: ObservableObject {
         }
         
         currentMl += amount
-        
+
         // Mettre à jour la date de dernière consommation d'eau
         updateLastWaterAddedDate()
-        
+
         // Réinitialiser le badge de rappel
         showReminderBadge = false
-        
+
         // Repousser le prochain rappel après avoir ajouté de l'eau
         if notificationsEnabled {
             scheduleNotifications()
         }
+
+        // NEW: sync state to App Group for widget and trigger widget refresh
+        syncToAppGroup()
     }
     
     /// Met à jour la date de dernière consommation d'eau
@@ -417,10 +424,13 @@ class HydrationManager: ObservableObject {
         guard !undoStack.isEmpty else { return false }
         
         let lastAction = undoStack.removeLast()
-        
+
         // Retirer la quantité ajoutée
         currentMl = max(0, currentMl - lastAction.amount)
-        
+
+        // NEW: sync updated state to App Group
+        syncToAppGroup()
+
         return true
     }
     
@@ -914,8 +924,62 @@ class HydrationManager: ObservableObject {
         }
     }
     
+    // MARK: - App Group Sync
+
+    /// Writes the current hydration state to the shared App Group container for widget access.
+    /// Must be called after every state mutation (addWater, undo, daily reset, target change).
+    /// This is a lightweight write (~200 bytes) — safe to call at 20Hz during Hold-to-Add.
+    private func syncToAppGroup() {
+        let last7Days = getLast7DaysSnapshotsForWidget()
+        let snapshot = HydrationSnapshot(
+            currentMl: currentMl,
+            targetMl: targetMl,
+            unit: selectedUnit.rawValue,
+            lastUpdated: Date(),
+            weekHistory: last7Days
+        )
+        AppGroupStore.write(snapshot)
+
+        // Trigger widget timeline refresh — widget process reads from AppGroupStore
+        // reloadTimelines(ofKind:) is throttled by WidgetKit — call it after every mutation;
+        // WidgetKit will debounce if called too frequently
+        WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
+    }
+
+    /// Builds the last 7 days of HistoryEntrySnapshot values for the widget.
+    /// Uses historyEntries (30-day canonical source). Synthesizes today's entry from
+    /// currentMl + targetMl since today's write may not yet be flushed to historyEntries.
+    private func getLast7DaysSnapshotsForWidget() -> [HistoryEntrySnapshot] {
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        var snapshots: [HistoryEntrySnapshot] = []
+
+        for dayOffset in (0..<7).reversed() {
+            guard let date = calendar.date(byAdding: .day, value: -dayOffset, to: today) else { continue }
+
+            if calendar.isDate(date, inSameDayAs: today) {
+                // Today: use live currentMl (not yet in historyEntries)
+                snapshots.append(HistoryEntrySnapshot(
+                    date: date,
+                    amountMl: currentMl,
+                    targetMl: targetMl
+                ))
+            } else if let entry = historyEntries.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
+                snapshots.append(HistoryEntrySnapshot(
+                    date: entry.date,
+                    amountMl: entry.amountMl,
+                    targetMl: entry.targetMl
+                ))
+            }
+            // Days with no recorded data are omitted (widget handles empty weekHistory gracefully)
+        }
+
+        return snapshots
+    }
+
     // MARK: - Debug Functions
-    
+
     /// Génère de fausses données d'historique pour les tests
     func generateFakeHistoryData() {
         let calendar = Calendar.current
