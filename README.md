@@ -26,12 +26,6 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 ## 🎯 Features
 
-### 🟦 macOS Widgets *(new in v1.2)*
-- **Small widget** — progress ring, daily percentage, and 3 quick-add buttons directly from your desktop or Notification Center
-- **Medium widget** — 7-day heatmap + quick-add buttons
-- Real-time sync with the main app
-- Widget buttons work even when the app is closed
-
 ### 💧 Daily Hydration Tracking
 - **Real-time progress ring** with animated visual feedback and gradient colors
 - **Customizable daily goal** (ml, cl, oz, fl oz)
@@ -360,7 +354,7 @@ xattr -cr /Applications/HydroBar.app
 Future improvements planned:
 - [ ] Data export functionality
 - [ ] iCloud sync (optional)
-- [x] Widget support *(v1.2)*
+- [ ] Widget support *(planned v1.3)*
 - [ ] Health app integration
 - [ ] Custom preset amounts
 - [ ] Advanced statistics filters

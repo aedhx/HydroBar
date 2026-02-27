@@ -136,11 +136,6 @@ struct MainView: View {
             .background(.ultraThinMaterial)
             
             Divider()
-            
-            // Bannière widget (one-shot, vue principale uniquement)
-            if currentView == .main {
-                WidgetPromoBanner()
-            }
 
             // Corps - Affichage conditionnel selon la vue
             Group {
@@ -231,40 +226,6 @@ struct MainView: View {
             if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
                 appDelegate.updatePopoverSize(height: finalHeight)
             }
-        }
-    }
-}
-
-// MARK: - WidgetPromoBanner
-
-struct WidgetPromoBanner: View {
-    @AppStorage("widgetPromoDismissed") private var dismissed = false
-
-    var body: some View {
-        if !dismissed {
-            HStack(spacing: 10) {
-                Image(systemName: "rectangle.on.rectangle")
-                    .font(.system(size: 13))
-                    .foregroundColor(.blue)
-                VStack(alignment: .leading, spacing: 1) {
-                    Text("Widget available", comment: "Widget promo banner title")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text("Right-click desktop → Edit Widgets", comment: "Widget promo banner subtitle")
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                }
-                Spacer()
-                Button(action: { dismissed = true }) {
-                    Image(systemName: "xmark")
-                        .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.secondary)
-                }
-                .buttonStyle(.plain)
-            }
-            .padding(.horizontal, 14)
-            .padding(.vertical, 8)
-            .background(Color.blue.opacity(0.07))
-            .overlay(Rectangle().frame(height: 1).foregroundColor(Color.blue.opacity(0.12)), alignment: .bottom)
         }
     }
 }

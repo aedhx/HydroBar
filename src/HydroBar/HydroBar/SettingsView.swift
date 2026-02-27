@@ -564,26 +564,6 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
 
 
-                // Widget
-                HStack(spacing: 8) {
-                    Image(systemName: "rectangle.on.rectangle")
-                        .font(.system(size: 12))
-                    VStack(alignment: .leading, spacing: 1) {
-                        Text("macOS Widget", comment: "Widget integration label")
-                            .font(.system(size: 13, weight: .medium))
-                        Text("Right-click your desktop → Edit Widgets → HydroBar", comment: "Widget install instructions")
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary.opacity(0.8))
-                    }
-                    Spacer()
-                }
-                .frame(maxWidth: .infinity)
-                .padding(.vertical, 8)
-                .padding(.horizontal, 10)
-                .background(Color.blue.opacity(0.08))
-                .foregroundColor(.blue)
-                .cornerRadius(8)
-
                 // Raycast
                 Button(action: {
                     if let url = URL(string: "https://github.com/aedhx/HydroBar/tree/main/raycast-hydrobar") {

@@ -2,16 +2,6 @@
 
 ## What's New
 
-### macOS Widgets
-HydroBar is now available as a native macOS widget on your desktop and in Notification Center.
-
-- **Small widget** — progress ring with daily percentage and 3 quick-add buttons, without opening the app
-- **Medium widget** — 7-day consistency heatmap and quick-add buttons side by side
-- Widget buttons work even when the app is closed — water is synced on next launch
-- Real-time sync: the widget updates instantly when you log water in the app
-
-To add the widget: right-click your desktop → Edit Widgets → HydroBar
-
 ### Haptic Feedback
 The Hold-to-Add button now provides haptic feedback on each sip added.
 
@@ -20,7 +10,6 @@ The Hold-to-Add button now provides haptic feedback on each sip added.
 - Smooth animation on popover open
 
 ### Settings
-- New **Integrations** section grouping the macOS widget and the Raycast extension
 - Segmented pickers (icon style, units) now stretch to full width
 
 ---
@@ -63,7 +52,7 @@ Then double-click the app normally.
 
 ## Compatibility
 
-- **macOS**: 13.0 (Ventura) or later — widgets require macOS 13+
+- **macOS**: 13.0 (Ventura) or later
 - **Architecture**: Universal (Apple Silicon and Intel)
 
 ---
