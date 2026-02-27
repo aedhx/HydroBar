@@ -26,11 +26,17 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 ## 🎯 Features
 
+### 🟦 macOS Widgets *(new in v1.2)*
+- **Small widget** — progress ring, daily percentage, and 3 quick-add buttons directly from your desktop or Notification Center
+- **Medium widget** — 7-day heatmap + quick-add buttons
+- Real-time sync with the main app
+- Widget buttons work even when the app is closed
+
 ### 💧 Daily Hydration Tracking
-- **Real-time progress ring** with animated visual feedback
+- **Real-time progress ring** with animated visual feedback and gradient colors
 - **Customizable daily goal** (ml, cl, oz, fl oz)
 - **Quick preset buttons** for common water amounts
-- **Hold-to-Add mode** for continuous water intake
+- **Hold-to-Add mode** for continuous water intake with haptic feedback
 - **Automatic daily reset** at midnight
 
 ### 📊 Advanced Statistics
@@ -93,7 +99,7 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 ### Method 1: Direct Download (Recommended)
 
-1. Download `HydroBar-v1.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
+1. Download `HydroBar-v1.2.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
 2. Double-click the DMG file to mount it
 3. Drag `HydroBar.app` to your Applications folder
 4. Open Applications and launch HydroBar
@@ -243,15 +249,19 @@ The repository contains only the essential files:
 HydroBar/
 ├── src/
 │   └── HydroBar/
-│       ├── HydroBar/                    # Source code
+│       ├── HydroBar/                    # Main app source
 │       │   ├── *.swift                  # Swift source files
 │       │   ├── Assets.xcassets/         # App icons and assets
 │       │   └── Localizable.xcstrings    # Localization (9 languages)
+│       ├── HydroBarWidget/              # Widget extension
+│       │   ├── HydroBarWidget.swift     # Widget views (Small + Medium)
+│       │   └── AppGroupStore.swift      # Shared data bridge (App Group)
 │       ├── HydroBar.xcodeproj/          # Xcode project
 │       └── HydroBarTests/               # Unit tests
 ├── Resources/                            # Assets for distribution
 │   ├── HydroBar-icon.png                # Application icon
 │   └── DMG-background.png               # DMG background image
+├── build-dmg.sh                          # DMG packaging script
 └── README.md                             # This file
 ```
 
@@ -269,7 +279,7 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 
 ### Key Components
 
-- `HydrationManager.swift`: Core business logic, persistence, history management (MVVM ViewModel)
+- `HydrationManager.swift`: Core business logic, persistence, history management, App Group sync
 - `HydroBarApp.swift`: App lifecycle, menu bar setup, context menu, notifications
 - `MainView.swift`: Main interface with progress ring and quick actions
 - `SettingsView.swift`: Configuration, preferences, and update check (UPDATES section)
@@ -278,6 +288,8 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 - `GitHubUpdateChecker.swift`: Check for new releases via GitHub API
 - `GlobalHotkeyManager.swift`: System-wide keyboard shortcut handling
 - `FocusModeMonitor.swift`: macOS Focus Mode integration
+- `HydroBarWidget/HydroBarWidget.swift`: Widget views (Small + Medium families)
+- `HydroBarWidget/AppGroupStore.swift`: Shared data bridge between app and widget
 - `Localizable.xcstrings`: Multi-language support (9 languages)
 
 ---
@@ -333,7 +345,7 @@ HydroBar is not signed with an Apple Developer certificate (which requires a pai
 Future improvements planned:
 - [ ] Data export functionality
 - [ ] iCloud sync (optional)
-- [ ] Widget support
+- [x] Widget support *(v1.2)*
 - [ ] Health app integration
 - [ ] Custom preset amounts
 - [ ] Advanced statistics filters

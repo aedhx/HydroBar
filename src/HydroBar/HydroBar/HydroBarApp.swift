@@ -92,22 +92,16 @@ struct MenuBarIconView: View {
                 // Camembert - cercle de fond complet (gris)
                 Circle()
                     .fill(Color(white: 0.5, opacity: 0.2))
-                
-                // Bordure visible quand progress est 0 pour améliorer la visibilité
-                if displayProgress == 0 {
-                    Circle()
-                        .stroke(Color(white: 0.6, opacity: 0.4), lineWidth: 1.5)
-                }
-                
+
                 // Camembert - partie remplie avec Path
                 if displayProgress > 0 {
                     Path { path in
                         // Commencer au centre
                         path.move(to: center)
-                        
+
                         // Ligne vers le haut (0°)
                         path.addLine(to: CGPoint(x: center.x, y: center.y - radius))
-                        
+
                         // Arc de cercle pour la partie remplie
                         let endAngle = displayProgress * 360 - 90
                         path.addArc(
@@ -117,12 +111,16 @@ struct MenuBarIconView: View {
                             endAngle: .degrees(endAngle),
                             clockwise: false
                         )
-                        
+
                         // Retour au centre pour fermer le camembert
                         path.closeSubpath()
                     }
                     .fill(isGoalReached ? Color.green : Color.blue)
                 }
+
+                // Bordure toujours visible pour ancrer l'icône sur fond transparent
+                Circle()
+                    .stroke(Color(white: 0.5, opacity: 0.35), lineWidth: 1)
             }
         }
         .frame(width: 18, height: 18)
@@ -145,10 +143,23 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     var hostingController: NSHostingController<MenuBarIconView>?
     
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Demander l'autorisation pour les notifications
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, error in
-            if let error = error {
-                print("Erreur lors de la demande d'autorisation: \(error)")
+        // Demander l'autorisation pour les notifications uniquement si le statut n'a pas encore été déterminé
+        UNUserNotificationCenter.current().getNotificationSettings { settings in
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+                    if !granted {
+                        DispatchQueue.main.async {
+                            HydrationManager.shared.notificationsEnabled = false
+                        }
+                    }
+                }
+            case .denied:
+                DispatchQueue.main.async {
+                    HydrationManager.shared.notificationsEnabled = false
+                }
+            default:
+                break
             }
         }
         
