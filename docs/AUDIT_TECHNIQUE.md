@@ -20,7 +20,7 @@ HydroBar fait ce qu'il promet et l'UI est soignée. Les problèmes se concentren
 3. **Peu de filet de sécurité** : une écriture disque toujours non vérifiée (P3-3),
    et une division non gardée qui pouvait faire crasher l'app depuis les réglages
    (**corrigée**, voir P0-2). La CI existe désormais (P3-2) et fait tourner les
-   29 tests écrits depuis, mais le cœur métier — conversions, séries, reset
+   31 tests écrits depuis, mais le cœur métier — conversions, séries, reset
    quotidien — reste non couvert (P3-1).
 
 Rien n'est irrécupérable — le code est lisible, bien découpé en fichiers, et les
@@ -513,8 +513,14 @@ elle-même.
 
 ### P3-1 — Aucun test
 
-`HydroBarTests/HydroBarTests.swift` contient un `@Test func example()` vide ;
-`HydroBarUITests` contient les deux templates Xcode non modifiés.
+**Partiellement corrigé.** Deux suites réelles existent désormais et passent en CI :
+`DeepLinkParserTests` (18 cas) et `HydrationPaceTests` (13 cas). Le gabarit vide
+`example()` a été retiré. `HydroBarUITests` contient toujours les deux templates
+Xcode non modifiés — ils sont ignorés par la CI, puisque lancer une app `LSUIElement`
+sans fenêtre n'y teste rien.
+
+**Ce qui manque encore**, et c'est l'essentiel : le cœur métier historique reste non
+couvert.
 
 **Ce qui devrait être testé en priorité** (logique pure, sans UI, rapide à couvrir) :
 
@@ -525,12 +531,17 @@ elle-même.
 | `completionRate`, `weeklyTotal`, `dailyAverage` | `:719-826` | calculs affichés en KPI |
 | `isVersionNewer` | `GitHubUpdateChecker.swift:73` | comparaison sémantique (`1.10` vs `1.9`) |
 | Reset quotidien | `:292` | dépend de la date système — à injecter |
-| `DeepLinkRouter` (à venir) | — | parsing + validation, 100 % testable |
+| ~~`DeepLinkParser`~~ ✅ | `DeepLink.swift` | parsing + validation, couvert par 18 cas |
 
 Le principal obstacle : `HydrationManager` est un singleton qui lit `UserDefaults.standard`,
 `FileManager` et `Date()` en dur. Rendre testable = injecter ces trois dépendances
 (un `init(defaults:fileManager:now:)` en plus du `.shared`). Ce n'est pas de la
 sur-ingénierie : c'est ce qui débloque tout le reste.
+
+Les deux suites existantes contournent le problème plutôt qu'elles ne le résolvent :
+`DeepLinkParser` et `HydrationPace` ont été écrits comme des fonctions pures,
+*en dehors* du manager. C'est la bonne approche pour du code neuf, mais elle ne fait
+rien pour le code historique.
 
 **Effort.** ~1 jour pour l'injection + une première suite couvrant les calculs.
 
