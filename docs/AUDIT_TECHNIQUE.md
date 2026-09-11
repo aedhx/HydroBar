@@ -666,9 +666,8 @@ Le README annonce « MIT License - see the LICENSE file » et
 réservés » par défaut — ce qui interdit les contributions que la section
 « Contributing » sollicite, et bloque une soumission au Raycast Store.
 
-**Correctif.** Ajouter `LICENSE` (MIT, 2026, Antoine Deshoux).
-
-**Effort.** 5 min.
+**Correctif.** ✅ **Corrigé** : `LICENSE` (MIT, 2026, Antoine Deshoux) ajouté à la
+racine du dépôt.
 
 ---
 
@@ -719,7 +718,7 @@ réservés » par défaut — ce qui interdit les contributions que la section
 
 | Lot | Contenu | Effort | Pourquoi en premier |
 |---|---|---|---|
-| **1. Colmatage** | ~~P0-2~~, P0-5, P0-6, P3-3, P3-8, P4-1→P4-6 | ~1 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
+| **1. Colmatage** | ~~P0-2~~, P0-5, P0-6, P3-3, ~~P3-8~~, P4-1→P4-6 | ~1 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
 | **2. Deep links** ✅ | ~~P0-1~~ — livré, voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | fait | Rend fonctionnel ce qui est déjà documenté et débloque Raycast, Shortcuts, Stream Deck, Alfred. |
 | **3. Filet de sécurité** | P3-1 (injection + tests), P3-2 (CI), P3-4 (lint) | ~2 j | Prérequis pour refactorer sereinement le lot 4. |
 | **4. Refactor du cœur** | P1-1 (`@Observable`), P1-2, P1-3, P1-4 | ~3 j | Supprime mécaniquement P2-1, P2-4 et la moitié des `DispatchQueue.main.async`. |

@@ -3,6 +3,7 @@
   "name": "hydrobar",
   "title": "HydroBar",
   "description": "Log water intake to HydroBar from Raycast. Requires HydroBar (macOS menu bar app) to be installed and running.",
+  "version": "1.1.0",
   "icon": "icon.png",
   "author": "aedhx",
   "platforms": [
@@ -61,6 +62,20 @@
           "required": true
         }
       ]
+    },
+    {
+      "name": "undo",
+      "title": "Undo Last Water",
+      "subtitle": "HydroBar",
+      "description": "Remove the last entry logged in HydroBar",
+      "mode": "no-view"
+    },
+    {
+      "name": "open-stats",
+      "title": "Open HydroBar Statistics",
+      "subtitle": "HydroBar",
+      "description": "Open HydroBar on the statistics view",
+      "mode": "no-view"
     }
   ]
 }

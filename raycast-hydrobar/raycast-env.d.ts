@@ -21,6 +21,10 @@ declare namespace Preferences {
   export type AddPreset3 = ExtensionPreferences & {}
   /** Preferences accessible in the `add-water` command */
   export type AddWater = ExtensionPreferences & {}
+  /** Preferences accessible in the `undo` command */
+  export type Undo = ExtensionPreferences & {}
+  /** Preferences accessible in the `open-stats` command */
+  export type OpenStats = ExtensionPreferences & {}
 }
 
 declare namespace Arguments {
@@ -35,5 +39,9 @@ declare namespace Arguments {
   /** e.g. 250 */
   "ml": string
 }
+  /** Arguments passed to the `undo` command */
+  export type Undo = {}
+  /** Arguments passed to the `open-stats` command */
+  export type OpenStats = {}
 }
 
