@@ -1,0 +1,118 @@
+name: CI
+
+on:
+  push:
+    branches: ["**"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PROJECT: src/HydroBar/HydroBar.xcodeproj
+  SCHEME: HydroBar
+
+jobs:
+  app:
+    name: Build & test the macOS app
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: |
+          xcodebuild -version
+          xcodebuild -showsdks | grep macosx || true
+
+      # Étape 1 : est-ce que ça compile ?
+      # Signature désactivée : ce runner n'a aucun certificat, et on ne cherche
+      # ici qu'à faire passer le compilateur Swift sur tout le projet.
+      - name: Compile
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath build-compile \
+            CODE_SIGNING_ALLOWED=NO \
+            2>&1 | tee compile.log
+
+      # Étape 2 : les tests unitaires.
+      # Séparée volontairement de la compilation : lancer un bundle de tests dans
+      # une app sandboxée demande une signature (ad-hoc suffit), ce qui est une
+      # source d'échec distincte de « le code ne compile pas ».
+      # HydroBarUITests est ignoré : il ne contient que les gabarits Xcode, et
+      # lancer une app LSUIElement sans fenêtre n'y teste rien.
+      - name: Unit tests
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Debug \
+            -destination 'platform=macOS' \
+            -derivedDataPath build-test \
+            -skip-testing:HydroBarUITests \
+            CODE_SIGN_IDENTITY=- \
+            CODE_SIGN_STYLE=Manual \
+            DEVELOPMENT_TEAM="" \
+            PROVISIONING_PROFILE_SPECIFIER="" \
+            2>&1 | tee test.log
+
+      # Les deux étapes utilisent des dossiers de build distincts : changer les
+      # réglages de signature entre deux invocations invaliderait le cache de
+      # toute façon, et un dossier partagé rendrait les échecs plus difficiles
+      # à interpréter. Les journaux complets sont conservés en artefact.
+      - name: Upload build logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-logs
+          path: |
+            compile.log
+            test.log
+          if-no-files-found: ignore
+          retention-days: 7
+
+  raycast:
+    name: Typecheck the Raycast extension
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: raycast-hydrobar
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: raycast-hydrobar/package-lock.json
+
+      - run: npm ci
+
+      # `ray lint` demande un compte Raycast : hors CI. `tsc` suffit à attraper
+      # ce qui casse réellement — le tsconfig du dépôt est déjà en strict.
+      - run: npx tsc --noEmit
+
+      # Garde-fou : chaque commande déclarée dans package.json doit avoir son
+      # fichier dans src/, et inversement. Une commande orpheline ne se voit
+      # qu'au chargement de l'extension dans Raycast.
+      - name: Commands match their source files
+        run: |
+          node -e "
+            const fs = require('fs');
+            const declared = new Set(require('./package.json').commands.map(c => c.name));
+            const files = new Set(fs.readdirSync('src').filter(f => f.endsWith('.ts')).map(f => f.slice(0, -3)));
+            const missing = [...declared].filter(n => !files.has(n));
+            const orphans = [...files].filter(n => !declared.has(n));
+            if (missing.length) console.error('Commandes sans fichier source :', missing);
+            if (orphans.length) console.error('Fichiers sans commande déclarée :', orphans);
+            process.exit(missing.length || orphans.length ? 1 : 0);
+          "
