@@ -1,6 +1,8 @@
 # Spécification — Deep links `hydrobar://`
 
-> **Statut :** proposition, non implémentée.
+> **Statut : implémentée** (branche `claude/cool-johnson-f4y575`).
+> Code : `HydroBar/DeepLink.swift` (parsing), `HydroBar/DeepLinkRouter.swift`
+> (exécution), `HydroBar/Info.plist` (enregistrement), `HydroBarTests/DeepLinkParserTests.swift`.
 > **Résout :** [AUDIT_TECHNIQUE.md § P0-1](../AUDIT_TECHNIQUE.md#p0-1--le-schéma-durl-hydrobar-nexiste-pas--lextension-raycast-ne-peut-pas-fonctionner)
 > **Débloque :** Raycast (déjà écrit), Shortcuts, Alfred, Stream Deck, BetterTouchTool,
 > Keyboard Maestro, scripts shell, Automator, barres de menu tierces.
@@ -81,8 +83,12 @@ Au succès, HydroBar ouvre l'URL `x-success` en y ajoutant :
 | `added` | `250` |
 
 En cas d'échec, `x-error` est ouvert avec `errorCode` et `errorMessage`
-(voir la table § 5). Si `x-error` est absent, l'erreur est affichée par une
-notification locale de HydroBar — jamais en silence.
+(voir la table § 5). Si `x-error` est absent, l'erreur part dans `os_log`, dans le
+journal consultable en mode debug (§ 4.4), et dans une notification locale — cette
+dernière au mieux, puisqu'elle dépend de l'autorisation de notification.
+
+Un callback est fourni par l'appelant, donc potentiellement hostile : les schémas
+`file`, `data`, `javascript`, `about` et `hydrobar` lui-même (boucle) sont refusés.
 
 ## 4. Sécurité
 
@@ -125,9 +131,10 @@ pas produire une valeur approchée.
 
 ### 4.3 Limitation de débit
 
-Maximum **10 actions d'écriture par seconde**, fenêtre glissante. Au-delà, les
-requêtes sont rejetées avec `rateLimited`. Empêche une page malveillante de saturer
-la journée d'un coup, et protège au passage le chemin de persistance
+Maximum **10 actions par seconde**, fenêtre glissante — `open` comprise, sinon une
+page peut faire clignoter l'app indéfiniment. Au-delà, les requêtes sont rejetées avec
+`rateLimited`. Empêche une page malveillante de saturer la journée d'un coup, et
+protège au passage le chemin de persistance
 (cf. [§ P2-2](../AUDIT_TECHNIQUE.md#p2-2---hold-to-add---20-hz--2-écritures-disque--reprogrammation-des-notifications--sync-widget)).
 
 ### 4.4 Journal des actions
@@ -208,35 +215,32 @@ Le target app utilise `GENERATE_INFOPLIST_FILE = YES` et il n'existe pas de rég
 
 Pour une app `LSUIElement` sans fenêtre, `onOpenURL` de SwiftUI n'est pas fiable :
 il dépend d'une scène active, or la seule scène ici est `Settings { EmptyView() }`
-(`HydroBarApp.swift:28`). Utiliser AppKit.
+(`HydroBarApp.swift:28`). On passe par AppKit, avec **un seul** point d'entrée :
 
 ```swift
 // HydroBarApp.swift — dans AppDelegate
 func application(_ application: NSApplication, open urls: [URL]) {
-    for url in urls {
-        DeepLinkRouter.shared.handle(url)
-    }
+    urls.forEach { DeepLinkRouter.shared.handle($0) }
 }
 ```
 
-Filet de sécurité pour les cas où l'app est lancée *par* l'URL (Apple Event `GURL`
-reçu avant la fin du lancement) :
+> **Pourquoi pas de handler Apple Event `GURL` en plus ?** C'est le motif classique
+> (`NSAppleEventManager.setEventHandler(…, kAEGetURL)`) hérité d'avant
+> `application(_:open:)`. AppKit installe déjà son propre handler `GURL`, qui appelle
+> précisément cette méthode. En poser un second expose à ce que l'URL soit délivrée
+> **deux fois** selon l'ordre d'installation — soit, ici, de l'eau ajoutée en double.
+> Une seule voie, pas de déduplication à écrire.
+
+Le cas « app démarrée *par* l'URL » est couvert autrement : le routeur met les URLs en
+file d'attente tant que la barre de menu n'existe pas, et `markReady()` la vide à la
+fin de `applicationDidFinishLaunching`.
 
 ```swift
-func applicationWillFinishLaunching(_ notification: Notification) {
-    NSAppleEventManager.shared().setEventHandler(
-        self,
-        andSelector: #selector(handleGetURLEvent(_:withReplyEvent:)),
-        forEventClass: AEEventClass(kInternetEventClass),
-        andEventID: AEEventID(kAEGetURL)
-    )
-}
-
-@objc private func handleGetURLEvent(_ event: NSAppleEventDescriptor,
-                                     withReplyEvent reply: NSAppleEventDescriptor) {
-    guard let string = event.paramDescriptor(forKeyword: keyDirectObject)?.stringValue,
-          let url = URL(string: string) else { return }
-    DeepLinkRouter.shared.handle(url)
+func markReady() {
+    isReady = true
+    let queued = pendingURLs
+    pendingURLs.removeAll()
+    queued.forEach(handle)
 }
 ```
 
@@ -289,10 +293,11 @@ final class DeepLinkRouter {
 
 Pour une action réussie hors `silent=1` :
 
-- l'icône de la barre de menu effectue une animation courte (pulse) ;
-- le son de confirmation existant est joué (`GlobalHotkeyManager.playFeedbackSound()`
-  — au passage, remplacer `NSSound.beep()` par un son moins agressif) ;
-- si le popover est ouvert, il se met à jour immédiatement.
+- un son court est joué (`NSSound(named: "Pop")`) ;
+- si le popover est ouvert, il se met à jour immédiatement ;
+- *(reporté)* une animation courte de l'icône : elle suppose d'abord de corriger
+  [P2-1](../AUDIT_TECHNIQUE.md#p2-1--licône-de-la-barre-de-menu-est-reconstruite-deux-fois-par-seconde),
+  l'icône étant aujourd'hui reconstruite deux fois par seconde.
 
 Aucune notification système pour un succès : ce serait intrusif pour une action que
 l'utilisateur vient de déclencher lui-même.
@@ -365,12 +370,17 @@ Une fois le schéma en place, `raycast-hydrobar` peut être amélioré :
 |---|---|---|
 | 1 | `Info.plist` + `CFBundleURLTypes` + vérif `lsregister` | 30 min |
 | 2 | `DeepLinkParser` (fonction pure) + tests unitaires | 2 h |
-| 3 | `DeepLinkRouter` + branchement `AppDelegate` + Apple Event | 1 h 30 |
+| 3 | `DeepLinkRouter` + branchement `AppDelegate` | 1 h 30 |
 | 4 | Confirmation des actions destructives + rate limiter | 1 h |
 | 5 | `x-callback-url` (succès / erreur) | 1 h |
-| 6 | Retour visuel + sonore | 1 h |
+| 6 | Retour sonore (le pulse de l'icône est reporté : il suppose P2-1 corrigé) | 1 h |
 | 7 | Mise à jour de l'extension Raycast | 1 h |
 | 8 | Documentation (README app + README Raycast) | 30 min |
 
 **Total : ~1 journée.** Les étapes 1 à 3 seules (~4 h) suffisent déjà à rendre
 l'extension Raycast fonctionnelle.
+
+> **Fait.** Étapes 1 à 5, 7 et 8. Étape 6 : le son est en place
+> (`NSSound(named: "Pop")`, sauf `silent=1`) ; l'animation de l'icône est reportée,
+> elle demande d'abord de corriger
+> [P2-1](../AUDIT_TECHNIQUE.md#p2-1--licône-de-la-barre-de-menu-est-reconstruite-deux-fois-par-seconde).

@@ -80,6 +80,26 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **Automatic language detection** based on system settings
 - **Manual language selection** available in settings
 
+### 🔗 Deep Links & Automation
+
+HydroBar registers the `hydrobar://` URL scheme, so any tool that can open a URL can
+log water — Raycast, Alfred, Shortcuts, Stream Deck, Keyboard Maestro, Automator, or a
+plain `open` in Terminal:
+
+```bash
+open "hydrobar://add?ml=250"       # add 250 ml (also ?cl= ?l= ?oz=)
+open "hydrobar://add?preset=1"     # add your first configured preset
+open "hydrobar://undo"             # undo the last entry
+open "hydrobar://open/stats"       # open the popover on Statistics
+```
+
+Destructive actions (`reset`, `set-goal`) require an explicit `confirm=1` **and** a
+confirmation in the app, because any web page can open a URL scheme. Amounts are
+validated and rejected if out of range, and calls are rate limited.
+
+Full grammar, security model, error codes and `x-callback-url` support:
+[docs/specs/DEEP_LINKS.md](docs/specs/DEEP_LINKS.md).
+
 ### 🔄 Additional Features
 - **Check for updates** in Settings: compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available
 - **Undo/Redo support** (Cmd+Z) to correct mistakes
@@ -362,6 +382,7 @@ xattr -cr /Applications/HydroBar.app
 ## 🛣️ Roadmap
 
 Future improvements planned:
+- [x] Deep links / URL scheme *(v1.3)*
 - [ ] Data export functionality
 - [ ] iCloud sync (optional)
 - [ ] Widget support *(planned v1.3)*

@@ -5,8 +5,13 @@
   "description": "Log water intake to HydroBar from Raycast. Requires HydroBar (macOS menu bar app) to be installed and running.",
   "icon": "icon.png",
   "author": "aedhx",
-  "platforms": ["macOS"],
-  "categories": ["Health", "Productivity"],
+  "platforms": [
+    "macOS"
+  ],
+  "categories": [
+    "Health",
+    "Productivity"
+  ],
   "license": "MIT",
   "dependencies": {
     "@raycast/api": "^1.69.0"
@@ -23,23 +28,23 @@
   "commands": [
     {
       "name": "add-preset-1",
-      "title": "Add Water – 0.3 L",
+      "title": "Add Water – Preset 1",
       "subtitle": "HydroBar",
-      "description": "Log 0.3 L (verre rapide)",
+      "description": "Log your first HydroBar preset",
       "mode": "no-view"
     },
     {
       "name": "add-preset-2",
-      "title": "Add Water – 0.5 L",
+      "title": "Add Water – Preset 2",
       "subtitle": "HydroBar",
-      "description": "Log 0.5 L (verre rapide)",
+      "description": "Log your second HydroBar preset",
       "mode": "no-view"
     },
     {
       "name": "add-preset-3",
-      "title": "Add Water – 1 L",
+      "title": "Add Water – Preset 3",
       "subtitle": "HydroBar",
-      "description": "Log 1 L (verre rapide)",
+      "description": "Log your third HydroBar preset",
       "mode": "no-view"
     },
     {

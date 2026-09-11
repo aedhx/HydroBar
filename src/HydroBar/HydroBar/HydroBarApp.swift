@@ -137,11 +137,37 @@ struct MenuBarIconView: View {
 }
 
 // MARK: - AppDelegate pour gérer les notifications et le status bar
-class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate {
+class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDelegate, DeepLinkPresenting {
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var hostingController: NSHostingController<MenuBarIconView>?
     
+    // MARK: - Deep links (hydrobar://)
+
+    /// Le presenter est branché avant la fin du lancement : l'app peut être démarrée
+    /// *par* une URL, et AppKit délivre alors l'URL très tôt.
+    func applicationWillFinishLaunching(_ notification: Notification) {
+        DeepLinkRouter.shared.presenter = self
+    }
+
+    /// Unique point d'entrée des `hydrobar://`. On ne pose volontairement PAS de
+    /// handler Apple Event `GURL` en plus : AppKit en installe déjà un qui appelle
+    /// cette méthode, et en ajouter un second risque de délivrer l'URL deux fois —
+    /// donc d'ajouter l'eau en double. Les URLs arrivées avant que la barre de menu
+    /// n'existe sont mises en attente par le routeur jusqu'à `markReady()`.
+    func application(_ application: NSApplication, open urls: [URL]) {
+        urls.forEach { DeepLinkRouter.shared.handle($0) }
+    }
+
+    func presentPopover(showing view: ViewType) {
+        AppNavigation.shared.requestView(view)
+        guard let button = statusItem?.button, let popover = popover else { return }
+        NSApp.activate()
+        if !popover.isShown {
+            togglePopover(for: button)
+        }
+    }
+
     func applicationDidFinishLaunching(_ notification: Notification) {
         // Demander l'autorisation pour les notifications uniquement si le statut n'a pas encore été déterminé
         UNUserNotificationCenter.current().getNotificationSettings { settings in
@@ -171,6 +197,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         // Créer le status item
         setupStatusBar()
+
+        // La barre de menu existe : les deep links reçus pendant le lancement
+        // peuvent maintenant être traités.
+        DeepLinkRouter.shared.markReady()
     }
     
     func setupStatusBar() {
@@ -224,8 +254,9 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 // Utiliser une longueur variable pour le texte
                 self.statusItem?.length = NSStatusItem.variableLength
                 
-                let percentage = Int((manager.currentMl / manager.targetMl) * 100)
-                let isGoalReached = manager.currentMl >= manager.targetMl
+                let target = manager.targetMl
+                let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
+                let isGoalReached = target > 0 && manager.currentMl >= target
                 
                 if let image = self.createPercentageImage(percentage: percentage, isGoalReached: isGoalReached, showBadge: manager.showReminderBadge) {
                     button.image = image
