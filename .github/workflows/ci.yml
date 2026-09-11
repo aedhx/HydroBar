@@ -66,6 +66,9 @@ jobs:
 
       # Un avertissement Swift est un futur bug ou du code mort. Sans ce résumé
       # ils se noient dans ~2 800 lignes de journal et personne ne les lit.
+      # Écrit à la fois dans le résumé du job (lisible sur le web) et sur la
+      # sortie standard : le résumé seul est invisible depuis les logs, donc
+      # depuis la ligne de commande et depuis un agent.
       - name: Warning summary
         if: always()
         run: |
@@ -78,7 +81,7 @@ jobs:
               grep "warning:" compile.log | sed 's|/Users/runner/work/HydroBar/HydroBar/||' | sort -u | head -40
               echo '```'
             fi
-          } >> "$GITHUB_STEP_SUMMARY"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
 
       # Les deux étapes utilisent des dossiers de build distincts : changer les
       # réglages de signature entre deux invocations invaliderait le cache de
