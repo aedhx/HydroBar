@@ -17,9 +17,11 @@ HydroBar fait ce qu'il promet et l'UI est soignée. Les problèmes se concentren
    d'un `ObservableObject`, où il ne publie rien. Toute l'app compense avec des timers
    de rafraîchissement et des `objectWillChange.send()` manuels. C'est la cause racine
    de la moitié des points de performance ci-dessous.
-3. **Aucun filet de sécurité** : 0 test réel, 0 CI, une écriture disque non vérifiée,
+3. **Peu de filet de sécurité** : une écriture disque toujours non vérifiée (P3-3),
    et une division non gardée qui pouvait faire crasher l'app depuis les réglages
-   (**corrigée**, voir P0-2).
+   (**corrigée**, voir P0-2). La CI existe désormais (P3-2) et fait tourner les
+   29 tests écrits depuis, mais le cœur métier — conversions, séries, reset
+   quotidien — reste non couvert (P3-1).
 
 Rien n'est irrécupérable — le code est lisible, bien découpé en fichiers, et les
 correctifs P0 représentent environ une journée de travail.
@@ -201,11 +203,12 @@ macOS 13+.
 dès 15.1. Incohérence de packaging : l'extension embarquée dans le bundle est
 ignorée par les systèmes plus anciens.
 
-**Correctif.** Aligner sur la cible de l'app (`15.1`), ou assumer explicitement une
-cible plus haute pour le widget et le documenter. Vérifier au passage que le README
-(« Requirements ») dit la vérité.
+**Correctif.** ✅ **Corrigé** : les deux configurations du widget passent à `15.1`.
+Son code n'utilise rien au-delà de `.containerBackground(_:for:)` (macOS 14+), donc
+la cible 26.2 était un simple défaut d'Xcode au moment où la cible a été créée.
 
-**Effort.** ~15 min.
+C'était aussi un **bloquant pour la CI** : aucun runner GitHub ne peut construire une
+cible dont le déploiement minimum dépasse son SDK.
 
 ---
 
@@ -538,13 +541,24 @@ sur-ingénierie : c'est ce qui débloque tout le reste.
 Pas de `.github/workflows`. Chaque release dépend d'un `./build-dmg.sh` lancé à la main
 sur une machine de dev.
 
-**Minimum utile** (`.github/workflows/ci.yml` sur `macos-15`) :
-- `xcodebuild build` + `xcodebuild test` sur chaque PR ;
-- `swiftlint` (voir P3-4) ;
-- `npm run lint` sur `raycast-hydrobar/` ;
-- un job `release` déclenché sur tag `v*` qui produit le DMG et le ZIP.
+**Correctif.** ✅ **Corrigé** : `.github/workflows/ci.yml`, deux jobs.
 
-**Effort.** ~3 h.
+| Job | Contenu |
+|---|---|
+| `app` (macOS) | `xcodebuild build` sans signature — la question « est-ce que ça compile ? » isolée de tout le reste — puis `xcodebuild test` en signature ad-hoc, `HydroBarUITests` ignoré (il ne contient que les gabarits Xcode). Journaux complets en artefact. |
+| `raycast` (Linux) | `npm ci` + `tsc --noEmit`, et une vérification que chaque commande déclarée dans `package.json` a bien son fichier dans `src/`. |
+
+Deux choix à noter :
+
+- **Compilation et tests sont deux étapes séparées**, avec des dossiers de build
+  distincts. Faire tourner un bundle de tests dans une app sandboxée demande une
+  signature : c'est une cause d'échec entièrement différente de « le code ne compile
+  pas », et les confondre rendrait chaque échec ambigu.
+- **`ray lint` n'est pas utilisé** : il demande un compte Raycast. `tsc` en mode
+  strict attrape ce qui casse réellement.
+
+**Reste à faire** : `swiftlint` (P3-4, pas encore configuré) et un job `release` sur
+tag `v*` produisant le DMG et le ZIP.
 
 ---
 
@@ -718,9 +732,9 @@ racine du dépôt.
 
 | Lot | Contenu | Effort | Pourquoi en premier |
 |---|---|---|---|
-| **1. Colmatage** | ~~P0-2~~, P0-5, P0-6, P3-3, ~~P3-8~~, P4-1→P4-6 | ~1 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
+| **1. Colmatage** | ~~P0-2~~, P0-5, ~~P0-6~~, P3-3, ~~P3-8~~, P4-1→P4-6 | ~0,5 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
 | **2. Deep links** ✅ | ~~P0-1~~ — livré, voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | fait | Rend fonctionnel ce qui est déjà documenté et débloque Raycast, Shortcuts, Stream Deck, Alfred. |
-| **3. Filet de sécurité** | P3-1 (injection + tests), P3-2 (CI), P3-4 (lint) | ~2 j | Prérequis pour refactorer sereinement le lot 4. |
+| **3. Filet de sécurité** | P3-1 (injection + tests), ~~P3-2~~ (CI ✅), P3-4 (lint) | ~1,5 j | Prérequis pour refactorer sereinement le lot 4. |
 | **4. Refactor du cœur** | P1-1 (`@Observable`), P1-2, P1-3, P1-4 | ~3 j | Supprime mécaniquement P2-1, P2-4 et la moitié des `DispatchQueue.main.async`. |
 | **5. Perf et finitions** | P2-2, P2-3, P2-5, P1-7, P3-5 | ~2 j | Confort et consommation. |
 | **6. Widget et distribution** | P0-3, P0-4, P3-6, P3-7 | ~2 j | Débloque la v1.3 (widget) et supprime l'écran « app endommagée ». |
