@@ -16,6 +16,8 @@ Control [HydroBar](https://github.com/aedhx/HydroBar) (macOS menu bar hydration 
 | **Add Water – Preset 2** | Log your second preset amount |
 | **Add Water – Preset 3** | Log your third preset amount |
 | **Add Water (Custom)** | Log a custom amount in ml, between 1 and 5000 |
+| **Undo Last Water** | Remove the last entry logged in HydroBar |
+| **Open HydroBar Statistics** | Open HydroBar directly on the statistics view |
 
 The preset commands log whatever amount is configured in HydroBar's settings — change a preset in the app and the Raycast command follows it.
 
@@ -49,9 +51,15 @@ The extension opens URLs that HydroBar handles:
 
 The older 0-based path form (`hydrobar://add/preset/0`) is still accepted by the app.
 
-The scheme also supports `hydrobar://undo`, `hydrobar://open/stats`, and unit
-parameters (`?cl=25`, `?l=0.25`, `?oz=8`). Destructive actions (`reset`, `set-goal`)
-require an explicit `confirm=1` and a confirmation in the app.
+Plus `hydrobar://undo` and `hydrobar://open/stats`, used by the two commands above.
+
+The scheme also accepts other unit parameters (`?cl=25`, `?l=0.25`, `?oz=8`).
+Destructive actions (`reset`, `set-goal`) require an explicit `confirm=1` and a
+confirmation in the app, so they are deliberately **not** exposed as Raycast commands.
+
+A URL scheme is one-way: it cannot return a value. So the toasts here confirm that the
+request was sent, not that it succeeded — if HydroBar rejects a link (nothing to undo,
+amount out of range), it reports that itself with a local notification.
 
 Full grammar, security model and error codes:
 [docs/specs/DEEP_LINKS.md](https://github.com/aedhx/HydroBar/blob/main/docs/specs/DEEP_LINKS.md).

@@ -355,14 +355,14 @@ Une fois le schéma en place, `raycast-hydrobar` peut être amélioré :
 1. **Distinguer les erreurs réelles.** Aujourd'hui, tous les échecs affichent
    « HydroBar not running? » (`src/add-water.ts:18-24`), même quand l'app tourne. Avec
    `x-error`, le toast peut dire ce qui s'est vraiment passé.
-2. **Presets dynamiques.** Les commandes sont figées sur « 0.3 L / 0.5 L / 1 L »
-   (`package.json`) alors que l'app expose 200/500/750 ml par défaut et que
-   l'utilisateur peut les changer. Utiliser `hydrobar://add?preset=N` et libeller les
-   commandes « Preset 1/2/3 », sans quantité codée en dur.
+2. **Presets dynamiques.** ✅ Fait : les commandes utilisent `hydrobar://add?preset=N`
+   et sont libellées « Preset 1/2/3 », sans quantité codée en dur. Deux commandes
+   ajoutées au passage : `Undo Last Water` et `Open HydroBar Statistics`.
 3. **Commande « Status ».** Nécessite un canal de lecture — c'est le rôle des App
    Intents (roadmap F2), pas du schéma d'URL (§ 4.5).
-4. **Publication sur le Raycast Store**, qui exige un `LICENSE`
-   (cf. [§ P3-8](../AUDIT_TECHNIQUE.md#p3-8--fichier-license-absent)).
+4. **Publication sur le Raycast Store** — le `LICENSE` manquant qui la bloquait est
+   désormais en place (cf. [§ P3-8](../AUDIT_TECHNIQUE.md#p3-8--fichier-license-absent)).
+   Restent les métadonnées et captures d'écran attendues par le Store.
 
 ## 9. Découpage proposé
 

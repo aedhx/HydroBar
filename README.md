@@ -161,17 +161,20 @@ open HydroBar.xcodeproj
 
 ## Raycast Extension
 
-Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: add water with presets (0.3 L, 0.5 L, 1 L) or a custom amount in ml, without leaving your keyboard.
+Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: log a preset or a custom amount, undo, or jump to your statistics — without leaving your keyboard.
 
-
-**Requirements:** HydroBar installed and running in the menu bar, and Raycast.
+**Requirements:** Raycast, and HydroBar 1.3 or later (earlier versions do not register the `hydrobar://` scheme). HydroBar does not need to be running: macOS launches it on demand.
 
 | Command | Description |
 |--------|-------------|
-| **Add Water – 0.3 L** | Log preset 1 (e.g. small glass) |
-| **Add Water – 0.5 L** | Log preset 2 |
-| **Add Water – 1 L** | Log preset 3 |
-| **Add Water (Custom)** | Log a custom amount in ml (e.g. 250) |
+| **Add Water – Preset 1** | Log your first preset |
+| **Add Water – Preset 2** | Log your second preset |
+| **Add Water – Preset 3** | Log your third preset |
+| **Add Water (Custom)** | Log a custom amount in ml, between 1 and 5000 |
+| **Undo Last Water** | Remove the last entry |
+| **Open HydroBar Statistics** | Open HydroBar on the statistics view |
+
+The preset commands follow whatever amounts you configure in HydroBar — change a preset in Settings and the Raycast command follows it.
 
 <img width="831" height="530" alt="Raycast - Hydrobar" src="https://github.com/user-attachments/assets/68d8ed4d-19c7-4065-b13f-109b759b1686" />
 
