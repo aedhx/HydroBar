@@ -125,6 +125,7 @@ struct SettingsView: View {
     @Binding var currentView: ViewType
     @StateObject private var updateChecker = GitHubUpdateChecker()
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
+    @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
     @State private var targetValue: String = ""
     @State private var presetValues: [String] = ["", "", ""]
     @State private var customMinutes: String = "60"
@@ -133,6 +134,8 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 14) {
+            generalSection
+
             // Section Style Icône Menu Bar + Unités (groupées)
             VStack(alignment: .leading, spacing: 6) {
                 Text("MENU BAR ICON STYLE", comment: "Settings section title for menu bar icon style")
@@ -192,7 +195,9 @@ struct SettingsView: View {
                         .frame(width: 35, alignment: .leading)
                 }
             }
-            
+
+            activeHoursSection
+
             // Section Verres Rapides
             VStack(alignment: .leading, spacing: 6) {
                 Text("QUICK PRESETS", comment: "Settings section title for quick presets")
@@ -702,6 +707,10 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         } // ScrollView
         .onAppear {
+            // La source de vérité du lancement au démarrage est le système :
+            // l'utilisateur a pu le changer dans Réglages Système entre-temps.
+            launchAtLogin.refresh()
+
             // Initialiser presetValues avec la bonne taille
             if presetValues.count < manager.presetsMl.count {
                 presetValues = Array(repeating: "", count: manager.presetsMl.count)
@@ -713,6 +722,125 @@ struct SettingsView: View {
         }
     }
     
+    // MARK: - Sections extraites
+    // Sorties du `body` pour limiter la complexité que le type-checker SwiftUI
+    // doit résoudre d'un bloc : ce fichier dépasse les 800 lignes.
+
+    private var generalSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("GENERAL", comment: "Settings section title for general options")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.secondary)
+
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "power")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+
+                Text("Launch at login", comment: "Toggle label for launching the app at login")
+                    .font(.system(size: 13))
+
+                Spacer()
+
+                Toggle("", isOn: Binding(
+                    get: { launchAtLogin.isEnabled },
+                    set: { launchAtLogin.setEnabled($0) }
+                ))
+                .toggleStyle(.switch)
+                .labelsHidden()
+            }
+
+            // macOS 13+ : l'app est enregistrée mais ne démarrera pas tant que
+            // l'utilisateur n'a pas validé l'élément d'ouverture.
+            if launchAtLogin.needsApproval {
+                Button(action: { launchAtLogin.openLoginItemsSettings() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.orange)
+                        Text("Approval needed in System Settings", comment: "Warning when the login item awaits user approval")
+                            .font(.system(size: 11))
+                            .underline()
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 28)
+            }
+
+            // Un échec silencieux serait pire que l'absence de la fonctionnalité :
+            // l'utilisateur croirait l'option active.
+            if let failure = launchAtLogin.failureMessage {
+                Text(failure)
+                    .font(.system(size: 11))
+                    .foregroundColor(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 28)
+            }
+        }
+    }
+
+    private var activeHoursSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("ACTIVE HOURS", comment: "Settings section title for active hours")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 8) {
+                Picker("", selection: Binding(
+                    get: { manager.activeHoursStart },
+                    set: { newValue in
+                        manager.activeHoursStart = newValue
+                        // La plage ne doit jamais passer minuit : la journée est
+                        // remise à zéro à 0 h, une plage à cheval porterait sur
+                        // deux journées de données différentes.
+                        if manager.activeHoursEnd <= newValue {
+                            manager.activeHoursEnd = min(newValue + 1, 24)
+                        }
+                    }
+                )) {
+                    ForEach(HydrationPace.selectableStartHours, id: \.self) { hour in
+                        Text(verbatim: hourLabel(hour)).tag(hour)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 90)
+
+                Text("to", comment: "Separator between start and end hour")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+
+                Picker("", selection: Binding(
+                    get: { manager.activeHoursEnd },
+                    set: { manager.activeHoursEnd = $0 }
+                )) {
+                    ForEach(HydrationPace.selectableEndHours.filter { $0 > manager.activeHoursStart }, id: \.self) { hour in
+                        Text(verbatim: hourLabel(hour)).tag(hour)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 90)
+
+                Spacer(minLength: 0)
+            }
+
+            Text("Used by the pace marker on the ring: it shows where you should be at this time of day.", comment: "Explanation for the active hours setting")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Heure formatée selon la locale (« 8 AM » ou « 08:00 » selon la région).
+    private func hourLabel(_ hour: Int) -> String {
+        // 24 = minuit de fin de journée, affiché comme 0 h.
+        let normalized = hour == 24 ? 0 : hour
+        guard let date = Calendar.current.date(bySettingHour: normalized, minute: 0, second: 0, of: Date()) else {
+            return String(format: "%02d:00", normalized)
+        }
+        return date.formatted(.dateTime.hour().minute())
+    }
+
     private func formatPresetValue(_ preset: Double) -> String {
         let unit = manager.selectedUnit
         let value = unit.fromMl(preset)

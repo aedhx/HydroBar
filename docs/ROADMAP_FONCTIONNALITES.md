@@ -16,15 +16,15 @@
 |---|---|---|---|---|
 | **F1** | **Deep links `hydrobar://`** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
 | **F2** | **App Intents / Shortcuts** | ⭐⭐⭐⭐⭐ | 2 j | F1 (validation partagée) |
-| **F3** | **Lancement au démarrage** | ⭐⭐⭐⭐⭐ | 2 h | — |
-| **F18** | **Repère d'allure sur l'anneau** | ⭐⭐⭐⭐ | 4 h | — |
+| **F3** | **Lancement au démarrage** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
+| **F18** | **Repère d'allure sur l'anneau** ✅ livré | ⭐⭐⭐⭐ | — | — |
 | **F4** | Export des données (CSV / JSON) | ⭐⭐⭐⭐ | 1 j | F5 |
 | **F5** | Journal d'événements + historique illimité | ⭐⭐⭐⭐ | 2 j | P1-2 |
 | **F17** | Journal du jour + suppression à l'unité | ⭐⭐⭐⭐ | 1 j | F5 |
 | **F6** | Rappels intelligents | ⭐⭐⭐⭐ | 2 j | P0-3, F5 |
 | **F7** | Accessibilité (VoiceOver, contrastes) | ⭐⭐⭐⭐ | 1,5 j | — |
 | **F8** | Onboarding au premier lancement | ⭐⭐⭐ | 1,5 j | — |
-| **F19** | Snooze des rappels | ⭐⭐⭐ | 4 h | — |
+| **F19** | Snooze des rappels | ⭐⭐⭐ | 3 h | — (plage horaire déjà faite) |
 | **F20** | Raccourcis globaux au-delà des presets | ⭐⭐⭐ | 4 h | — |
 | **F9** | Types de boissons | ⭐⭐⭐ | 2 j | F5 |
 | **F10** | Widget + contrôles Control Center | ⭐⭐⭐ | 1 j | P0-6 |
@@ -101,7 +101,7 @@ double comptage comme celui déjà latent dans
 
 ---
 
-## F3 — Lancement au démarrage ⭐⭐⭐⭐⭐
+## F3 — Lancement au démarrage ⭐⭐⭐⭐⭐ — ✅ livré
 
 **Fonctionnalité de base manquante.** Aucune trace de `ServiceManagement` ou de
 `SMAppService` dans le code. Une app de barre de menu qu'il faut relancer à la main
@@ -128,11 +128,24 @@ var launchAtLogin: Bool {
 `.requiresApproval` (macOS 13+ : l'utilisateur doit valider dans Réglages Système →
 Ouverture) en affichant un lien vers le bon panneau.
 
-**2 heures pour la fonctionnalité la plus structurante de cette liste après F1.**
+Implémenté dans `HydroBar/LaunchAtLogin.swift`, avec un interrupteur dans une
+nouvelle section « General » des réglages.
+
+Deux choix qui méritent d'être notés :
+
+- **Aucune préférence n'est stockée.** La source de vérité est le système : on relit
+  `SMAppService.mainApp.status` à l'ouverture des réglages, parce que l'utilisateur
+  peut désactiver l'élément d'ouverture dans Réglages Système sans passer par l'app.
+  Mémoriser un booléen de notre côté garantirait de mentir tôt ou tard.
+- **Les échecs sont visibles.** `register()` échoue régulièrement en développement
+  (app lancée depuis DerivedData, signature absente) ; le message système est affiché
+  sous l'interrupteur. Le statut `.requiresApproval` de macOS 13+ a son propre message
+  et un lien vers le bon panneau des Réglages Système — sans ça, l'app est enregistrée,
+  ne démarre pas, et rien ne l'explique.
 
 ---
 
-## F18 — Repère d'allure sur l'anneau ⭐⭐⭐⭐
+## F18 — Repère d'allure sur l'anneau ⭐⭐⭐⭐ — ✅ livré
 
 **Le meilleur rapport valeur / effort de cette liste après F3.**
 
@@ -147,12 +160,28 @@ change la lecture du seul écran que l'utilisateur regarde vraiment :
 - en retard → le remplissage s'arrête avant le repère, et c'est actionnable ;
 - dans les temps → le remplissage dépasse le repère, même à 15 %.
 
-L'allure attendue se calcule à partir de la plage horaire active de F19 (par ex. 8 h →
-20 h) : `attendu = objectif × (temps écoulé dans la plage / durée de la plage)`. Hors
-plage, pas de repère. Aucune nouvelle donnée à stocker.
+L'allure attendue se calcule à partir d'une plage horaire active (8 h → 22 h par
+défaut, réglable) : `attendu = objectif × (temps écoulé dans la plage / durée de la
+plage)`. Aucune nouvelle donnée n'est stockée.
 
-À faire proprement : le repère doit aussi être annoncé par VoiceOver (F7) et ne pas
-reposer uniquement sur la couleur.
+Implémenté dans `HydroBar/HydrationPace.swift` (calcul pur, 14 tests) et
+`HydroBar/ProgressRingView.swift` (repère + légende). Ce qui a été décidé en chemin :
+
+- **Avant l'ouverture de la plage, pas de repère du tout** — pas un repère à 0 %.
+  À 6 h du matin, rien n'est encore attendu ; afficher une graduation serait du bruit.
+  Après la fermeture, le repère est à 100 %.
+- **Le repère est une forme, pas une couleur** : une graduation qui traverse la bande
+  de l'anneau. Il reste lisible en cas de daltonisme comme en niveaux de gris — le
+  reproche exact que F7 adresse à l'anneau actuel, bleu → vert.
+- **VoiceOver annonce l'ensemble d'un bloc** (`accessibilityElement(children: .ignore)`) :
+  pourcentage, quantités et allure en une phrase, au lieu de quatre fragments
+  décousus. C'est une partie de F7 prise au passage.
+- **Les plages qui passent minuit sont refusées**, dans l'UI comme dans le calcul :
+  la journée d'hydratation est remise à zéro à 0 h, une plage 22 h → 6 h porterait
+  donc sur deux journées de données différentes.
+
+La plage horaire ainsi introduite est la moitié du travail de F19 (silence hors
+heures actives), qui passe de 4 h à ~3 h.
 
 ---
 
@@ -185,7 +214,7 @@ dans deux fichiers JSON réécrits intégralement à chaque ajout (voir
 Toute l'information intra-journalière est perdue.
 
 Or elle est **déjà collectée** : `undoStack` est un `[(amount, timestamp)]`
-(`HydrationManager.swift:193`), alimenté à chaque `addWater`. Le `timestamp` y est
+(`HydrationManager.swift:204`), alimenté à chaque `addWater`. Le `timestamp` y est
 écrit puis jamais lu — `undo()` ne se sert que d'`amount`. L'app jette donc à chaque
 fois exactement la donnée qui lui manque partout ailleurs.
 
@@ -209,7 +238,7 @@ S'y ajoutent les bénéfices déjà listés : écritures incrémentales et trans
 (fin du risque de JSON tronqué, cf.
 [P3-3](AUDIT_TECHNIQUE.md#p3-3--écritures-disque-non-atomiques-et-échecs-silencieux)),
 et un historique complet au lieu du plafond actuel à 30 jours — qui **détruit** les
-données au-delà (`HydrationManager.swift:600`) au lieu de les archiver.
+données au-delà (`HydrationManager.swift:611`) au lieu de les archiver.
 
 ### Précautions
 
@@ -231,7 +260,7 @@ seconde migration.
 Aujourd'hui, l'utilisateur ne peut pas voir ce qu'il a enregistré. Les seules
 corrections possibles sont ⌘Z (dernière entrée seulement) ou « Reset my day », qui
 efface toute la journée **sans confirmation** et vide en plus la pile d'undo
-(`HydrationManager.swift:469`). Impossible de supprimer la prise de 14 h en gardant le
+(`HydrationManager.swift:480`). Impossible de supprimer la prise de 14 h en gardant le
 reste, ni même de vérifier qu'on a bien compté le verre de midi.
 
 Une liste dans le popover suffit :
@@ -243,7 +272,7 @@ Une liste dans le popover suffit :
 ```
 
 **Ce qui rend ça facile :** `undoStack` stocke déjà `(amount, timestamp)`
-(`HydrationManager.swift:193`) — l'horodatage y est écrit à chaque ajout et **n'est
+(`HydrationManager.swift:204`) — l'horodatage y est écrit à chaque ajout et **n'est
 jamais lu**. Il ne manque que la persistance (F5) pour que la liste survive au
 redémarrage, et un `remove(entry:)` sur le manager.
 
@@ -507,10 +536,10 @@ journée passée est figée.
 ## Séquencement suggéré
 
 **v1.3 — « Ça marche enfin »** (~1 semaine)
-~~`F1`~~ ✅ + `F3` + `F18` + lot 1 de l'audit (~~P0-2~~, P0-5, P0-6, P3-3, ~~P3-8~~,
-code mort).
+~~`F1`~~ ✅ + ~~`F3`~~ ✅ + ~~`F18`~~ ✅ + lot 1 de l'audit (~~P0-2~~, P0-5, P0-6,
+P3-3, ~~P3-8~~, code mort).
 → L'intégration Raycast fonctionne, l'app démarre toute seule, l'anneau cesse de
-mentir le matin. Aucune fonctionnalité visible n'est promise sans être livrée.
+mentir le matin. **Reste** : P0-5, P0-6, P3-3 (écritures atomiques) et le code mort.
 
 **v1.4 — « Automatisable »** (~1 semaine)
 `F2` + `F20` + lots 3 et 4 de l'audit (tests, CI, refactor `@Observable`).

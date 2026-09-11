@@ -162,6 +162,17 @@ class HydrationManager: ObservableObject {
             objectWillChange.send()
         }
     }
+
+    // MARK: - Plage horaire active
+    // Sert au repère d'allure de l'anneau, et servira à borner les rappels (F19).
+
+    @AppStorage("activeHoursStart") var activeHoursStart: Int = HydrationPace.defaultStartHour {
+        didSet { objectWillChange.send() }
+    }
+
+    @AppStorage("activeHoursEnd") var activeHoursEnd: Int = HydrationPace.defaultEndHour {
+        didSet { objectWillChange.send() }
+    }
     
     /// Met à jour la langue de l'application
     private func updateAppLanguage() {
@@ -784,6 +795,23 @@ class HydrationManager: ObservableObject {
         return streak
     }
     
+    // MARK: - Allure
+
+    /// Fraction de l'objectif attendue à cet instant, au prorata de la plage active.
+    /// `nil` avant le début de la plage : rien n'est encore attendu.
+    var expectedProgress: Double? {
+        HydrationPace.expectedFraction(at: Date(),
+                                       startHour: activeHoursStart,
+                                       endHour: activeHoursEnd)
+    }
+
+    /// Quantité manquante, en ml, pour être dans les temps. `nil` si à jour ou hors plage.
+    var paceDeficitMl: Double? {
+        HydrationPace.deficitMl(currentMl: currentMl,
+                                targetMl: targetMl,
+                                expectedFraction: expectedProgress)
+    }
+
     /// Pourcentage global de réussite sur les 30 derniers jours
     var completionRate: Double {
         let calendar = Calendar.current

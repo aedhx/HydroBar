@@ -14,8 +14,9 @@
    erronés ou sans impact à la vérification du `.pbxproj`, et sont conservés barrés
    plutôt qu'effacés pour que la correction reste traçable. Restent **P0-3**
    (Focus Mode sans autorisation) et **P0-6** (cible macOS du widget).
-3. **La roadmap** part de F3 (lancement au démarrage, ~2 h) et F18 (repère d'allure,
-   ~4 h) : les deux meilleurs rapports valeur / effort encore ouverts.
+3. **La roadmap** : F1, F3 et F18 sont livrées. Les meilleurs rapports valeur /
+   effort encore ouverts sont F19 (snooze, ~3 h) et F20 (raccourcis globaux, ~4 h) ;
+   F2 (App Intents) est le prochain gros morceau.
 
 ## Conventions
 
