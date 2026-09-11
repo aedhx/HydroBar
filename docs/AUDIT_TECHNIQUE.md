@@ -9,24 +9,30 @@
 HydroBar fait ce qu'il promet et l'UI est soignée. Les problèmes se concentrent sur
 **trois axes** :
 
-1. **Trois fonctionnalités documentées ne fonctionnent pas** (deep links / Raycast,
-   synchronisation Focus Mode, partage de données app ↔ widget). Elles échouent en
-   silence — aucune erreur visible, ce qui les rend difficiles à détecter.
+1. **Des fonctionnalités documentées ne fonctionnent pas**, et échouent en silence —
+   aucune erreur visible, ce qui les rend difficiles à détecter : les deep links
+   `hydrobar://` sur lesquels repose toute l'extension Raycast (**corrigé**, voir
+   P0-1) et la synchronisation Focus Mode (P0-3, toujours ouvert).
 2. **Le modèle de données n'est pas réactif.** `@AppStorage` est utilisé à l'intérieur
    d'un `ObservableObject`, où il ne publie rien. Toute l'app compense avec des timers
    de rafraîchissement et des `objectWillChange.send()` manuels. C'est la cause racine
    de la moitié des points de performance ci-dessous.
 3. **Aucun filet de sécurité** : 0 test réel, 0 CI, une écriture disque non vérifiée,
-   et une division non gardée qui peut faire crasher l'app depuis les réglages.
+   et une division non gardée qui pouvait faire crasher l'app depuis les réglages
+   (**corrigée**, voir P0-2).
 
 Rien n'est irrécupérable — le code est lisible, bien découpé en fichiers, et les
 correctifs P0 représentent environ une journée de travail.
+
+> **Suivi.** P0-1 et P0-2 sont corrigés. P0-4 et P0-5 se sont révélés erronés ou
+> sans impact à la vérification du `.pbxproj` : le détail est conservé ci-dessous
+> plutôt qu'effacé, pour que la correction soit traçable.
 
 ### Tableau de bord
 
 | Sévérité | Nb | Thème dominant |
 |---|---|---|
-| **P0 — Bloquant** | 6 | Fonctionnalités mortes, crash potentiel |
+| **P0 — Bloquant** | 6 (2 corrigés, 2 invalidés) | Fonctionnalités mortes, crash potentiel |
 | **P1 — Architecture** | 7 | Réactivité, source de vérité, encapsulation |
 | **P2 — Performance** | 5 | Timers, I/O disque, reconstruction de vues |
 | **P3 — Qualité / outillage** | 8 | Tests, CI, i18n, distribution |
@@ -50,11 +56,10 @@ l'envoie sur une fausse piste (l'app *est* lancée — elle n'est juste pas enre
 comme handler). Toute l'intégration Raycast mise en avant dans le README et dans les
 réglages (`SettingsView.swift:576`) est non fonctionnelle.
 
-**Correctif.** Voir la spécification complète : [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md).
-Résumé : déclarer `CFBundleURLTypes`, implémenter `application(_:open:)` dans
-`AppDelegate`, router vers un `DeepLinkRouter` testable.
-
-**Effort.** ~3 h (dont la sécurité et les tests).
+**Correctif.** ✅ **Corrigé.** `HydroBar/Info.plist` déclare `CFBundleURLTypes`,
+`AppDelegate` implémente `application(_:open:)` + un handler Apple Event `GURL`, et
+`DeepLinkParser` / `DeepLinkRouter` séparent parsing (pur, testé) et exécution.
+Voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md).
 
 ---
 
@@ -85,11 +90,13 @@ let target = manager.targetMl
 let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
 ```
 
-Et surtout, valider à la source (voir P1-4) : borner l'objectif à un intervalle
-raisonnable (par ex. 200 ml – 10 000 ml) et ne committer la valeur qu'à la validation
-du champ, pas à chaque frappe.
+✅ **Corrigé** dans `HydroBarApp.swift` : la division est gardée et `isGoalReached`
+aussi. `HydrationLimits.goal` (200 – 10 000 ml) existe désormais dans
+`DeepLink.swift` et borne déjà les deep links.
 
-**Effort.** ~30 min.
+⚠️ **Reste à faire** : `SettingsView` n'utilise pas encore ces bornes et écrit
+toujours à chaque frappe (voir P1-4). La garde empêche le crash, mais un objectif
+de 0 reste saisissable.
 
 ---
 
@@ -129,56 +136,48 @@ INFocusStatusCenter.default.requestAuthorization { status in
 
 ---
 
-### P0-4 — App non sandboxée + widget sandboxé : le conteneur App Group n'est probablement pas partagé
+### P0-4 — ~~App non sandboxée + widget sandboxé~~ : constat erroné
 
-**Constat.**
-- `HydroBar/HydroBar.entitlements` : `application-groups` **sans** `com.apple.security.app-sandbox`.
-- `HydroBarWidget/HydroBarWidget.entitlements` : `app-sandbox = true` + `application-groups`.
+> **Correction (post-audit).** Ce point était **faux** et n'est pas un P0.
 
-**Impact.** Sur macOS, une app **non sandboxée** qui fait
-`UserDefaults(suiteName: "group.com.adxcool.HydroBar")` écrit dans
-`~/Library/Preferences/group.com.adxcool.HydroBar.plist`, tandis qu'une extension
-**sandboxée** lit dans `~/Library/Group Containers/group.…/Library/Preferences/`.
-Ce sont deux fichiers différents : le widget afficherait éternellement
-`HydrationSnapshot.placeholder` (1 200/2 000 ml codés en dur dans
-`AppGroupStore.swift:22`) et les taps de widget ne remonteraient jamais à l'app.
+**Ce que disait l'audit initial.** `HydroBar/HydroBar.entitlements` ne contient pas
+`com.apple.security.app-sandbox`, contrairement au widget — d'où un conteneur App
+Group non partagé entre les deux processus.
 
-C'est probablement **la vraie raison** pour laquelle le widget a été retiré de la
-v1.2 (`c84b203`) — donc à re-tester avant de le réactiver en v1.3.
+**Pourquoi c'est faux.** Le projet gère les entitlements par *build settings*, pas
+par le fichier `.entitlements` : `ENABLE_APP_SANDBOX = YES` et
+`REGISTER_APP_GROUPS = YES` sont présents sur **les deux** targets
+(`project.pbxproj:649`, `:668` pour l'app ; `:427`, `:452` pour le widget). Xcode
+fusionne ces clés dans les entitlements à la compilation. Les deux processus sont
+donc sandboxés et partagent bien le même groupe.
 
-**Correctif — deux options.**
+**Ce qui reste vrai.** Lire les entitlements uniquement dans les fichiers `.plist`
+donne une image fausse de ce que l'app demande réellement — il faut lire les deux
+sources. Et la cause du retrait du widget en v1.2 reste à identifier : ce n'est pas
+celle-ci.
 
-- **A (recommandée)** : activer le sandbox sur l'app principale
-  (`com.apple.security.app-sandbox = true`). Attention : à valider avec les raccourcis
-  globaux Carbon et l'accès à Application Support (le sandbox redirige vers le
-  conteneur — prévoir une migration des fichiers d'historique existants).
-- **B** : garder l'app non sandboxée et passer par un fichier explicite dans
-  `FileManager.default.containerURL(forSecurityApplicationGroupIdentifier:)`
-  plutôt que par `UserDefaults(suiteName:)`, en préfixant l'identifiant du groupe
-  par le Team ID (`S8YKU5RDHK.group.com.adxcool.HydroBar`) côté app non sandboxée.
+**Leçon.** Un constat de configuration doit être vérifié dans le `.pbxproj` autant
+que dans les fichiers d'entitlements.
 
-Dans les deux cas : **ajouter un test manuel documenté** (écrire depuis l'app, lire
-depuis l'extension) avant de rouvrir le chantier widget.
+### P0-5 — Fichier d'entitlements orphelin (rétrogradé en P4)
 
-**Effort.** ~2 h + validation.
+> **Correction (post-audit).** Réel, mais sans impact fonctionnel — ce n'est pas un P0.
 
----
+**Constat.** `src/HydroBar/HydroBarWidgetExtension.entitlements`, référencé par
+`CODE_SIGN_ENTITLEMENTS` du target widget (`project.pbxproj:420`, `:467`), déclare un
+tableau `application-groups` **vide**. Le fichier correctement rempli,
+`HydroBarWidget/HydroBarWidget.entitlements`, n'est référencé **nulle part** dans le
+projet (vérifié : 0 occurrence).
 
-### P0-5 — `com.apple.security.application-groups` vide dans `HydroBarWidgetExtension.entitlements`
+**Impact réel.** Aucun à l'exécution : `REGISTER_APP_GROUPS = YES` fait injecter
+l'entitlement du groupe par Xcode au moment de la compilation, quel que soit le
+contenu du fichier. Le problème est de lisibilité : deux fichiers d'entitlements pour
+un seul target, dont celui qui *semble* faire foi est mort.
 
-**Constat.** Le fichier `src/HydroBar/HydroBarWidgetExtension.entitlements` déclare
-un tableau `application-groups` **vide**, et c'est celui qui est référencé par
-`CODE_SIGN_ENTITLEMENTS` du target widget (`project.pbxproj:410` et `:457`).
-`HydroBarWidget/HydroBarWidget.entitlements`, correctement rempli, n'est référencé
-par aucun target.
-
-**Impact.** L'extension est signée sans droit d'accès au groupe → `UserDefaults(suiteName:)`
-retombe sur le `.standard` de l'extension (fallback silencieux de
-`AppGroupStore.swift:44`). Aggrave P0-4.
-
-**Correctif.** Pointer `CODE_SIGN_ENTITLEMENTS` du target widget vers
-`HydroBarWidget/HydroBarWidget.entitlements` et supprimer le fichier orphelin.
-Accessoirement, remplacer le fallback silencieux par un `assertionFailure` en debug :
+**Correctif.** Supprimer `HydroBarWidget/HydroBarWidget.entitlements`, ou le
+référencer à la place du fichier vide. Et remplacer le fallback silencieux
+d'`AppGroupStore.swift:44` par une assertion en debug — s'il retombe un jour sur
+`.standard`, mieux vaut le savoir tout de suite :
 
 ```swift
 private static var defaults: UserDefaults {
@@ -190,9 +189,7 @@ private static var defaults: UserDefaults {
 }
 ```
 
-**Effort.** ~20 min.
-
----
+**Effort.** ~15 min.
 
 ### P0-6 — Cible de déploiement du widget : macOS 26.2
 
@@ -722,8 +719,8 @@ réservés » par défaut — ce qui interdit les contributions que la section
 
 | Lot | Contenu | Effort | Pourquoi en premier |
 |---|---|---|---|
-| **1. Colmatage** | P0-2, P0-5, P0-6, P3-3, P3-8, P4-1→P4-6 | ~1 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
-| **2. Deep links** | P0-1 + [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | ~1 j | Rend fonctionnel ce qui est déjà documenté et débloque Raycast, Shortcuts, Stream Deck, Alfred. |
+| **1. Colmatage** | ~~P0-2~~, P0-5, P0-6, P3-3, P3-8, P4-1→P4-6 | ~1 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
+| **2. Deep links** ✅ | ~~P0-1~~ — livré, voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | fait | Rend fonctionnel ce qui est déjà documenté et débloque Raycast, Shortcuts, Stream Deck, Alfred. |
 | **3. Filet de sécurité** | P3-1 (injection + tests), P3-2 (CI), P3-4 (lint) | ~2 j | Prérequis pour refactorer sereinement le lot 4. |
 | **4. Refactor du cœur** | P1-1 (`@Observable`), P1-2, P1-3, P1-4 | ~3 j | Supprime mécaniquement P2-1, P2-4 et la moitié des `DispatchQueue.main.async`. |
 | **5. Perf et finitions** | P2-2, P2-3, P2-5, P1-7, P3-5 | ~2 j | Confort et consommation. |

@@ -15,9 +15,11 @@ Control [HydroBar](https://github.com/aedhx/HydroBar) (macOS menu bar hydration 
 | **Add Water – Preset 1** | Log your first preset amount (e.g. small glass) |
 | **Add Water – Preset 2** | Log your second preset amount |
 | **Add Water – Preset 3** | Log your third preset amount |
-| **Add Water (Custom)** | Log a custom amount in ml (e.g. `250`) |
+| **Add Water (Custom)** | Log a custom amount in ml, between 1 and 5000 |
 
-HydroBar must be running for the URL scheme `hydrobar://` to work. If it isn’t, the extension will show a toast.
+The preset commands log whatever amount is configured in HydroBar's settings — change a preset in the app and the Raycast command follows it.
+
+**Requires HydroBar 1.3 or later**, which registers the `hydrobar://` URL scheme. On older versions macOS has no handler for the scheme and the commands silently do nothing. HydroBar does not need to be running: macOS launches it on demand.
 
 ## Install in Raycast
 
@@ -40,10 +42,19 @@ Place a 512×512 PNG as `assets/icon.png` (optional). You can use [HydroBar’s 
 
 The extension opens URLs that HydroBar handles:
 
-- `hydrobar://add/preset/0` → preset 1  
-- `hydrobar://add/preset/1` → preset 2  
-- `hydrobar://add/preset/2` → preset 3  
-- `hydrobar://add?ml=250` → custom amount in ml  
+- `hydrobar://add?preset=1` → preset 1 (1-based)
+- `hydrobar://add?preset=2` → preset 2
+- `hydrobar://add?preset=3` → preset 3
+- `hydrobar://add?ml=250` → custom amount in ml
+
+The older 0-based path form (`hydrobar://add/preset/0`) is still accepted by the app.
+
+The scheme also supports `hydrobar://undo`, `hydrobar://open/stats`, and unit
+parameters (`?cl=25`, `?l=0.25`, `?oz=8`). Destructive actions (`reset`, `set-goal`)
+require an explicit `confirm=1` and a confirmation in the app.
+
+Full grammar, security model and error codes:
+[docs/specs/DEEP_LINKS.md](https://github.com/aedhx/HydroBar/blob/main/docs/specs/DEEP_LINKS.md).
 
 See [HydroBar](https://github.com/aedhx/HydroBar) for the app and source.
 

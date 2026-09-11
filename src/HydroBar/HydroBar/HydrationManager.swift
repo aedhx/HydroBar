@@ -151,6 +151,17 @@ class HydrationManager: ObservableObject {
     }
     
     @AppStorage("debugModeEnabled") var debugModeEnabled: Bool = false
+
+    /// Autorise `hydrobar://reset` et `hydrobar://set-goal` à s'exécuter sans alerte
+    /// de confirmation. Désactivé par défaut : n'importe quelle page web peut
+    /// déclencher un schéma d'URL. Voir docs/specs/DEEP_LINKS.md § 4.1.
+    @AppStorage("allowDestructiveDeepLinks") var allowDestructiveDeepLinks: Bool = false {
+        didSet {
+            // @AppStorage n'émet rien depuis un ObservableObject (cf. AUDIT_TECHNIQUE P1-1) :
+            // sans cette notification, le toggle des réglages ne se redessine pas.
+            objectWillChange.send()
+        }
+    }
     
     /// Met à jour la langue de l'application
     private func updateAppLanguage() {

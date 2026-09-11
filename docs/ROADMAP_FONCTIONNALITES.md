@@ -9,7 +9,7 @@
 
 | # | Fonctionnalité | Valeur | Effort | Prérequis |
 |---|---|---|---|---|
-| **F1** | **Deep links `hydrobar://`** | ⭐⭐⭐⭐⭐ | 1 j | — |
+| **F1** | **Deep links `hydrobar://`** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
 | **F2** | **App Intents / Shortcuts** | ⭐⭐⭐⭐⭐ | 2 j | F1 (validation partagée) |
 | **F3** | **Lancement au démarrage** | ⭐⭐⭐⭐⭐ | 2 h | — |
 | **F4** | Export des données (CSV / JSON) | ⭐⭐⭐⭐ | 1 j | P1-2 |
@@ -18,7 +18,7 @@
 | **F7** | Accessibilité (VoiceOver, contrastes) | ⭐⭐⭐⭐ | 1,5 j | — |
 | **F8** | Onboarding au premier lancement | ⭐⭐⭐ | 1,5 j | — |
 | **F9** | Types de boissons | ⭐⭐⭐ | 2 j | P1-2 |
-| **F10** | Widget + contrôles Control Center | ⭐⭐⭐ | 1 j | P0-4, P0-5, P0-6 |
+| **F10** | Widget + contrôles Control Center | ⭐⭐⭐ | 1 j | P0-6 |
 | **F11** | Synchronisation iCloud | ⭐⭐⭐ | 3 j | F5 |
 | **F12** | Mises à jour automatiques (Sparkle) | ⭐⭐⭐ | 1,5 j | P3-6 |
 | **F13** | Distribution Homebrew | ⭐⭐ | 3 h | P3-6 |
@@ -28,9 +28,9 @@
 
 ---
 
-## F1 — Deep links `hydrobar://` ⭐⭐⭐⭐⭐
+## F1 — Deep links `hydrobar://` ⭐⭐⭐⭐⭐ — ✅ livré
 
-**C'est la priorité absolue**, pour une raison simple : ce n'est pas une nouvelle
+**C'était la priorité absolue**, pour une raison simple : ce n'est pas une nouvelle
 fonctionnalité, c'est une fonctionnalité **déjà documentée, déjà codée côté client,
 et déjà mise en avant dans les réglages de l'app** — qui n'a jamais fonctionné faute
 de handler côté app (voir [P0-1](AUDIT_TECHNIQUE.md#p0-1--le-schéma-durl-hydrobar-nexiste-pas--lextension-raycast-ne-peut-pas-fonctionner)).
@@ -38,6 +38,10 @@ de handler côté app (voir [P0-1](AUDIT_TECHNIQUE.md#p0-1--le-schéma-durl-hydr
 Une journée de travail rend fonctionnel : l'extension Raycast existante, et une
 intégration immédiate avec Alfred, BetterTouchTool, Keyboard Maestro, Stream Deck,
 Automator et n'importe quel script shell.
+
+Implémenté : `HydroBar/DeepLink.swift`, `HydroBar/DeepLinkRouter.swift`,
+`HydroBar/Info.plist`, `HydroBarTests/DeepLinkParserTests.swift`, et l'extension
+Raycast bascule sur `?preset=N` pour suivre les presets réels de l'utilisateur.
 
 📄 **Spécification complète : [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md)**
 
@@ -232,11 +236,10 @@ clic : l'ajout d'une friction pour chaque verre tuerait l'usage principal.
 Le widget est **déjà écrit** (`HydroBarWidget/`, 285 lignes, familles small et medium,
 boutons interactifs via App Intents) mais retiré de la v1.2 (commit `c84b203`).
 Avant de le réactiver, traiter
-[P0-4](AUDIT_TECHNIQUE.md#p0-4--app-non-sandboxée--widget-sandboxé--le-conteneur-app-group-nest-probablement-pas-partagé),
-[P0-5](AUDIT_TECHNIQUE.md#p0-5--comapplesecurityapplication-groups-vide-dans-hydrobarwidgetextensionentitlements)
-et [P0-6](AUDIT_TECHNIQUE.md#p0-6--cible-de-déploiement-du-widget--macos-262) : il y a
-de fortes chances que le partage App Group n'ait jamais fonctionné, ce qui
-expliquerait le retrait.
+[P0-6](AUDIT_TECHNIQUE.md#p0-6--cible-de-déploiement-du-widget--macos-262) (cible
+macOS 26.2 contre 15.1 pour l'app) et **identifier la vraie cause du retrait** : la
+piste « App Group non partagé » de l'audit initial s'est révélée fausse (voir
+[P0-4](AUDIT_TECHNIQUE.md#p0-4--app-non-sandboxée--widget-sandboxé--constat-erroné)).
 
 À ajouter ensuite :
 - **presets réels de l'utilisateur** au lieu de `[200, 500, 750]` codés en dur

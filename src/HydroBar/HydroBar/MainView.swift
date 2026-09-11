@@ -86,6 +86,7 @@ struct ContentSizeKey: PreferenceKey {
 
 struct MainView: View {
     @StateObject private var manager = HydrationManager.shared
+    @ObservedObject private var navigation = AppNavigation.shared
     @State private var isHolding = false
     @State private var holdTimer: Timer?
     @State private var currentView: ViewType = .main
@@ -172,6 +173,10 @@ struct MainView: View {
         .onPreferenceChange(ContentSizeKey.self) { size in
             // Mettre à jour la taille du popover quand le contenu change
             updatePopoverSize(contentHeight: size.height)
+        }
+        .onChange(of: navigation.pendingRequest) { _, request in
+            // Vue demandée par un deep link `hydrobar://open/...`.
+            if let request { currentView = request.view }
         }
         .onDisappear {
             stopHolding()

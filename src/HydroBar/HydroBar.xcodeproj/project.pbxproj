@@ -63,6 +63,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		7E1A000300000001 /* Exceptions for "HydroBar" folder in "HydroBar" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Info.plist,
+			);
+			target = 7E79EE3C2F1683FE00D2D070 /* HydroBar */;
+		};
 		3CF515B32F511B2400AD603E /* Exceptions for "HydroBarWidget" folder in "HydroBarWidgetExtension" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
@@ -83,6 +90,9 @@
 		};
 		7E79EE3F2F1683FE00D2D070 /* HydroBar */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				7E1A000300000001 /* Exceptions for "HydroBar" folder in "HydroBar" target */,
+			);
 			path = HydroBar;
 			sourceTree = "<group>";
 		};
@@ -642,6 +652,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HydroBar/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_LSUIElement = YES;
@@ -680,6 +691,7 @@
 				ENABLE_PREVIEWS = YES;
 				ENABLE_USER_SELECTED_FILES = readwrite;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = HydroBar/Info.plist;
 				INFOPLIST_KEY_CFBundleDisplayName = HydroBar;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.food-and-drink";
 				INFOPLIST_KEY_LSUIElement = YES;

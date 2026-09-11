@@ -124,6 +124,7 @@ struct SettingsView: View {
     @ObservedObject var manager: HydrationManager
     @Binding var currentView: ViewType
     @StateObject private var updateChecker = GitHubUpdateChecker()
+    @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @State private var targetValue: String = ""
     @State private var presetValues: [String] = ["", "", ""]
     @State private var customMinutes: String = "60"
@@ -459,6 +460,37 @@ struct SettingsView: View {
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
+
+                        // Journal des deep links — sans lui, un ajout inexpliqué
+                        // (script, page web, Raycast) est indébuggable.
+                        if !deepLinkRouter.log.isEmpty {
+                            Text("RECENT DEEP LINKS", comment: "Debug section title for deep link log")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.secondary)
+                                .padding(.top, 4)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                ForEach(Array(deepLinkRouter.log.suffix(10).reversed())) { entry in
+                                    HStack(spacing: 6) {
+                                        Image(systemName: entry.outcome == "ok"
+                                              ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                            .font(.system(size: 9))
+                                            .foregroundColor(entry.outcome == "ok" ? .green : .orange)
+                                        Text(entry.date, style: .time)
+                                            .font(.system(size: 9, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                        Text(verbatim: entry.url)
+                                            .font(.system(size: 10, design: .monospaced))
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                        Spacer(minLength: 0)
+                                        Text(verbatim: entry.outcome)
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -588,6 +620,30 @@ struct SettingsView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
+
+                // Deep links : autoriser les actions destructives sans confirmation.
+                // Désactivé par défaut — n'importe quelle page web peut ouvrir une URL.
+                HStack(alignment: .center, spacing: 8) {
+                    Image(systemName: "link")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, alignment: .leading)
+
+                    Text("Allow destructive links without confirmation", comment: "Toggle label for destructive deep links")
+                        .font(.system(size: 13))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer()
+
+                    Toggle("", isOn: $manager.allowDestructiveDeepLinks)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                }
+
+                Text("Applies to hydrobar://reset and hydrobar://set-goal. Adding water and undo are never blocked.", comment: "Explanation for destructive deep links toggle")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .padding(.leading, 28)
             }
 
             Divider()
