@@ -213,7 +213,7 @@ cible plus haute pour le widget et le documenter. Vérifier au passage que le RE
 
 ### P1-1 — `@AppStorage` dans un `ObservableObject` ne publie rien (cause racine)
 
-**Constat.** `HydrationManager.swift:105-164` : 14 propriétés `@AppStorage` déclarées
+**Constat.** `HydrationManager.swift:105-174` : 14 propriétés `@AppStorage` déclarées
 dans une classe `ObservableObject`.
 
 `@AppStorage` est un `DynamicProperty` conçu pour les **vues** : il déclenche
@@ -225,7 +225,7 @@ il lit et écrit correctement les `UserDefaults`, mais **n'émet aucun `objectWi
 ne notifient pas les vues. Toute l'app compense :
 
 - le timer 0,5 s de `HydroBarApp.swift:206` qui reconstruit l'icône (P2-1) ;
-- les `objectWillChange.send()` manuels (`HydrationManager.swift:160`, `:291`, `:1051`) ;
+- les `objectWillChange.send()` manuels (`HydrationManager.swift:171`, `:302`, `:1062`) ;
 - les `DispatchQueue.main.async` défensifs (14 occurrences) ;
 - les `Binding(get:set:)` manuels partout dans `SettingsView` au lieu de `$manager.x`.
 
@@ -261,7 +261,7 @@ mais reste écrit à chaque mutation et alimente encore `getLast7DaysData()`.
 risque de divergence entre les deux historiques. Le plafond à 30 jours est par
 ailleurs un mur pour les fonctionnalités « export » et « statistiques avancées » de
 la roadmap : l'historique au-delà de 30 jours est **détruit**, pas archivé
-(`HydrationManager.swift:589`).
+(`HydrationManager.swift:600`).
 
 **Correctif.**
 1. Supprimer `DailyEntry` et `history.json` (migration one-shot au lancement).
@@ -283,9 +283,9 @@ manager.undoStack.append((amount: holdTotalAmount, timestamp: Date()))
 if manager.undoStack.count > 50 { manager.undoStack.removeFirst() }
 ```
 
-`undoStack` est déclaré `internal` (`HydrationManager.swift:182`) juste pour permettre
+`undoStack` est déclaré `internal` (`HydrationManager.swift:193`) juste pour permettre
 cet accès, et la limite `50` est dupliquée alors que `maxUndoStackSize`
-(`HydrationManager.swift:183`) existe et est `private`.
+(`HydrationManager.swift:194`) existe et est `private`.
 
 **Impact.** Invariant de l'undo cassable depuis n'importe quelle vue, limite
 désynchronisable, et logique métier dans la couche présentation.
@@ -426,9 +426,9 @@ les 50 ms. Chaque appel enchaîne :
 
 | Étape | Fichier | Coût par tick |
 |---|---|---|
-| `currentMl.didSet` → `saveTodayEntry()` | `HydrationManager.swift:166`, `:528` | réécriture **complète** de `history.json` **et** `historyEntries.json` |
+| `currentMl.didSet` → `saveTodayEntry()` | `HydrationManager.swift:177`, `:539` | réécriture **complète** de `history.json` **et** `historyEntries.json` |
 | `scheduleNotifications()` | `:404` | `removeAllPendingNotificationRequests()` + `add()` (IPC vers `usernoted`) |
-| `syncToAppGroup()` | `:958` | reconstruction de 7 jours d'historique + `JSONEncoder` + écriture `UserDefaults` |
+| `syncToAppGroup()` | `:969` | reconstruction de 7 jours d'historique + `JSONEncoder` + écriture `UserDefaults` |
 | retour d'haptique + `makeKey()` | `MainView.swift:314` | recherche linéaire dans `NSApp.windows`, 20×/s |
 
 Soit **40 écritures de fichiers par seconde** et 20 allers-retours vers le démon de
@@ -436,7 +436,7 @@ notifications pendant tout l'appui.
 
 **Impact.** Pics d'I/O, risque de corruption si l'app est tuée en plein `write(to:)`
 (pas d'écriture atomique — voir P3-3), et usure SSD inutile. Le debounce de 0,5 s
-existe déjà pour `WidgetCenter` (`:971`) : la preuve que le problème a été identifié,
+existe déjà pour `WidgetCenter` (`:982`) : la preuve que le problème a été identifié,
 mais seulement traité pour le widget.
 
 **Correctif.**
@@ -469,7 +469,7 @@ bouton, et introduire une accélération progressive plutôt qu'un débit consta
 
 ### P2-4 — Trois timers permanents dont deux redondants
 
-**Constat.** `HydrationManager.swift:307` (60 s, reset quotidien), `:318` (60 s,
+**Constat.** `HydrationManager.swift:318` (60 s, reset quotidien), `:329` (60 s,
 badge de rappel), `FocusModeMonitor.swift:108` (30 s, polling du Focus Mode),
 `HydroBarApp.swift:206` (0,5 s, icône). Quatre réveils périodiques pour une app de
 barre de menu.
@@ -518,10 +518,10 @@ elle-même.
 | Cible | Fichier | Pourquoi |
 |---|---|---|
 | `AppUnit` conversions (aller-retour cl/L/oz) | `HydrationManager.swift:40-79` | arithmétique pure, régression silencieuse |
-| `currentStreak` | `HydrationManager.swift:735` | logique de bord (aujourd'hui à 0, trous dans l'historique) |
-| `completionRate`, `weeklyTotal`, `dailyAverage` | `:697-787` | calculs affichés en KPI |
+| `currentStreak` | `HydrationManager.swift:740` | logique de bord (aujourd'hui à 0, trous dans l'historique) |
+| `completionRate`, `weeklyTotal`, `dailyAverage` | `:708-798` | calculs affichés en KPI |
 | `isVersionNewer` | `GitHubUpdateChecker.swift:73` | comparaison sémantique (`1.10` vs `1.9`) |
-| Reset quotidien | `:270` | dépend de la date système — à injecter |
+| Reset quotidien | `:281` | dépend de la date système — à injecter |
 | `DeepLinkRouter` (à venir) | — | parsing + validation, 100 % testable |
 
 Le principal obstacle : `HydrationManager` est un singleton qui lit `UserDefaults.standard`,
@@ -550,7 +550,7 @@ sur une machine de dev.
 
 ### P3-3 — Écritures disque non atomiques et échecs silencieux
 
-**Constat.** `HydrationManager.swift:604` et `:655` :
+**Constat.** `HydrationManager.swift:615` et `:666` :
 
 ```swift
 try data.write(to: historyFileURL)          // pas de .atomic
@@ -559,7 +559,7 @@ try data.write(to: historyFileURL)          // pas de .atomic
 
 **Impact.** Une coupure pendant l'écriture (crash, perte de courant) laisse un JSON
 tronqué → `loadHistory()` part en `catch` et **remet l'historique à vide**
-(`:627`, `:645`) sans prévenir. L'utilisateur perd un mois de données sans message.
+(`:638`, `:656`) sans prévenir. L'utilisateur perd un mois de données sans message.
 Le risque est amplifié par les 40 écritures/seconde de P2-2.
 
 **Correctif.**
@@ -678,7 +678,7 @@ racine du dépôt.
 | P4-1 | `MainView.swift:181-198` | `MainView.startHolding()` / `stopHolding()` dupliquent `MainContentView` (avec un débit différent : 5 ml au lieu de 25) et `startHolding` n'est **jamais appelé**. Code mort trompeur. |
 | P4-2 | `MainView.swift:158-164` | `onChange(of: currentView)` avec un corps vide et un commentaire « la taille sera mise à jour automatiquement » — un `asyncAfter` qui n'exécute rien. |
 | P4-3 | `FocusModeMonitor.swift:100-104` | `setupFocusStatusObserver()` : corps vide, appelée depuis `startMonitoring`. |
-| P4-4 | `HydrationManager.swift:697` | `_ = calendar.date(byAdding: .day, value: -6, to: today)!` — calcul jeté, avec force-unwrap. |
+| P4-4 | `HydrationManager.swift:708` | `_ = calendar.date(byAdding: .day, value: -6, to: today)!` — calcul jeté, avec force-unwrap. |
 | P4-5 | `FocusModeMonitor.swift:29`, `SettingsView.swift:336`, `StatsComponents.swift:205` | Gardes `#available(macOS 12.0/13.0)` alors que la cible est 15.1 → branches mortes, dont un message « macOS 13+ required » inatteignable. |
 | P4-6 | `MainView.swift:81` | `static var defaultValue: CGSize` dans un `PreferenceKey` : variable statique mutable → **erreur** en Swift 6 strict concurrency. Passer en `static let`. |
 
@@ -690,7 +690,7 @@ racine du dépôt.
 - `HydroBarWidget.swift:29` — `Timeline(policy: .never)` : si l'app est quittée, le
   widget reste figé indéfiniment (y compris après le reset de minuit). Prévoir
   `.after(prochainMinuit)`.
-- `HydrationManager.swift:936` — `UserDefaults.didChangeNotification` observée sur
+- `HydrationManager.swift:949` — `UserDefaults.didChangeNotification` observée sur
   une suite partagée : ce mécanisme est peu fiable **entre processus**. Pour un
   réveil fiable depuis le widget, utiliser `DistributedNotificationCenter` ou une
   notification Darwin (`CFNotificationCenterGetDarwinNotifyCenter`).
@@ -704,7 +704,7 @@ racine du dépôt.
 - `ContentView.swift` (24 lignes, « Hello, world! ») : template Xcode jamais
   supprimé, jamais référencé.
 - « Reset my day » (`MainView.swift:285`) efface la journée **sans confirmation** et
-  vide la pile d'undo (`HydrationManager.swift:458`) — donc l'action est
+  vide la pile d'undo (`HydrationManager.swift:469`) — donc l'action est
   irréversible sur un simple clic.
 - Commentaires en français (165 occurrences) dans un projet dont le README, les
   identifiants et les chaînes localisées sont en anglais. À trancher une bonne fois
@@ -742,7 +742,7 @@ Pour équilibrer : ces choix sont bons et méritent d'être conservés tels quel
 - **`GitHubUpdateChecker`** : `async/await`, gestion explicite des codes HTTP,
   comparaison sémantique de versions composant par composant. Le fichier le plus
   propre du projet.
-- **Le debounce du rechargement de widget** (`HydrationManager.swift:966-976`),
+- **Le debounce du rechargement de widget** (`HydrationManager.swift:980-987`),
   commentaire de justification inclus.
 - **`historyEntries` stocke l'objectif du jour** (`HistoryEntry.targetMl`) : les
   statistiques passées restent justes même après changement d'objectif. C'est un
