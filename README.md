@@ -2,6 +2,8 @@
 
 # 💧 HYDROBAR
 
+[![CI](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml/badge.svg)](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml)
+
 ![macOS](https://img.shields.io/badge/macOS-12.0+-black?style=for-the-badge&logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange?style=for-the-badge&logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)

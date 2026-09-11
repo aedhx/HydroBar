@@ -64,6 +64,22 @@ jobs:
             PROVISIONING_PROFILE_SPECIFIER="" \
             2>&1 | tee test.log
 
+      # Un avertissement Swift est un futur bug ou du code mort. Sans ce résumé
+      # ils se noient dans ~2 800 lignes de journal et personne ne les lit.
+      - name: Warning summary
+        if: always()
+        run: |
+          count=$(grep -c "warning:" compile.log || true)
+          {
+            echo "### Avertissements du compilateur : ${count:-0}"
+            echo
+            if [ "${count:-0}" -gt 0 ]; then
+              echo '```'
+              grep "warning:" compile.log | sed 's|/Users/runner/work/HydroBar/HydroBar/||' | sort -u | head -40
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
+
       # Les deux étapes utilisent des dossiers de build distincts : changer les
       # réglages de signature entre deux invocations invaliderait le cache de
       # toute façon, et un dossier partagé rendrait les échecs plus difficiles
@@ -91,7 +107,7 @@ jobs:
 
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
           cache-dependency-path: raycast-hydrobar/package-lock.json
 
