@@ -60,6 +60,12 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 </div>
 
+### ⏱️ Pace Marker
+
+The ring shows a tick at where you *should* be at this time of day, based on your
+active hours (8 AM – 10 PM by default, adjustable in Settings). 15 % at 9 AM is on
+track, not a failure — the marker says so instead of leaving you to guess.
+
 ### 🎨 Modern Interface
 - **Clean, minimal design** following macOS design principles
 - **Adaptive dark/light mode** matching system preferences
@@ -386,6 +392,8 @@ xattr -cr /Applications/HydroBar.app
 
 Future improvements planned:
 - [x] Deep links / URL scheme *(v1.3)*
+- [x] Launch at login *(v1.3)*
+- [x] Pace marker on the progress ring *(v1.3)*
 - [ ] Data export functionality
 - [ ] iCloud sync (optional)
 - [ ] Widget support *(planned v1.3)*
