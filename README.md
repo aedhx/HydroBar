@@ -297,6 +297,16 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 - `HydroBarWidget/AppGroupStore.swift`: Shared data bridge between app and widget
 - `Localizable.xcstrings`: Multi-language support (9 languages)
 
+### Technical Documentation
+
+In-depth engineering docs live in [`docs/`](docs/README.md):
+
+- [**Technical audit**](docs/AUDIT_TECHNIQUE.md) — code review, 32 findings ranked P0→P4, with a 6-step action plan
+- [**Feature roadmap**](docs/ROADMAP_FONCTIONNALITES.md) — 16 proposals ranked by value/effort, sequenced v1.3→v1.6
+- [**Deep links spec**](docs/specs/DEEP_LINKS.md) — the `hydrobar://` URL scheme: grammar, security model, callbacks, tests
+
+> These documents are written in French.
+
 ---
 
 ## 🔒 Privacy & Security
