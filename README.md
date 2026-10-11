@@ -350,7 +350,11 @@ In-depth engineering docs live in [`docs/`](docs/README.md):
 
 ### Gatekeeper Notice
 
-HydroBar is not signed with a paid Apple Developer certificate. macOS may show a "damaged" or "cannot be opened" warning. This is expected — run the following command in Terminal to remove the quarantine flag, then open normally:
+> **Going away soon.** The build script now supports Developer ID signing and
+> notarization; once a signed release ships, this whole section disappears and
+> HydroBar opens on a double-click.
+
+Current releases are signed ad-hoc, so macOS may show a "damaged" or "cannot be opened" warning. This is expected — run the following command in Terminal to remove the quarantine flag, then open normally:
 
 ```bash
 xattr -cr /Applications/HydroBar.app

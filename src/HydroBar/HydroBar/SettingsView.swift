@@ -126,6 +126,7 @@ struct SettingsView: View {
     @StateObject private var updateChecker = GitHubUpdateChecker()
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
+    @ObservedObject private var focusMonitor = FocusModeMonitor.shared
     @State private var targetValue: String = ""
     @State private var presetValues: [String] = ["", "", ""]
     @State private var customMinutes: String = "60"
@@ -343,36 +344,7 @@ struct SettingsView: View {
                         }
                     }
                     
-                    // Toggle Synchronisation Focus Mode (macOS 12+)
-                    if #available(macOS 12.0, *) {
-                        HStack(alignment: .center, spacing: 8) {
-                            Image(systemName: "moon.stars.fill")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-                                .frame(width: 20, alignment: .leading)
-                            
-                            Text("Sync with Focus Mode", comment: "Toggle label to sync with macOS Focus Mode")
-                                .font(.system(size: 13))
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: Binding(
-                                get: { manager.focusModeAutoSync },
-                                set: { newValue in
-                                    manager.focusModeAutoSync = newValue
-                                }
-                            ))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                        }
-                        
-                        if manager.focusModeAutoSync {
-                            Text("Do Not Disturb mode automatically follows macOS Focus Mode", comment: "Explanation text for Focus Mode sync")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .padding(.leading, 28)
-                        }
-                    }
+                    focusModeSection
                     
                     // Toggle Ne pas déranger (manuel si pas de sync)
                     HStack(alignment: .center, spacing: 8) {
@@ -776,6 +748,91 @@ struct SettingsView: View {
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.leading, 28)
+            }
+
+            // Problème de persistance : délibérément visible hors mode debug.
+            // Un historique mis de côté pour corruption doit se savoir — c'est
+            // le genre de perte qu'on ne découvre sinon jamais.
+            if let issue = manager.lastDataIssue {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                    Text(issue)
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, 2)
+            }
+        }
+    }
+
+    /// Synchronisation Focus Mode. L'ancien interrupteur activait le réglage sans
+    /// jamais demander l'autorisation : il restait allumé alors que la
+    /// fonctionnalité ne pouvait pas fonctionner. Chaque cas d'échec est désormais
+    /// affiché — voir l'en-tête de FocusModeMonitor.swift.
+    private var focusModeSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "moon.stars.fill")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+
+                Text("Sync with Focus Mode", comment: "Toggle label to sync with macOS Focus Mode")
+                    .font(.system(size: 13))
+
+                Spacer()
+
+                Toggle("", isOn: Binding(
+                    get: { manager.focusModeAutoSync },
+                    set: { newValue in
+                        // L'autorisation est demandée ici, pas au lancement :
+                        // une invite système n'a de sens qu'au moment où
+                        // l'utilisateur réclame la fonctionnalité.
+                        if newValue {
+                            focusMonitor.enableAutoSync()
+                        } else {
+                            focusMonitor.disableAutoSync()
+                        }
+                    }
+                ))
+                .toggleStyle(.switch)
+                .labelsHidden()
+            }
+
+            switch focusMonitor.availability {
+            case .denied:
+                Button(action: { focusMonitor.openFocusPrivacySettings() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.orange)
+                        Text("Access denied — grant it under Privacy & Security › Focus", comment: "Focus Mode authorization denied")
+                            .font(.system(size: 11))
+                            .underline()
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 28)
+
+            case .unavailable:
+                Text("Focus status is unreadable on this build. The Communication Notifications capability is missing from the app target.", comment: "Focus Mode capability missing")
+                    .font(.system(size: 11))
+                    .foregroundColor(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 28)
+
+            case .authorized, .notRequested:
+                if manager.focusModeAutoSync {
+                    Text("Do Not Disturb mode automatically follows macOS Focus Mode", comment: "Explanation text for Focus Mode sync")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.leading, 28)
+                }
             }
         }
     }
