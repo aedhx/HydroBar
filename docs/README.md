@@ -9,14 +9,16 @@
 ## Par où commencer
 
 1. **Le résumé exécutif** de l'audit (3 paragraphes) donne l'état des lieux.
-2. **Les points P0** sont les seuls à traiter en urgence. Sur les 6 d'origine :
-   P0-1 (deep links), P0-2 (crash) et P0-6 (cible macOS du widget) sont corrigés ;
-   P0-4 et P0-5 se sont révélés erronés ou sans impact à la vérification du
-   `.pbxproj`, et sont conservés barrés plutôt qu'effacés pour que la correction
-   reste traçable. Reste **P0-3** (Focus Mode sans autorisation).
+2. **Les points P0 sont tous traités.** P0-1 (deep links), P0-2 (crash), P0-3
+   (Focus Mode) et P0-6 (cible macOS du widget) sont corrigés ; P0-4 et P0-5 se
+   sont révélés erronés ou sans impact à la vérification du `.pbxproj`, et sont
+   conservés barrés plutôt qu'effacés pour que la correction reste traçable.
+   P0-3 demande encore **une étape manuelle** : activer la capability
+   Communication Notifications dans Xcode.
 3. **La roadmap** : F1, F3 et F18 sont livrées. Les meilleurs rapports valeur /
    effort encore ouverts sont F19 (snooze, ~3 h) et F20 (raccourcis globaux, ~4 h) ;
-   F2 (App Intents) est le prochain gros morceau.
+   F2 (App Intents) est le prochain gros morceau. F12 (Sparkle) et F13 (Homebrew)
+   sont débloquées dès que le certificat Developer ID est en place.
 
 ## Conventions
 

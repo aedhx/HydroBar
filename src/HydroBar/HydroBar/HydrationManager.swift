@@ -2,6 +2,17 @@ import Foundation
 import SwiftUI
 import UserNotifications
 import WidgetKit
+import os
+
+// MARK: - Formatage de dates
+
+/// Formateur ISO 8601 partagé. `ISO8601DateFormatter()` est coûteux à instancier
+/// et il était recréé à chaque appel — y compris dans le chemin chaud d'`addWater`,
+/// donc 20 fois par seconde pendant « Hold to Add »
+/// (cf. docs/AUDIT_TECHNIQUE.md § P2-5).
+enum DateFormat {
+    static let iso8601 = ISO8601DateFormatter()
+}
 
 // MARK: - DailyEntry (legacy, pour compatibilité)
 struct DailyEntry: Codable, Identifiable {
@@ -10,7 +21,7 @@ struct DailyEntry: Codable, Identifiable {
     let amount: Double // en ml
     
     init(date: Date, amount: Double) {
-        self.id = ISO8601DateFormatter().string(from: date)
+        self.id = DateFormat.iso8601.string(from: date)
         self.date = date
         self.amount = amount
     }
@@ -24,7 +35,7 @@ struct HistoryEntry: Codable, Identifiable {
     let targetMl: Double
     
     init(date: Date, amountMl: Double, targetMl: Double) {
-        self.id = ISO8601DateFormatter().string(from: date)
+        self.id = DateFormat.iso8601.string(from: date)
         self.date = date
         self.amountMl = amountMl
         self.targetMl = targetMl
@@ -196,6 +207,14 @@ class HydrationManager: ObservableObject {
         }
     }
     
+    // MARK: - Journalisation et diagnostic
+
+    private static let logger = Logger(subsystem: "com.adxcool.HydroBar", category: "hydration")
+
+    /// Dernier problème de persistance rencontré, affiché en mode debug.
+    /// Mieux vaut un message visible qu'un historique disparu sans trace.
+    @Published private(set) var lastDataIssue: String?
+
     @Published var history: [DailyEntry] = []
     @Published var historyEntries: [HistoryEntry] = []
     @Published var showReminderBadge: Bool = false
@@ -294,7 +313,7 @@ class HydrationManager: ObservableObject {
         let today = calendar.startOfDay(for: Date())
         
         if let lastResetDateString = lastResetDateString.isEmpty ? nil : lastResetDateString,
-           let lastResetDate = ISO8601DateFormatter().date(from: lastResetDateString) {
+           let lastResetDate = DateFormat.iso8601.date(from: lastResetDateString) {
             let lastResetDay = calendar.startOfDay(for: lastResetDate)
             
             if lastResetDay < today {
@@ -388,8 +407,7 @@ class HydrationManager: ObservableObject {
     }
     
     private func updateLastResetDate() {
-        let formatter = ISO8601DateFormatter()
-        lastResetDateString = formatter.string(from: Date())
+        lastResetDateString = DateFormat.iso8601.string(from: Date())
     }
     
     // MARK: - Public Methods
@@ -432,14 +450,13 @@ class HydrationManager: ObservableObject {
     
     /// Met à jour la date de dernière consommation d'eau
     private func updateLastWaterAddedDate() {
-        let formatter = ISO8601DateFormatter()
-        lastWaterAddedDateString = formatter.string(from: Date())
+        lastWaterAddedDateString = DateFormat.iso8601.string(from: Date())
     }
     
     /// Récupère la date de dernière consommation d'eau
     private func getLastWaterAddedDate() -> Date? {
         guard !lastWaterAddedDateString.isEmpty,
-              let date = ISO8601DateFormatter().date(from: lastWaterAddedDateString) else {
+              let date = DateFormat.iso8601.date(from: lastWaterAddedDateString) else {
             return nil
         }
         return date
@@ -619,64 +636,102 @@ class HydrationManager: ObservableObject {
     
     /// Sauvegarde l'historique dans le fichier JSON
     private func saveHistory() {
-        do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(history)
-            try data.write(to: historyFileURL)
-        } catch {
-            print("Erreur lors de la sauvegarde de l'historique: \(error)")
-        }
+        writeJSON(history, to: historyFileURL, label: "history.json")
     }
     
-    /// Charge l'historique depuis le fichier JSON
+    /// Charge l'historique depuis les fichiers JSON.
     private func loadHistory() {
-        // Charger DailyEntry (legacy)
-        do {
-            let data = try Data(contentsOf: historyFileURL)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            let entries = try decoder.decode([DailyEntry].self, from: data)
-            
-            // Garder seulement les 7 derniers jours
-            let calendar = Calendar.current
-            let today = calendar.startOfDay(for: Date())
-            let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today)!
-            
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+
+        // DailyEntry (legacy) — 7 derniers jours
+        if let entries: [DailyEntry] = readJSON([DailyEntry].self,
+                                                from: historyFileURL,
+                                                label: "history.json"),
+           let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today) {
             history = entries.filter { $0.date >= sevenDaysAgo }.sorted { $0.date < $1.date }
-        } catch {
-            // Fichier n'existe pas encore ou erreur de lecture
+        } else {
             history = []
         }
-        
-        // Charger HistoryEntry (avec targetMl)
-        do {
-            let data = try Data(contentsOf: historyEntriesFileURL)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            let entries = try decoder.decode([HistoryEntry].self, from: data)
-            
-            // Garder seulement les 30 derniers jours
-            let calendar = Calendar.current
-            let today = calendar.startOfDay(for: Date())
-            let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
-            
+
+        // HistoryEntry (avec targetMl) — 30 derniers jours
+        if let entries: [HistoryEntry] = readJSON([HistoryEntry].self,
+                                                  from: historyEntriesFileURL,
+                                                  label: "historyEntries.json"),
+           let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today) {
             historyEntries = entries.filter { $0.date >= thirtyDaysAgo }.sorted { $0.date < $1.date }
-        } catch {
-            // Fichier n'existe pas encore ou erreur de lecture
+        } else {
             historyEntries = []
         }
     }
     
     /// Sauvegarde l'historique complet (HistoryEntry) dans le fichier JSON
     private func saveHistoryEntries() {
+        writeJSON(historyEntries, to: historyEntriesFileURL, label: "historyEntries.json")
+    }
+
+    // MARK: - Persistance JSON
+
+    /// Écrit en **atomique** : les données passent par un fichier temporaire
+    /// renommé à la fin. Sans cette option, une coupure en pleine écriture
+    /// laissait un JSON tronqué, que `readJSON` interprétait comme « pas
+    /// d'historique » — et le prochain enregistrement l'écrasait pour de bon.
+    private func writeJSON<T: Encodable>(_ value: T, to url: URL, label: String) {
         do {
             let encoder = JSONEncoder()
             encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(historyEntries)
-            try data.write(to: historyEntriesFileURL)
+            let data = try encoder.encode(value)
+            try data.write(to: url, options: [.atomic])
         } catch {
-            print("Erreur lors de la sauvegarde de l'historique complet: \(error)")
+            Self.logger.error("Échec d'écriture de \(label, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            report(issue: String(format: String(localized: "Could not save %@.",
+                                                comment: "Data issue: write failure, %@ is a file name"),
+                                 label))
+        }
+    }
+
+    /// Lit un fichier JSON en distinguant deux cas que l'ancien code confondait :
+    /// le fichier **absent** (premier lancement, normal) et le fichier **présent
+    /// mais illisible** (corruption, anormal). Dans le second cas, le fichier est
+    /// mis de côté plutôt qu'écrasé en silence.
+    private func readJSON<T: Decodable>(_ type: T.Type, from url: URL, label: String) -> T? {
+        guard FileManager.default.fileExists(atPath: url.path) else {
+            return nil // premier lancement
+        }
+        do {
+            let data = try Data(contentsOf: url)
+            let decoder = JSONDecoder()
+            decoder.dateDecodingStrategy = .iso8601
+            return try decoder.decode(type, from: data)
+        } catch {
+            quarantine(url, label: label, error: error)
+            return nil
+        }
+    }
+
+    /// Renomme un fichier illisible en `<nom>.corrupt-<date>` pour que son contenu
+    /// reste récupérable à la main. Perdre un mois d'historique sans trace était le
+    /// pire scénario de l'ancienne implémentation.
+    private func quarantine(_ url: URL, label: String, error: Error) {
+        let stamp = DateFormat.iso8601.string(from: Date()).replacingOccurrences(of: ":", with: "-")
+        let backup = url.appendingPathExtension("corrupt-\(stamp)")
+        do {
+            try FileManager.default.moveItem(at: url, to: backup)
+            Self.logger.error("\(label, privacy: .public) illisible, mis de côté dans \(backup.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            report(issue: String(format: String(localized: "%@ was unreadable and has been set aside as %@.",
+                                                comment: "Data issue: corrupt file quarantined; %@ are file names"),
+                                 label, backup.lastPathComponent))
+        } catch {
+            Self.logger.error("\(label, privacy: .public) illisible et impossible à mettre de côté: \(error.localizedDescription, privacy: .public)")
+            report(issue: String(format: String(localized: "%@ is unreadable.",
+                                                comment: "Data issue: unreadable file"),
+                                 label))
+        }
+    }
+
+    private func report(issue: String) {
+        DispatchQueue.main.async { [weak self] in
+            self?.lastDataIssue = issue
         }
     }
     
@@ -964,7 +1019,7 @@ class HydrationManager: ObservableObject {
         // Programmer la notification
         UNUserNotificationCenter.current().add(request) { error in
             if let error = error {
-                print("Erreur lors de la programmation de la notification: \(error)")
+                Self.logger.error("Échec de programmation de la notification: \(error.localizedDescription, privacy: .public)")
             }
         }
     }
@@ -1109,9 +1164,9 @@ class HydrationManager: ObservableObject {
         // Envoyer la notification
         center.add(request) { error in
             if let error = error {
-                print("Erreur lors de l'envoi de la notification de test: \(error)")
+                Self.logger.error("Échec de la notification de test: \(error.localizedDescription, privacy: .public)")
             } else {
-                print("Notification de test envoyée avec succès")
+                Self.logger.debug("Notification de test envoyée")
             }
         }
     }

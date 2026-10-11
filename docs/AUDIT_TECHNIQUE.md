@@ -12,32 +12,36 @@ HydroBar fait ce qu'il promet et l'UI est soignée. Les problèmes se concentren
 1. **Des fonctionnalités documentées ne fonctionnent pas**, et échouent en silence —
    aucune erreur visible, ce qui les rend difficiles à détecter : les deep links
    `hydrobar://` sur lesquels repose toute l'extension Raycast (**corrigé**, voir
-   P0-1) et la synchronisation Focus Mode (P0-3, toujours ouvert).
+   P0-1) et la synchronisation Focus Mode (**corrigé côté code**, voir P0-3 — il
+   reste une capability à activer dans Xcode).
 2. **Le modèle de données n'est pas réactif.** `@AppStorage` est utilisé à l'intérieur
    d'un `ObservableObject`, où il ne publie rien. Toute l'app compense avec des timers
    de rafraîchissement et des `objectWillChange.send()` manuels. C'est la cause racine
    de la moitié des points de performance ci-dessous.
-3. **Peu de filet de sécurité** : une écriture disque toujours non vérifiée (P3-3),
-   et une division non gardée qui pouvait faire crasher l'app depuis les réglages
-   (**corrigée**, voir P0-2). La CI existe désormais (P3-2) et fait tourner les
+3. **Peu de filet de sécurité** : une division non gardée pouvait faire crasher
+   l'app depuis les réglages (**corrigée**, P0-2) et une écriture disque non
+   atomique pouvait effacer un mois d'historique en silence (**corrigée**, P3-3). La CI existe désormais (P3-2) et fait tourner les
    31 tests écrits depuis, mais le cœur métier — conversions, séries, reset
    quotidien — reste non couvert (P3-1).
 
 Rien n'est irrécupérable — le code est lisible, bien découpé en fichiers, et les
 correctifs P0 représentent environ une journée de travail.
 
-> **Suivi.** P0-1 et P0-2 sont corrigés. P0-4 et P0-5 se sont révélés erronés ou
-> sans impact à la vérification du `.pbxproj` : le détail est conservé ci-dessous
-> plutôt qu'effacé, pour que la correction soit traçable.
+> **Suivi.** P0-1, P0-2, P0-3 (hors une étape manuelle), P0-6, P2-5, P3-2, P3-3,
+> P3-6 (outillage), P3-7 et P3-8 sont corrigés. P0-4 et P0-5 se sont révélés
+> erronés ou sans impact à la vérification du `.pbxproj`. Les constats corrigés ou
+> invalidés sont conservés ci-dessous plutôt qu'effacés, pour que les corrections
+> restent traçables — y compris celles qui portent sur mon propre diagnostic
+> (voir P0-3).
 
 ### Tableau de bord
 
 | Sévérité | Nb | Thème dominant |
 |---|---|---|
-| **P0 — Bloquant** | 6 (2 corrigés, 2 invalidés) | Fonctionnalités mortes, crash potentiel |
+| **P0 — Bloquant** | 6 (4 corrigés, 2 invalidés) | Fonctionnalités mortes, crash potentiel |
 | **P1 — Architecture** | 7 | Réactivité, source de vérité, encapsulation |
-| **P2 — Performance** | 5 | Timers, I/O disque, reconstruction de vues |
-| **P3 — Qualité / outillage** | 8 | Tests, CI, i18n, distribution |
+| **P2 — Performance** | 5 (1 corrigé) | Timers, I/O disque, reconstruction de vues |
+| **P3 — Qualité / outillage** | 8 (5 corrigés) | Tests, CI, i18n, distribution |
 | **P4 — Cosmétique** | 6 | Code mort, duplication, conventions |
 
 ---
@@ -104,39 +108,54 @@ de 0 reste saisissable.
 
 ### P0-3 — La synchronisation Focus Mode ne peut jamais s'activer
 
-**Constat.** `FocusModeMonitor.swift:61-95` lit `INFocusStatusCenter.default.focusStatus`
+**Constat.** `FocusModeMonitor` lisait `INFocusStatusCenter.default.focusStatus`
 sans jamais appeler `requestAuthorization(completion:)`, et la clé
-`NSFocusStatusUsageDescription` est absente des réglages Info.plist du projet.
+`NSFocusStatusUsageDescription` était absente.
 
-**Impact.** Sans autorisation, `focusStatus.isFocused` vaut `nil`. Le `guard let` de
-la ligne 71 sort silencieusement à chaque tick du timer de 30 s. Le réglage
-« Sync with Focus Mode » (`SettingsView.swift:348`) est donc un interrupteur qui
-n'a aucun effet, sans que l'utilisateur puisse le savoir.
+**Impact.** Sans autorisation, `focusStatus.isFocused` vaut `nil`. Le `guard let`
+sortait silencieusement à chaque tick du timer de 30 s. Le réglage
+« Sync with Focus Mode » était un interrupteur sans effet, sans que l'utilisateur
+puisse le savoir.
 
-**Correctif.**
+> **Correction de ce constat (post-audit).** Mon diagnostic initial était
+> **incomplet** : il ne citait que l'autorisation et la clé Info.plist. La
+> documentation d'Apple est explicite — lire le statut de concentration exige en
+> plus la **capability Communication Notifications sur la cible** :
+>
+> > « Requires UserNotifications and FocusStatus to be authorized and
+> > Communication Notifications capability enabled for the app's target. »
+> > — [Handling Communication Notifications and Focus Status Updates](https://developer.apple.com/documentation/usernotifications/handling-communication-notifications-and-focus-status-updates)
+>
+> Cette capability se provisionne côté App ID, donc hors de portée d'un compte
+> personnel gratuit. P0-3 n'était pas seulement un oubli de code : il était
+> **partiellement impossible à corriger** sans adhésion payante.
 
-1. Ajouter au target app : `INFOPLIST_KEY_NSFocusStatusUsageDescription = "HydroBar met en pause ses rappels quand un mode de concentration est actif."`
-2. Demander l'autorisation au moment où l'utilisateur active le toggle (pas au
-   lancement), puis refléter le refus dans l'UI :
+**Correctif.** ✅ **Appliqué côté code**, avec une étape manuelle restante.
 
-```swift
-INFocusStatusCenter.default.requestAuthorization { status in
-    DispatchQueue.main.async {
-        guard status == .authorized else {
-            manager.focusModeAutoSync = false
-            self.authorizationDenied = true   // à afficher dans les réglages
-            return
-        }
-        self.checkFocusStatus()
-    }
-}
-```
+Fait :
+- `NSFocusStatusUsageDescription` ajoutée à `HydroBar/Info.plist`.
+- `FocusModeMonitor` réécrit : `requestAuthorization` est appelée **au moment où
+  l'utilisateur active le toggle**, pas au lancement — une invite système n'a de
+  sens qu'à l'instant où la fonctionnalité est réclamée.
+- Un refus ne persiste plus un réglage que le système empêche d'honorer : le
+  toggle revient à zéro et les réglages affichent un lien vers
+  Réglages Système → Confidentialité et sécurité.
+- Nouvel état `.unavailable` : autorisation accordée mais `isFocused` toujours
+  `nil`. C'est la signature d'une capability absente, et c'est exactement le cas
+  qui échouait en silence. Les réglages le disent maintenant explicitement.
+- Code mort supprimé au passage : `setupFocusStatusObserver()` (corps vide, P4-3)
+  et les gardes `#available(macOS 12.0)` inatteignables (cible 15.1, P4-5).
+  `print()` remplacé par `Logger`, et `tolerance` ajoutée au timer.
 
-3. Afficher un lien vers Réglages Système → Confidentialité → Concentration en cas de refus.
+**Reste à faire — une étape manuelle, dans Xcode.** Activer la capability :
+cible HydroBar → Signing & Capabilities → « + » → **Communication Notifications**.
 
-**Effort.** ~1 h 30.
-
----
+Je ne l'ai délibérément **pas** écrite en dur dans le fichier d'entitlements : la
+documentation d'Apple nomme la capability mais pas la clé brute, et je n'ai pas
+trouvé de source fiable la confirmant. Xcode écrit la bonne clé lui-même quand on
+active la capability ; la deviner, c'est risquer un échec de signature que **la CI
+n'attraperait pas** — elle construit avec `CODE_SIGNING_ALLOWED=NO` et teste en
+ad-hoc, deux modes qui ne valident aucun entitlement contre un profil.
 
 ### P0-4 — ~~App non sandboxée + widget sandboxé~~ : constat erroné
 
@@ -500,12 +519,11 @@ un nouveau formateur à chaque création d'entrée et à chaque lecture/écritur
 **Impact.** `ISO8601DateFormatter` est notoirement coûteux à instancier. Appelé dans
 le chemin chaud du `addWater` (donc 20×/s pendant un hold).
 
-**Correctif.** Un `static let` partagé (les formateurs sont thread-safe en lecture
-depuis iOS 7/macOS 10.9). Idéalement, stocker des `Date` natives dans un `Codable`
-plutôt que des `String` ISO : `HistoryEntry.id` pourrait être un `UUID` ou la date
-elle-même.
+**Correctif.** ✅ **Corrigé** : un `DateFormat.iso8601` partagé au niveau du
+fichier remplace les six instanciations.
 
-**Effort.** ~30 min.
+**Reste** : `HistoryEntry.id` est toujours une `String` ISO alors qu'un `UUID` ou
+la date elle-même suffirait. À traiter avec P1-2.
 
 ---
 
@@ -575,28 +593,34 @@ tag `v*` produisant le DMG et le ZIP.
 
 ### P3-3 — Écritures disque non atomiques et échecs silencieux
 
-**Constat.** `HydrationManager.swift:626` et `:677` :
+**Constat.** `saveHistory()` et `saveHistoryEntries()` écrivaient sans `.atomic`,
+et `loadHistory()` traitait toute erreur de lecture par un `history = []`
+silencieux.
 
-```swift
-try data.write(to: historyFileURL)          // pas de .atomic
-} catch { print("Erreur lors de la sauvegarde…") }
-```
+**Impact.** Une coupure pendant l'écriture (crash, perte de courant) laissait un
+JSON tronqué. Au lancement suivant, `loadHistory()` partait en `catch` et
+**remettait l'historique à vide** sans prévenir ; le premier enregistrement
+écrasait alors le fichier pour de bon. L'utilisateur perdait un mois de données
+sans aucun message. Le risque était amplifié par les 40 écritures/seconde de P2-2.
 
-**Impact.** Une coupure pendant l'écriture (crash, perte de courant) laisse un JSON
-tronqué → `loadHistory()` part en `catch` et **remet l'historique à vide**
-(`:649`, `:667`) sans prévenir. L'utilisateur perd un mois de données sans message.
-Le risque est amplifié par les 40 écritures/seconde de P2-2.
+**Correctif.** ✅ **Corrigé.**
 
-**Correctif.**
-1. `try data.write(to: url, options: [.atomic])`.
-2. En cas d'échec de lecture : renommer le fichier corrompu en `.corrupt-<date>` au
-   lieu de l'écraser, et notifier l'utilisateur.
-3. Remplacer les 12 `print()` du projet par `Logger` (os.log) avec des catégories —
-   `print()` ne laisse aucune trace exploitable dans une build Release distribuée.
+- Écritures en `.atomic` : les données passent par un fichier temporaire renommé
+  à la fin, il n'existe donc plus d'état intermédiaire tronqué.
+- La lecture distingue deux cas que l'ancien code confondait : fichier **absent**
+  (premier lancement, normal) et fichier **présent mais illisible** (corruption).
+  Dans le second cas il est renommé en `<nom>.corrupt-<date>` plutôt qu'écrasé —
+  son contenu reste récupérable à la main.
+- Un `lastDataIssue` publié remonte le problème dans les réglages, **hors mode
+  debug** : une perte d'historique doit se voir, c'est le genre de chose qu'on ne
+  découvre sinon jamais.
+- Les trois `print()` de `HydrationManager` sont passés à `Logger` (os.log) —
+  `print()` ne laisse aucune trace exploitable dans une build Release distribuée.
 
-**Effort.** ~2 h.
+Les `print()` de `GlobalHotkeyManager` (9 occurrences) restent à migrer.
 
----
+**Non testé automatiquement** : vérifier la mise en quarantaine demande d'injecter
+un `FileManager`, ce qui dépend de P3-1.
 
 ### P3-4 — Ni linter ni formateur
 
@@ -647,19 +671,29 @@ d'où la section « Gatekeeper Notice » du README et le commit `4d1e93d`. Chaqu
 utilisateur doit passer par `xattr -cr`. C'est le principal frein à l'adoption, et
 ça donne à une app saine l'apparence d'un malware.
 
-**Correctif.** Certificat **Developer ID Application** (compte développeur payant),
-puis :
+**Correctif.** ✅ **Outillage prêt**, en attente du certificat.
+
+`build-dmg.sh` a été réécrit : signature Developer ID de l'intérieur vers
+l'extérieur (extensions avant l'app, sinon la signature de l'app est invalidée),
+`--options runtime` et `--timestamp` — tous deux exigés par la notarisation —
+puis `notarytool submit --wait` et `stapler staple`, et une vérification `spctl`.
+
+Tout est piloté par variables d'environnement :
 
 ```bash
-codesign --force --options runtime --timestamp --sign "Developer ID Application: …" "$APP_PATH"
-xcrun notarytool submit "$DMG_NAME" --keychain-profile "AC_PASSWORD" --wait
-xcrun stapler staple "$DMG_NAME"
+DEVELOPMENT_TEAM=XXXXXXXXXX \
+SIGNING_IDENTITY="Developer ID Application: … (XXXXXXXXXX)" \
+NOTARY_PROFILE=HydroBarNotary \
+./build-dmg.sh
 ```
 
-Voir aussi la roadmap F12 (Sparkle) et F13 (Homebrew cask), qui supposent tous deux
-une app notarisée.
+Sans `SIGNING_IDENTITY`, le script retombe sur l'ad-hoc **et le dit** : utilisable
+pour tester localement, pas pour distribuer. C'est volontaire — un script qui
+produit silencieusement un DMG non distribuable est pire qu'un script qui échoue.
 
-**Effort.** ~3 h (hors délai d'obtention du certificat).
+**Reste à faire** : obtenir le certificat Developer ID, exécuter une fois
+`xcrun notarytool store-credentials`, puis retirer la section « Gatekeeper Notice »
+du README. Voir aussi F12 (Sparkle) et F13 (Homebrew), qui en dépendent.
 
 ---
 
@@ -669,17 +703,11 @@ une app notarisée.
 existe dans `project.pbxproj:653`. Deux endroits à mettre à jour à chaque release,
 donc un DMG qui finira par être mal nommé.
 
-**Correctif.** Lire la version depuis le projet :
-
-```bash
-VERSION=$(xcodebuild -project "$PROJECT" -scheme "$SCHEME" -showBuildSettings \
-          | awk -F' = ' '/MARKETING_VERSION/{print $2; exit}')
-```
-
-Corollaire : `build-dmg.sh:27` masque le code de sortie de `xcodebuild`
-(`| grep … || true`). Conserver `PIPESTATUS` ou retirer le `|| true`.
-
-**Effort.** ~30 min.
+**Correctif.** ✅ **Corrigé** : `build-dmg.sh` lit `MARKETING_VERSION` depuis le
+projet, et échoue proprement s'il n'y arrive pas. Le `| grep … || true` qui
+masquait le code de sortie de `xcodebuild` a disparu : la sortie va dans un
+fichier journal, seules les lignes `error:`/`warning:` sont affichées, et le code
+de sortie est vérifié explicitement.
 
 ---
 
@@ -743,12 +771,12 @@ racine du dépôt.
 
 | Lot | Contenu | Effort | Pourquoi en premier |
 |---|---|---|---|
-| **1. Colmatage** | ~~P0-2~~, P0-5, ~~P0-6~~, P3-3, ~~P3-8~~, P4-1→P4-6 | ~0,5 j | Crash, code mort, risque de perte de données. Aucun risque de régression. |
+| **1. Colmatage** ✅ | ~~P0-2~~, ~~P0-6~~, ~~P3-3~~, ~~P3-8~~ faits ; reste P0-5 et le code mort P4-1→P4-2, P4-4, P4-6 | ~2 h | Crash, code mort, risque de perte de données. Aucun risque de régression. |
 | **2. Deep links** ✅ | ~~P0-1~~ — livré, voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | fait | Rend fonctionnel ce qui est déjà documenté et débloque Raycast, Shortcuts, Stream Deck, Alfred. |
 | **3. Filet de sécurité** | P3-1 (injection + tests), ~~P3-2~~ (CI ✅), P3-4 (lint) | ~1,5 j | Prérequis pour refactorer sereinement le lot 4. |
 | **4. Refactor du cœur** | P1-1 (`@Observable`), P1-2, P1-3, P1-4 | ~3 j | Supprime mécaniquement P2-1, P2-4 et la moitié des `DispatchQueue.main.async`. |
 | **5. Perf et finitions** | P2-2, P2-3, P2-5, P1-7, P3-5 | ~2 j | Confort et consommation. |
-| **6. Widget et distribution** | P0-3, P0-4, P3-6, P3-7 | ~2 j | Débloque la v1.3 (widget) et supprime l'écran « app endommagée ». |
+| **6. Widget et distribution** | ~~P0-3~~, ~~P3-6~~ (outillage), ~~P3-7~~ ; reste le certificat Developer ID et la capability Xcode | ~0,5 j | Débloque la v1.3 (widget) et supprime l'écran « app endommagée ». |
 
 ---
 
