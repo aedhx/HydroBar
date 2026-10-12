@@ -98,23 +98,67 @@ class HydrationManager: ObservableObject {
     @AppStorage("customNotificationMinutes") var customNotificationMinutes: Int = 60 {
         willSet { objectWillChange.send() }
     }
+    /// Mode « Ne pas déranger » choisi par l'utilisateur. C'est une intention :
+    /// la synchronisation avec Concentration ne l'écrit jamais. L'état effectif
+    /// est `isQuietMode` (cf. AUDIT § P1-7).
     @AppStorage("doNotDisturb") var doNotDisturb: Bool = false {
         willSet { objectWillChange.send() }
         didSet {
-            // Le mode DnD ne désactive pas les notifications, il change seulement
-            // leur forme (pastille au lieu de notification système).
-            if notificationsEnabled {
-                scheduleNotifications()
-                checkReminderStatus()
-            }
+            guard oldValue != doNotDisturb else { return }
+            quietModeDidChange()
         }
+    }
+
+    /// Un mode de concentration macOS est actif. Renseigné par
+    /// `FocusModeMonitor` quand la synchronisation est activée, jamais persisté.
+    @Published private(set) var focusIsActive = false
+
+    /// Les rappels prennent la forme d'une pastille plutôt que d'une
+    /// notification système. Le mode DnD ne désactive pas les rappels.
+    var isQuietMode: Bool {
+        doNotDisturb || (focusModeAutoSync && focusIsActive)
+    }
+
+    /// Jusqu'ici la synchro Concentration écrivait `doNotDisturb`, et
+    /// l'interrupteur manuel était désactivé pendant ce temps : avec la synchro
+    /// active, la valeur stockée vient du Focus, pas de l'utilisateur. On la
+    /// remet à zéro une fois, sinon un Focus en cours lors de la mise à jour
+    /// laisserait le DnD allumé indéfiniment.
+    private static func migrateFocusOwnedDoNotDisturb() {
+        let defaults = UserDefaults.standard
+        let key = "migration.focusOwnedDoNotDisturb"
+        guard !defaults.bool(forKey: key) else { return }
+        if defaults.bool(forKey: "focusModeAutoSync") {
+            defaults.set(false, forKey: "doNotDisturb")
+        }
+        defaults.set(true, forKey: key)
+    }
+
+    /// Point d'entrée unique de `FocusModeMonitor`. Auparavant le moniteur
+    /// écrivait `doNotDisturb` — le réglage de l'utilisateur — en coupant puis
+    /// rétablissant la synchronisation pour éviter une cascade de didSet ; la fin
+    /// d'une concentration effaçait aussi un DnD activé à la main.
+    func setFocusActive(_ active: Bool) {
+        guard focusIsActive != active else { return }
+        let wasQuiet = isQuietMode
+        focusIsActive = active
+        if isQuietMode != wasQuiet { quietModeDidChange() }
+    }
+
+    private func quietModeDidChange() {
+        guard notificationsEnabled else { return }
+        scheduleNotifications()
+        checkReminderStatus()
     }
 
     @AppStorage("focusModeAutoSync") var focusModeAutoSync: Bool = false {
         willSet { objectWillChange.send() }
         didSet {
             guard oldValue != focusModeAutoSync else { return }
+            // Lu avant setAutoSync, qui remet focusIsActive à false à la désactivation.
+            let focusWasSilencing = focusIsActive && !doNotDisturb
             FocusModeMonitor.shared.setAutoSync(focusModeAutoSync)
+            if focusWasSilencing { quietModeDidChange() }
         }
     }
 
@@ -238,8 +282,11 @@ class HydrationManager: ObservableObject {
     @AppStorage("lastWaterAddedDate") private var lastWaterAddedDateString: String = ""
     
     // MARK: - Computed Properties
+    /// Borné à la lecture aussi : un objectif de 0 stocké par une version
+    /// antérieure (cf. AUDIT § P0-2) diviserait par zéro partout où l'on
+    /// calcule une progression.
     var targetMl: Double {
-        get { storedTargetMl }
+        get { min(max(storedTargetMl, HydrationLimits.goal.lowerBound), HydrationLimits.goal.upperBound) }
         set {
             objectWillChange.send()
             storedTargetMl = newValue
@@ -284,6 +331,9 @@ class HydrationManager: ObservableObject {
     
     // MARK: - Initialization
     private init() {
+        // Avant toute lecture de `doNotDisturb` (programmation des rappels).
+        Self.migrateFocusOwnedDoNotDisturb()
+
         // L'historique DOIT être chargé avant la bascule de jour : celle-ci archive
         // la veille dans `historyEntries`. Dans l'ordre d'origine, inverse,
         // `historyEntries` était encore vide au moment de l'archivage — qui
@@ -303,7 +353,7 @@ class HydrationManager: ObservableObject {
             scheduleNotifications()
         }
         setupTimers()
-        
+
         // Démarrer la surveillance du Focus Mode
         FocusModeMonitor.shared.startMonitoring(manager: self)
 
@@ -399,6 +449,24 @@ class HydrationManager: ObservableObject {
         checkReminderStatus()
     }
     
+    /// Intervalle effectif des rappels, en minutes.
+    ///
+    /// La valeur personnalisée est bornée ici aussi, et pas seulement dans le
+    /// champ de saisie : une valeur stockée par une version antérieure (0, ou
+    /// négative) ferait planter `UNTimeIntervalNotificationTrigger`, qui refuse
+    /// un déclencheur répétitif de moins de 60 secondes.
+    var reminderIntervalMinutes: Int {
+        switch notificationInterval {
+        case .thirtyMinutes:
+            return 30
+        case .twoHours:
+            return 120
+        case .custom:
+            return min(max(customNotificationMinutes, HydrationLimits.reminderMinutes.lowerBound),
+                       HydrationLimits.reminderMinutes.upperBound)
+        }
+    }
+
     /// Vérifie si un rappel doit être affiché (badge ou notification)
     func checkReminderStatus() {
         guard notificationsEnabled else {
@@ -406,16 +474,7 @@ class HydrationManager: ObservableObject {
             return
         }
         
-        // Calculer l'intervalle en minutes
-        let intervalMinutes: Int
-        switch notificationInterval {
-        case .thirtyMinutes:
-            intervalMinutes = 30
-        case .twoHours:
-            intervalMinutes = 120
-        case .custom:
-            intervalMinutes = customNotificationMinutes
-        }
+        let intervalMinutes = reminderIntervalMinutes
         
         // Vérifier si l'intervalle est écoulé depuis la dernière consommation
         let now = Date()
@@ -425,7 +484,7 @@ class HydrationManager: ObservableObject {
         
         if timeSinceLastWater >= intervalInSeconds {
             // L'intervalle est écoulé
-            if doNotDisturb {
+            if isQuietMode {
                 // Mode DnD actif : afficher le badge au lieu de la notification
                 showReminderBadge = true
             } else {
@@ -878,7 +937,7 @@ class HydrationManager: ObservableObject {
         
         // Si mode Ne pas déranger est activé, ne pas programmer de notifications système
         // Le badge sera géré par checkReminderStatus()
-        if doNotDisturb {
+        if isQuietMode {
             UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
             // Vérifier immédiatement le statut du badge
             checkReminderStatus()
@@ -888,16 +947,7 @@ class HydrationManager: ObservableObject {
         // Annuler les anciennes notifications
         UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
         
-        // Calculer l'intervalle en minutes
-        let intervalMinutes: Int
-        switch notificationInterval {
-        case .thirtyMinutes:
-            intervalMinutes = 30
-        case .twoHours:
-            intervalMinutes = 120
-        case .custom:
-            intervalMinutes = customNotificationMinutes
-        }
+        let intervalMinutes = reminderIntervalMinutes
         
         // Créer le contenu de la notification
         let content = UNMutableNotificationContent()

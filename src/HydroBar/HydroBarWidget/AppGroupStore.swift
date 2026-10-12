@@ -75,6 +75,17 @@ enum AppUnit: String, CaseIterable, Codable {
         }
     }
 
+    /// Décimales proposées dans un champ de saisie. Plus large qu'à l'affichage
+    /// pour les litres : un objectif de 1,25 L doit se relire tel quel.
+    var inputFractionDigits: ClosedRange<Int> {
+        switch self {
+        case .ml:         return 0...0
+        case .cl:         return 0...1
+        case .liter:      return 0...2
+        case .oz, .ozUK:  return 0...1
+        }
+    }
+
     /// Nombre seul, formaté selon la locale (« 1,5 » en français, « 1.5 » en anglais).
     func formattedNumber(ml: Double, locale: Locale = .current) -> String {
         let value = fromMl(ml)
