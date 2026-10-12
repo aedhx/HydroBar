@@ -124,14 +124,6 @@ enum ViewType {
     case settings
 }
 
-// PreferenceKey pour communiquer la taille du contenu au parent
-struct ContentSizeKey: PreferenceKey {
-    static let defaultValue: CGSize = .zero
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
-}
-
 struct MainView: View {
     @ObservedObject private var manager = HydrationManager.shared
     @ObservedObject private var navigation = AppNavigation.shared
@@ -195,13 +187,9 @@ struct MainView: View {
                     .frame(maxHeight: 620)
                 }
             }
+            // Hauteur idéale = hauteur du contenu : le popover s'y ajuste seul
+            // (sizingOptions dans l'AppDelegate).
             .fixedSize(horizontal: false, vertical: true)
-            .background(
-                GeometryReader { geometry in
-                    Color.clear
-                        .preference(key: ContentSizeKey.self, value: geometry.size)
-                }
-            )
         }
         .frame(width: 320)
         .background(.regularMaterial)
@@ -210,10 +198,6 @@ struct MainView: View {
             RoundedRectangle(cornerRadius: 16)
                 .stroke(Color.white.opacity(0.1), lineWidth: 1)
         )
-        .onPreferenceChange(ContentSizeKey.self) { size in
-            // Mettre à jour la taille du popover quand le contenu change
-            updatePopoverSize(contentHeight: size.height)
-        }
         .onChange(of: navigation.pendingRequest) { _, request in
             // Vue demandée par un deep link `hydrobar://open/...`.
             if let request, request.view != .settings { currentView = request.view }
@@ -228,27 +212,6 @@ struct MainView: View {
             return String(localized: "Statistics", comment: "Title for statistics view")
         case .settings:
             return String(localized: "Settings", comment: "Title for settings view")
-        }
-    }
-    
-    private func updatePopoverSize(contentHeight: CGFloat) {
-        // Ignorer si la taille est zéro (pas encore mesurée)
-        guard contentHeight > 0 else { return }
-        
-        // Header height: ~48px (padding + divider)
-        let headerHeight: CGFloat = 48
-        let totalHeight = contentHeight + headerHeight
-        
-        // Limiter la hauteur entre min et max
-        let minHeight: CGFloat = 350
-        let maxHeight: CGFloat = 700
-        let finalHeight = min(max(totalHeight, minHeight), maxHeight)
-        
-        // Mettre à jour le popover via AppDelegate
-        DispatchQueue.main.async {
-            if let appDelegate = NSApplication.shared.delegate as? AppDelegate {
-                appDelegate.updatePopoverSize(height: finalHeight)
-            }
         }
     }
 }
@@ -272,7 +235,7 @@ struct MainContentView: View {
             ? "+" + manager.displayValue(for: manager.holdTotalMl)
             : String(localized: "Hold to Add", comment: "Button to add water continuously while pressed")
     }
-    
+
     var body: some View {
         VStack(spacing: 24) {
             // Jauge circulaire
