@@ -129,7 +129,7 @@ struct OnboardingView: View {
             // Suggestion (F21)
             Text("Not sure? Get a suggestion from your weight.",
                  comment: "Onboarding: goal suggestion prompt")
-                .font(.system(size: 12, weight: .medium))
+                .font(Theme.Font.calloutMedium)
             HStack(spacing: 8) {
                 TextField("", text: $weightText)
                     .textFieldStyle(.roundedBorder)
@@ -145,7 +145,7 @@ struct OnboardingView: View {
             }
             Text("About 30 ml per kilogram. A starting point, not medical advice: activity, heat and diet change your needs. Your weight is not saved.",
                  comment: "Onboarding: goal suggestion disclaimer")
-                .font(.system(size: 11))
+                .font(Theme.Font.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -176,7 +176,7 @@ struct OnboardingView: View {
                             onCommit: { updatePreset(at: index, displayValue: $0) }
                         )
                         Text(String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1))
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.secondary)
                     }
                 }
@@ -188,7 +188,7 @@ struct OnboardingView: View {
             } icon: {
                 Image(systemName: "keyboard")
             }
-            .font(.system(size: 12))
+            .font(Theme.Font.callout)
             .foregroundColor(.secondary)
         }
     }
@@ -217,7 +217,7 @@ struct OnboardingView: View {
                     manager.openNotificationSettings()
                 }
                 .buttonStyle(.link)
-                .font(.system(size: 11))
+                .font(Theme.Font.caption)
             }
 
             Toggle(String(localized: "Launch at login", comment: "Toggle label for launching the app at login"),
@@ -265,7 +265,7 @@ struct OnboardingView: View {
             Text(title)
                 .font(.system(size: 20, weight: .semibold))
             Text(subtitle)
-                .font(.system(size: 13))
+                .font(Theme.Font.body)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }

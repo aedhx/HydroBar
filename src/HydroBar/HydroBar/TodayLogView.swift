@@ -26,12 +26,12 @@ struct TodayLogView: View {
             } label: {
                 HStack(spacing: 6) {
                     Image(systemName: "chevron.right")
-                        .font(.system(size: 10, weight: .semibold))
+                        .font(Theme.Font.footnoteEmphasis)
                         .rotationEffect(.degrees(isExpanded ? 90 : 0))
                     Text(String(format: String(localized: "Today's log (%lld)",
                                                comment: "Disclosure title for today's intake list; %lld is the number of entries"),
                                 events.count))
-                        .font(.system(size: 12, weight: .medium))
+                        .font(Theme.Font.calloutMedium)
                     Spacer()
                 }
                 .foregroundColor(.secondary)
@@ -44,7 +44,7 @@ struct TodayLogView: View {
             if isExpanded {
                 if events.isEmpty {
                     Text("Nothing logged yet today.", comment: "Empty state of today's log")
-                        .font(.system(size: 12))
+                        .font(Theme.Font.callout)
                         .foregroundColor(.secondary)
                         .padding(.vertical, 4)
                 } else {
@@ -66,7 +66,7 @@ struct TodayLogView: View {
                     } label: {
                         Label(String(localized: "Add an Earlier Drink…", comment: "Button to log a drink at a past date or time"),
                               systemImage: "clock.arrow.circlepath")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                     }
                     .buttonStyle(.plain)
                     .foregroundColor(.secondary)
@@ -85,12 +85,12 @@ struct TodayLogView: View {
                     Text(event.date.formatted(date: .omitted, time: .shortened))
                 }
             }
-            .font(.system(size: 12, design: .monospaced))
+            .font(Theme.Font.mono)
             .foregroundColor(.secondary)
             .frame(width: 64, alignment: .leading)
 
             Text(verbatim: "+" + manager.displayValue(for: event.amountMl))
-                .font(.system(size: 13, weight: .medium))
+                .font(Theme.Font.bodyMedium)
 
             Spacer()
 
@@ -98,7 +98,7 @@ struct TodayLogView: View {
                 manager.removeEvent(id: event.id)
             } label: {
                 Image(systemName: "xmark.circle.fill")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                     .foregroundColor(.secondary)
             }
             .buttonStyle(.plain)

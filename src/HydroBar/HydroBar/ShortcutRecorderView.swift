@@ -38,7 +38,7 @@ struct ShortcutRecorderView: View {
                     HStack(spacing: 6) {
                         if isRecording {
                             Text("Press...", comment: "Shortcut recorder state when recording")
-                                .foregroundColor(.blue)
+                                .foregroundColor(Theme.water)
                         } else if let shortcut = currentShortcut {
                             Text(shortcut.displayString)
                                 .foregroundColor(errorMessage == nil ? .primary : .orange)
@@ -47,17 +47,17 @@ struct ShortcutRecorderView: View {
                                 .foregroundColor(.secondary)
                         }
                     }
-                    .font(.system(size: 13, weight: .regular))
+                    .font(Theme.Font.body)
                     .frame(width: 120, alignment: .leading)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(isRecording ? Color.blue.opacity(0.1) : Color(NSColor.controlBackgroundColor))
+                            .fill(isRecording ? Theme.water.opacity(0.1) : Color(NSColor.controlBackgroundColor))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
-                            .stroke(isRecording ? Color.blue : Color.clear, lineWidth: 1.5)
+                            .stroke(isRecording ? Theme.water : Color.clear, lineWidth: 1.5)
                     )
                 }
                 .buttonStyle(.plain)
@@ -65,7 +65,7 @@ struct ShortcutRecorderView: View {
                 if currentShortcut != nil && !isRecording {
                     Button(action: { removeShortcut() }) {
                         Image(systemName: "xmark.circle.fill")
-                            .font(.system(size: 14))
+                            .font(Theme.Font.control)
                             .foregroundColor(.secondary)
                     }
                     .buttonStyle(.plain)
@@ -80,7 +80,7 @@ struct ShortcutRecorderView: View {
 
             if let errorMessage {
                 Text(errorMessage)
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }

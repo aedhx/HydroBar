@@ -20,11 +20,11 @@ struct KPICardView: View {
             // Icône et Titre en haut
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.secondary)
                 
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Theme.Font.captionMedium)
                     .foregroundColor(.secondary)
             }
             
@@ -33,11 +33,11 @@ struct KPICardView: View {
             // Valeur en grand et gras au centre
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(Theme.Font.kpiValue)
                     .foregroundColor(.primary)
                 
                 Text(unit)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Theme.Font.controlMedium)
                     .foregroundColor(.secondary)
             }
         }
@@ -118,7 +118,7 @@ struct WeeklyChartView: View {
                     x: .value("Day", entry.date, unit: .day),
                     y: .value("Percentage", percentage)
                 )
-                .foregroundStyle(entry.amountMl >= entry.targetMl ? Color.green : Color.blue)
+                .foregroundStyle(entry.amountMl >= entry.targetMl ? Theme.goal : Theme.water)
                 .cornerRadius(4, style: .continuous)
                 .opacity(selectedDay?.id == entry.id ? 1.0 : 0.8)
             }
@@ -141,7 +141,7 @@ struct WeeklyChartView: View {
                 AxisValueLabel {
                     if let doubleValue = value.as(Double.self) {
                         Text("\(Int(doubleValue * 100))%")
-                            .font(.system(size: 10))
+                            .font(Theme.Font.footnote)
                     }
                 }
             }
@@ -174,10 +174,10 @@ struct WeeklyChartView: View {
             if let selected = selectedDay {
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(manager.displayValue(for: selected.amountMl))
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(Theme.Font.calloutEmphasis)
                         .foregroundColor(.primary)
                     Text(dayLabel(for: selected.date))
-                        .font(.system(size: 10))
+                        .font(Theme.Font.footnote)
                         .foregroundColor(.secondary)
                 }
                 .padding(8)
@@ -247,7 +247,7 @@ struct MonthlyHeatmapView: View {
             // Légende
             HStack(spacing: 12) {
                 Text("Less", comment: "Legend label for less activity")
-                    .font(.system(size: 10))
+                    .font(Theme.Font.footnote)
                     .foregroundColor(.secondary)
                 
                 // Échantillons tirés de colorForPercentage, comme les cellules :
@@ -259,12 +259,12 @@ struct MonthlyHeatmapView: View {
                             .fill(colorForPercentage(sample, colorScheme: colorScheme))
                             .frame(width: 12, height: 12)
                             .cornerRadius(3)
-                            .shadow(color: sample >= 1.5 ? .green.opacity(0.5) : .clear, radius: 2)
+                            .shadow(color: sample >= 1.5 ? Theme.goal.opacity(0.5) : .clear, radius: 2)
                     }
                 }
                 
                 Text("More", comment: "Legend label for more activity")
-                    .font(.system(size: 10))
+                    .font(Theme.Font.footnote)
                     .foregroundColor(.secondary)
             }
             .padding(.horizontal, 20)
@@ -283,7 +283,7 @@ struct MonthlyHeatmapView: View {
             .fill(color)
             .aspectRatio(1, contentMode: .fit)
             .cornerRadius(4)
-            .shadow(color: hasGlow ? .green.opacity(0.5) : .clear, radius: 2)
+            .shadow(color: hasGlow ? Theme.goal.opacity(0.5) : .clear, radius: 2)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 0.5)
@@ -315,16 +315,16 @@ struct MonthlyHeatmapView: View {
                 : Color(white: 0.85, opacity: 1.0)
         } else if percentage < 0.5 {
             // 1-49% : vert clair
-            return Color.green.opacity(0.4)
+            return Theme.goal.opacity(0.4)
         } else if percentage < 1.0 {
             // 50-99% : vert moyen
-            return Color.green.opacity(0.7)
+            return Theme.goal.opacity(0.7)
         } else if percentage < 1.5 {
             // 100%+ : vert vif
-            return Color.green
+            return Theme.goal
         } else {
             // 150%+ : vert vif avec glow
-            return Color.green
+            return Theme.goal
         }
     }
 }

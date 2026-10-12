@@ -69,7 +69,7 @@ class HoldButtonNSView: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        let color = isHolding ? NSColor.systemBlue.withAlphaComponent(0.75) : NSColor.systemBlue
+        let color = isHolding ? Theme.NS.water.withAlphaComponent(0.75) : Theme.NS.water
         let path = NSBezierPath(roundedRect: bounds, xRadius: 8, yRadius: 8)
         color.setFill()
         path.fill()
@@ -121,8 +121,8 @@ struct MainView: View {
                     }
                 }) {
                     Image(systemName: "chart.bar.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(currentView == .statistics ? .blue : .secondary)
+                        .font(Theme.Font.control)
+                        .foregroundColor(currentView == .statistics ? Theme.water : .secondary)
                 }
                 .buttonStyle(.plain)
                 
@@ -144,8 +144,8 @@ struct MainView: View {
                     }
                 }) {
                     Image(systemName: "gearshape.fill")
-                        .font(.system(size: 14))
-                        .foregroundColor(currentView == .settings ? .blue : .secondary)
+                        .font(Theme.Font.control)
+                        .foregroundColor(currentView == .settings ? Theme.water : .secondary)
                 }
                 .buttonStyle(.plain)
             }
@@ -261,11 +261,11 @@ struct MainContentView: View {
                         manager.addWater(amount: preset)
                     }) {
                         Text(verbatim: manager.displayValue(for: preset))
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Theme.Font.bodyMedium)
                             .foregroundColor(.primary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
-                            .background(Color.blue.opacity(0.1))
+                            .background(Theme.water.opacity(0.1))
                             .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
@@ -296,7 +296,7 @@ struct MainContentView: View {
                 manager.resetDay()
             }) {
                 Label(String(localized: "Reset my day", comment: "Button to reset daily progress"), systemImage: "arrow.counterclockwise")
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.gray)
             }
             .buttonStyle(.plain)
