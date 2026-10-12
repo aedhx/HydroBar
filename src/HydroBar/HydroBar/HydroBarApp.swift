@@ -266,7 +266,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         popover?.behavior = .transient
         
         let mainViewController = NSHostingController(rootView: MainView())
-        mainViewController.view.setFrameSize(NSSize(width: 320, height: 400))
+        // Le popover suit la taille idéale de la vue SwiftUI. Avant, une
+        // GeometryReader mesurait le contenu, un PreferenceKey le remontait et
+        // l'AppDelegate redimensionnait le popover à la main : fragile, et
+        // source de sauts quand on dépliait le journal du jour.
+        mainViewController.sizingOptions = .preferredContentSize
         popover?.contentViewController = mainViewController
         
         // Configurer le responder pour Cmd+Z
@@ -461,15 +465,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
             )
             popover.show(relativeTo: centerRect, of: sender, preferredEdge: .minY)
         }
-    }
-    
-    func updatePopoverSize(height: CGFloat) {
-        guard let popover = popover,
-              let viewController = popover.contentViewController else { return }
-        
-        let newSize = NSSize(width: 320, height: height)
-        popover.contentSize = newSize
-        viewController.view.setFrameSize(newSize)
     }
     
     /// Charge les raccourcis sauvegardés depuis UserDefaults
