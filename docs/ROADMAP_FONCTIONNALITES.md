@@ -661,6 +661,58 @@ arrêter le format avant d'écrire l'export.
 
 ---
 
+## Pistes pour la v3 — design et micro-animations
+
+> Exploration d'octobre 2026, après la v2.1. Un prototype interactif rejoue chaque
+> micro-animation proposée et la compare au comportement actuel (lien partagé
+> séparément : c'est une page privée, pas un fichier du dépôt).
+
+**Constats de la relecture du design**
+
+- L'icône de la barre de menu est en couleur (bleu, vert). macOS attend des icônes
+  *template* monochromes qui suivent la couleur de la barre de menu.
+- 127 tailles de police et une vingtaine de couleurs sont écrites en dur : pas de
+  système de design, pas de tailles de texte dynamiques.
+- Douze sections de réglages s'empilent dans un popover de 320 px.
+- La hauteur du popover est mesurée à la main (`PreferenceKey` → `AppDelegate`).
+- Hormis le remplissage de l'anneau, aucune animation ne signale une action.
+- Le SDK de la CI est macOS 26.5 : Liquid Glass et le Centre de contrôle sont
+  accessibles derrière `#available(macOS 26, *)`.
+
+**Micro-animations** — chacune dit quelque chose, aucune ne boucle, toutes se
+réduisent à un fondu avec « Réduire les animations ».
+
+| Animation | Ce qu'elle signale | API SwiftUI | Effort |
+|---|---|---|---|
+| Compteur qui roule | La prise vient d'être comptée | `.contentTransition(.numericText())` | Petit |
+| Goutte qui rejoint l'anneau | Le geste et son effet sont liés | `KeyframeAnimator` | Moyen |
+| Anneau à ressort + second tour au-delà de 100 % | 130 % ne ressemble plus à 100 % | `.spring`, deuxième `Circle` | Petit |
+| « Hold to Add » qui se remplit comme un verre | Quand relâcher | `TimelineView`, `Canvas` | Moyen |
+| Objectif atteint : coche, éclaboussure, haptique | Le moment à récompenser | `PhaseAnimator`, `NSHapticFeedbackManager` | Moyen |
+| Rebond de l'icône + étiquette « +20 cl » | Ajout hors popover (raccourci, ⌥-clic, Raccourcis) | `.symbolEffect(.bounce)`, `NSPanel` | Moyen |
+| Repère d'allure qui pulse trois fois | Le retard, sans lire la légende | `.symbolEffect(.pulse)` | Petit |
+| Journal qui glisse et se replie | Insertion et suppression | `.transition(.move(edge: .top))` | Petit |
+| Pastille de rappel : deux battements puis immobile | Un rappel, sans clignoter | `.symbolEffect(.bounce, value:)` | Petit |
+
+**Design de l'app**
+
+- Icône de barre de menu *template*, la couleur restant une option.
+- `Theme.swift` : couleurs sémantiques, échelle typographique sur `Font.TextStyle`,
+  espacements et rayons — prérequis des tailles de texte dynamiques (F7).
+- Réglages dans une fenêtre native (⌘,) à onglets : Général, Rappels,
+  Raccourcis, Données, Intégrations.
+- Liquid Glass sur macOS 26 pour l'en-tête, les presets et le bouton d'ajout.
+- `NSHostingController.sizingOptions = .preferredContentSize` à la place du calcul
+  manuel de la hauteur du popover.
+
+**Produit** : presets appris des quantités les plus bues, mode gourde
+(un quart, la moitié, finie), objectif par jour de la semaine, heatmap sur un an,
+bilan du mois partageable en image, rappels qui évitent les réunions du
+calendrier, Focus Filter, bouton dans le Centre de contrôle, captures de
+référence en CI.
+
+---
+
 ## Ce que je ne recommande pas
 
 Par symétrie, quelques idées séduisantes qui coûteraient plus qu'elles ne rapportent
