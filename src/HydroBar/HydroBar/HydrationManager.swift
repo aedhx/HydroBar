@@ -212,6 +212,48 @@ class HydrationManager: ObservableObject {
         willSet { objectWillChange.send() }
     }
 
+    // MARK: - Autorisation des notifications
+
+    /// Active ou coupe les rappels. À l'activation, demande l'autorisation des
+    /// notifications si elle n'a jamais été demandée — au moment où
+    /// l'utilisateur en exprime le besoin, et non plus au premier lancement,
+    /// avant qu'il ait compris à quoi sert l'app (roadmap F8).
+    ///
+    /// - Parameter completion: `false` si le système a refusé ; les rappels
+    ///   restent alors coupés.
+    func setRemindersEnabled(_ enabled: Bool, completion: ((Bool) -> Void)? = nil) {
+        guard enabled else {
+            notificationsEnabled = false
+            completion?(true)
+            return
+        }
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            let finish: (Bool) -> Void = { granted in
+                DispatchQueue.main.async {
+                    self.notificationsEnabled = granted
+                    completion?(granted)
+                }
+            }
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .sound]) { granted, _ in finish(granted) }
+            case .denied:
+                finish(false)
+            default:
+                finish(true)
+            }
+        }
+    }
+
+    /// Ouvre les réglages de notifications de HydroBar dans Réglages Système.
+    func openNotificationSettings() {
+        let bundleID = Bundle.main.bundleIdentifier ?? ""
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(bundleID)") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
     // MARK: - Pause des rappels (F19)
 
     /// Fin de la pause, en secondes depuis 1970 ; 0 sans pause.
