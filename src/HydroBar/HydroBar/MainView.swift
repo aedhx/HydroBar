@@ -266,7 +266,11 @@ struct MainContentView: View {
             .frame(maxWidth: .infinity)
             .frame(height: 40)
             .padding(.horizontal, 20)
-            
+
+            // Journal du jour (F17)
+            TodayLogView(manager: manager)
+                .padding(.horizontal, 20)
+
             // Footer - Reset
             Button(action: {
                 manager.resetDay()
