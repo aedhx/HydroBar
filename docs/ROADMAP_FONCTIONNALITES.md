@@ -38,6 +38,60 @@
 
 ---
 
+## Ce qui est intégrable aujourd'hui
+
+> Établi lors de la revue n°2 (octobre 2026), contre le code réel.
+> Voir [AUDIT_TECHNIQUE.md § Revue n°2](AUDIT_TECHNIQUE.md#revue-n2--octobre-2026).
+
+**La réponse courte : oui pour la périphérie, non pour le cœur.** Tout ce qui
+touche à la donnée bute sur le même prérequis — et ce constat est partagé,
+indépendamment, par le backlog produit de la branche
+`claude/macos-menu-bar-backlog-xbv1px`.
+
+### Intégrable maintenant, sans prérequis
+
+| Feature | Effort | Pourquoi c'est prêt |
+|---|---|---|
+| **Unité ml** (R2-6) | ~2 h | Tout est déjà stocké en ml. Ajouter un cas à `AppUnit` et l'aligner dans le formateur du widget. Rétrocompatible : les valeurs persistées (`cl`, `L`, `oz`) restent valides. |
+| **F19** — Snooze | ~3 h | La plage horaire de F18 existe ; les catégories de notification aussi (`setupNotificationCategories`). |
+| **F20** — Raccourcis globaux étendus | ~4 h | `DeepLinkAction` définit déjà le vocabulaire (`undo`, `open`). **À faire avec R2-9** : ajouter des raccourcis multiplie les collisions, et elles échouent aujourd'hui en silence. |
+| **F8 + F21** — Onboarding et suggestion d'objectif | ~1,5 j | Aucune dépendance. F3 (lancement au démarrage) est déjà là pour y être proposé. |
+| **F7** — Accessibilité (suite) | ~1 j | Amorcée avec l'anneau dans F18 ; restent les stats et la barre de menu. |
+| **Publication Raycast Store** | ~0,5 j | Le `LICENSE` qui la bloquait est en place. Restent métadonnées et captures. |
+| **CLI** `hydrobar add 250` | ~2 h | Une simple enveloppe autour de `open hydrobar://…` — le schéma fait tout le travail. |
+
+### Débloqué par le compte Apple — en attente d'une action de ta part
+
+| Feature | Ce qui manque |
+|---|---|
+| Notarisation (P3-6) | Le certificat Developer ID. Le script est prêt. |
+| **F12** — Sparkle | La notarisation. |
+| **F13** — Homebrew | La notarisation. |
+| **F10** — Widget | Le Team ID à vérifier (les App Groups en dépendent), puis un re-test. R2-3 et P0-6 sont corrigés ; restent les presets codés en dur et la timeline `.never`. |
+
+### Bloqué par la dette structurelle — c'est là que se joue la suite
+
+**F5 (journal d'événements) est la clé de voûte.** Il conditionne F4 (export),
+F6 (rappels adaptatifs), F9 (types de boissons), F11 (iCloud), F17 (journal du
+jour) et les statistiques par heure. Six features sur un seul prérequis.
+
+**F2 (App Intents) est faisable techniquement, mais je déconseille de le faire
+avant F5.** Les intents s'exécutent dans un processus séparé quand l'app est
+fermée. Bâtis sur le `HydrationManager` actuel — un singleton dont l'état vit dans
+`@AppStorage` —, ils créeraient un **troisième chemin d'écriture** à côté de l'UI et
+des deep links. C'est exactement le motif qui a déjà produit le risque de double
+comptage d'`AddWaterIntent` (audit, P4).
+
+### L'ordre que je recommande
+
+1. **Les rapides** : unité ml, R2-7, R2-8 — trois bugs visibles, environ une demi-journée.
+2. **F5** — journal d'événements, avec une migration non destructive et testée.
+3. **F2** sur cette fondation, puis tout ce que F5 débloque.
+
+En parallèle, dès que le certificat est là : notarisation → Sparkle → Homebrew.
+
+---
+
 ## F1 — Deep links `hydrobar://` ⭐⭐⭐⭐⭐ — ✅ livré
 
 **C'était la priorité absolue**, pour une raison simple : ce n'est pas une nouvelle

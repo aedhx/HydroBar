@@ -42,8 +42,11 @@ final class FocusModeMonitor: ObservableObject {
         case authorized
         /// L'utilisateur a refusé, ou le système l'interdit.
         case denied
-        /// Autorisée, mais le statut reste `nil` : signature d'une capability
-        /// Communication Notifications absente de la cible.
+        /// Autorisée, mais le statut reste `nil`. Deux causes possibles, que l'API
+        /// ne permet pas de distinguer : capability Communication Notifications
+        /// absente de la cible (problème de build), ou notifications refusées par
+        /// l'utilisateur (Apple exige les deux). Le message affiché vise la seconde,
+        /// la seule que l'utilisateur puisse corriger lui-même.
         case unavailable
     }
 
@@ -132,10 +135,10 @@ final class FocusModeMonitor: ObservableObject {
         guard status == .authorized else { return }
 
         guard let isFocused = INFocusStatusCenter.default.focusStatus.isFocused else {
-            // Autorisé mais illisible : la capability manque sur la cible.
-            // C'est exactement le cas qui échouait en silence avant.
+            // Autorisé mais illisible : capability absente ou notifications
+            // refusées. C'est exactement le cas qui échouait en silence avant.
             availability = .unavailable
-            Self.logger.error("Statut Focus nil malgré l'autorisation — capability Communication Notifications absente ?")
+            Self.logger.error("Statut Focus nil malgré l'autorisation — capability Communication Notifications absente, ou notifications refusées")
             return
         }
 

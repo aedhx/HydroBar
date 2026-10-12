@@ -43,6 +43,75 @@ correctifs P0 représentent environ une journée de travail.
 | **P2 — Performance** | 5 (1 corrigé) | Timers, I/O disque, reconstruction de vues |
 | **P3 — Qualité / outillage** | 8 (5 corrigés) | Tests, CI, i18n, distribution |
 | **P4 — Cosmétique** | 6 | Code mort, duplication, conventions |
+| **Revue n°2** | 13 (5 corrigés, 8 ouverts) | Sécurité des deep links, unités, i18n des statistiques |
+
+---
+
+## Revue n°2 — octobre 2026
+
+> Relecture **intégrale** des 6 115 lignes Swift, en commençant par le code ajouté
+> depuis l'audit initial (deep links, allure, lancement au démarrage, Focus Mode,
+> persistance) : c'était le code le moins relu, puisque je suis le seul à l'avoir
+> écrit. Croisée avec le backlog produit d'une autre session
+> (`origin/claude/macos-menu-bar-backlog-xbv1px`, `docs/PRODUCT_BACKLOG.md`).
+
+### Corrigé dans cette passe — défauts dans mon propre code
+
+| # | Défaut | Gravité |
+|---|---|---|
+| **R2-1** | Le limiteur de débit des deep links était vérifié **après** le parsing. Une URL invalide échouait donc avant de l'atteindre : `hydrobar://x` envoyé en boucle produisait une notification par appel, sans limite. Le limiteur passe désormais en premier, et compte toute URL reçue, valide ou non. | **Sécurité** |
+| **R2-2** | `fail()` ouvrait le callback `x-error` **y compris sur un appel rejeté pour débit**, et les callbacks `http(s)` étaient autorisés. Une page pouvait faire ouvrir à HydroBar l'URL web de son choix, en boucle, en contournant le bloqueur de pop-ups du navigateur. Désormais : `http(s)` refusés, et un appel rejeté pour débit n'a aucun effet de bord. | **Sécurité** |
+| **R2-3** | `resetDay()` était le seul chemin de mutation à ne pas appeler `syncToAppGroup()` — le widget gardait l'ancienne valeur après un reset. Mes deep links (`hydrobar://reset`) empruntent ce chemin. | Correction |
+| **R2-4** | L'état Focus `.unavailable` attribuait l'échec à la seule capability manquante. Or Apple exige aussi que les notifications soient autorisées ([forum, réponse d'un ingénieur Apple](https://developer.apple.com/forums/thread/685744)) : le message envoyait l'utilisateur sur une fausse piste. | Correction |
+| **R2-5** | `lastDataIssue` était republié à chaque échec d'écriture — 20 fois par seconde pendant « Hold to Add » si le disque est plein. Dédoublonné. | Mineur |
+
+**Vérifié et sans défaut** : le plantage remonté dans le fil
+[685744](https://developer.apple.com/forums/thread/685744) est causé par l'absence de
+`NSFocusStatusUsageDescription` lors de `requestAuthorization`. Les deux ont été
+ajoutés dans le **même** commit : le chemin introduit par P0-3 ne peut pas planter.
+
+### Nouveaux constats — ouverts
+
+| # | Constat | Emplacement | Gravité |
+|---|---|---|---|
+| **R2-6** | **L'unité ml n'existe pas.** Le README promet ml et fl oz (l. 33, 214, 230) ; `AppUnit` ne contient que `cl`, `L`, `oz`. Ironie : tout est stocké en ml, les deep links et Raycast parlent en ml — mais l'utilisateur ne peut pas *afficher* en ml, l'unité par défaut de la majorité du monde. *Relevé d'abord par le backlog produit (T5) — je l'avais raté.* | `HydrationManager.swift`, `enum AppUnit` | **Élevée** |
+| **R2-7** | **Les statistiques ignorent l'unité choisie au-delà de 1 000 ml.** `StatsHeaderView.formatValue` bascule en litres dès 1 L, quelle que soit l'unité : un utilisateur en onces voit son total hebdomadaire — toujours ≥ 1 L — affiché en litres. | `StatsComponents.swift:93-95` | Élevée |
+| **R2-8** | **La vue Statistiques est codée en dur en français.** Le graphique force `Locale(identifier: "fr_FR")`, l'infobulle de date aussi, et les noms de jours sont écrits à la main en deux langues seulement. L'app annonce 9 langues : un utilisateur allemand ou japonais voit des dates en français. Distinct de P3-5, qui portait sur des traductions manquantes. | `StatsComponents.swift:139`, `:223`, `:246-257` | Élevée |
+| **R2-9** | **Un raccourci global qui échoue à s'enregistrer est quand même affiché comme actif.** Si la combinaison est déjà prise — par une autre app, ou par un autre preset —, `registerShortcut` échoue, mais le raccourci est sauvegardé et affiché. Le commentaire du code l'admet. Rien n'empêche non plus d'affecter la même combinaison à deux presets. | `ShortcutRecorderView.swift:127-132` | Moyenne |
+| **R2-10** | **Le README promet toujours « Health app integration ».** HealthKit est indisponible aux apps macOS natives (voir roadmap F2) : c'est une promesse intenable en tête d'une roadmap publique. | `README.md`, section Roadmap | Moyenne |
+| **R2-11** | **L'once est l'once US** (29,57 ml), sans distinction avec la fl oz britannique (28,41 ml) — valeurs fausses de ~4 % au Royaume-Uni. *Backlog produit, T6.* | `HydrationManager.swift:54` | Faible |
+| **R2-12** | La légende de la heatmap utilise des opacités (0,3 / 0,6) qui ne correspondent pas à celles des cellules (0,4 / 0,7) ; la carte porte deux titres empilés (« Monthly Activity » et « Consistency (30 days) ») ; un `DateFormatter` est instancié par cellule, à chaque rendu. | `StatsComponents.swift:277`, `:316-340`, `:372` | Faible |
+| **R2-13** | `loadShortcut()` ré-enregistre chaque raccourci à chaque ouverture des réglages, alors que l'`AppDelegate` le fait déjà au lancement : deux sources de vérité pour la même opération. | `ShortcutRecorderView.swift:159` | Faible |
+
+### Une conséquence de mon propre travail
+
+Les écritures `.atomic` de P3-3 sont plus sûres, mais **chaque écriture coûte
+maintenant un fichier temporaire et un renommage** en plus. Comme elles sont
+toujours déclenchées 20 fois par seconde pendant « Hold to Add »,
+**P2-2 (persistance débouncée) devient plus urgent qu'avant**, pas moins.
+
+### Rapprochement avec le backlog produit
+
+Le backlog d'août (`docs/PRODUCT_BACKLOG.md`, branche
+`claude/macos-menu-bar-backlog-xbv1px`) et ce document sont arrivés
+**indépendamment** aux mêmes conclusions techniques : journal d'événements
+horodaté, purge destructrice à 30 jours, double store, écritures en rafale,
+notarisation. C'est rassurant sur le diagnostic.
+
+Ils sont complémentaires plutôt que redondants :
+
+| Le backlog apporte | Ce document apporte |
+|---|---|
+| Analyse de marché et positionnement | Références `fichier:ligne` vérifiées contre le code |
+| Monétisation (E6) et croissance (E7) | Constats corrigés, invalidés, et leur historique |
+| Métriques de succès | Deux constats que le backlog n'a pas (R2-7, R2-8) |
+| R2-6 et R2-11, que j'avais ratés | L'état réel après 10 commits |
+
+Ses références de lignes datent du 5 août et ne correspondent plus au code. Son
+premier arbitrage — financer les 99 $/an — **est tranché** : l'adhésion au
+programme Apple Developer est faite. Les deux autres restent ouverts
+(repositionnement « clavier d'abord », et iOS dedans ou dehors).
+
 
 ---
 

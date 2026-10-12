@@ -2,8 +2,8 @@
 
 | Document | Contenu |
 |---|---|
-| [**AUDIT_TECHNIQUE.md**](AUDIT_TECHNIQUE.md) | Revue de code complète : 32 points classés P0 → P4, avec référence fichier:ligne, impact et correctif. Les points corrigés sont marqués ✅ et conservés, pas effacés. Se termine par un plan d'action en 6 lots. |
-| [**ROADMAP_FONCTIONNALITES.md**](ROADMAP_FONCTIONNALITES.md) | 21 propositions de fonctionnalités classées valeur / effort, séquencées en versions v1.3 → v1.6. Inclut ce qu'il vaut mieux **ne pas** faire. |
+| [**AUDIT_TECHNIQUE.md**](AUDIT_TECHNIQUE.md) | Revue de code complète : 32 points classés P0 → P4, plus une **revue n°2** (octobre 2026) de 13 points sur l'ensemble du code, y compris le code ajouté depuis. Référence fichier:ligne, impact et correctif. Les points corrigés sont marqués ✅ et conservés, pas effacés. |
+| [**ROADMAP_FONCTIONNALITES.md**](ROADMAP_FONCTIONNALITES.md) | 21 propositions classées valeur / effort, séquencées v1.3 → v1.6, avec **ce qui est intégrable aujourd'hui** et ce qui bloque le reste. Inclut ce qu'il vaut mieux **ne pas** faire. |
 | [**specs/DEEP_LINKS.md**](specs/DEEP_LINKS.md) | Spécification du schéma d'URL `hydrobar://` — **implémentée** : grammaire, sécurité, `x-callback-url`, codes d'erreur, code Swift et tests. |
 
 ## Par où commencer
