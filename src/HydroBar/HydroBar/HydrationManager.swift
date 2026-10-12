@@ -184,6 +184,11 @@ class HydrationManager: ObservableObject {
 
     @Published var history: [DailyEntry] = []
     @Published var historyEntries: [HistoryEntry] = []
+
+    /// Vrai une fois les fichiers d'historique lus. Écrire avant, c'est écraser
+    /// le fichier avec un tableau partiel — la cause exacte de la perte
+    /// d'historique au lancement. Voir `ensureHistoryLoaded()`.
+    private var isHistoryLoaded = false
     @Published var showReminderBadge: Bool = false
     
     // MARK: - Undo Stack
@@ -240,8 +245,14 @@ class HydrationManager: ObservableObject {
     
     // MARK: - Initialization
     private init() {
-        checkAndResetIfNeeded()
+        // L'historique DOIT être chargé avant la bascule de jour : celle-ci archive
+        // la veille dans `historyEntries`. Dans l'ordre d'origine, inverse,
+        // `historyEntries` était encore vide au moment de l'archivage — qui
+        // réécrivait alors historyEntries.json avec la seule journée d'hier.
+        // Résultat : tout l'historique était effacé à chaque lancement un jour
+        // différent du dernier reset (Mac éteint la nuit, redémarrage, app quittée).
         loadHistory()
+        restoreTodayOnLaunch()
         setupNotificationCategories()
         
         // Initialiser la date de dernière consommation si elle n'existe pas
@@ -274,46 +285,56 @@ class HydrationManager: ObservableObject {
         reminderCheckTimer?.invalidate()
     }
     
-    // MARK: - Reset Logic
-    private func checkAndResetIfNeeded() {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        if let lastResetDateString = lastResetDateString.isEmpty ? nil : lastResetDateString,
-           let lastResetDate = DateFormat.iso8601.date(from: lastResetDateString) {
-            let lastResetDay = calendar.startOfDay(for: lastResetDate)
-            
-            if lastResetDay < today {
-                // Nouveau jour : sauvegarder l'entrée du jour précédent avant de reset
-                saveHistoryEntry(date: lastResetDay, amountMl: storedCurrentMl, targetMl: targetMl)
-                // Reset à 0 pour le nouveau jour
-                currentMl = 0.0
-                clearUndoStack() // Vider le stack undo pour le nouveau jour
-                updateLastResetDate()
+    // MARK: - Changement de jour
 
-                // NEW: sync reset state to App Group
-                syncToAppGroup()
-
-                // Notifier le changement
-                DispatchQueue.main.async {
-                    self.objectWillChange.send()
-                }
-            } else {
-                // Même jour, récupérer la valeur sauvegardée
-                currentMl = storedCurrentMl
-            }
-        } else {
-            // Première ouverture, reset à 0
-            currentMl = 0.0
+    /// Au lancement : bascule si le jour a changé depuis la dernière session,
+    /// sinon reprend la consommation du jour là où elle s'était arrêtée.
+    private func restoreTodayOnLaunch() {
+        guard !lastResetDateString.isEmpty,
+              DateFormat.iso8601.date(from: lastResetDateString) != nil
+        else {
+            // Premier lancement, ou date illisible : on repart proprement d'ici.
             updateLastResetDate()
+            return
+        }
+        if !rollOverIfNewDay() {
+            currentMl = storedCurrentMl
         }
     }
-    
+
+    /// Archive la journée précédente et repart de zéro si la date a changé.
+    ///
+    /// Appelé au lancement, par le minuteur, **et avant tout ajout ou annulation**.
+    /// Avant, seul un minuteur de 60 s s'en chargeait, et `addWater` sautait
+    /// volontairement la vérification « pour la performance » : un verre logué
+    /// juste après minuit — ou au réveil du Mac, avant que le minuteur ne tourne —
+    /// s'ajoutait au total de la veille, puis était archivé sous la date d'hier.
+    ///
+    /// Le même jour, cette fonction ne touche à rien. L'ancienne version
+    /// réassignait `currentMl` à chaque appel, ce qui réécrivait les fichiers
+    /// d'historique toutes les minutes, 24 h/24.
+    ///
+    /// - Returns: `true` si un changement de jour a eu lieu.
+    @discardableResult
+    private func rollOverIfNewDay() -> Bool {
+        guard let lastReset = DateFormat.iso8601.date(from: lastResetDateString) else { return false }
+        let calendar = Calendar.current
+        let lastResetDay = calendar.startOfDay(for: lastReset)
+        guard lastResetDay < calendar.startOfDay(for: Date()) else { return false }
+
+        saveHistoryEntry(date: lastResetDay, amountMl: storedCurrentMl, targetMl: targetMl)
+        currentMl = 0.0
+        clearUndoStack()
+        updateLastResetDate()
+        syncToAppGroup()
+        return true
+    }
+
     /// Configure un timer pour vérifier périodiquement si on a changé de jour
     private func setupDailyResetTimer() {
         // Vérifier toutes les minutes si on a passé minuit
         dailyCheckTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
-            self?.checkAndResetIfNeeded()
+            self?.rollOverIfNewDay()
         }
         
         // S'assurer que le timer fonctionne même quand l'app est en arrière-plan
@@ -384,9 +405,11 @@ class HydrationManager: ObservableObject {
     /// - Parameter amount: Quantité en ml à ajouter
     /// - Parameter skipUndo: Si true, n'enregistre pas l'action dans le stack undo (pour regroupement)
     func addWater(amount: Double, skipUndo: Bool = false) {
-        // amount est toujours en ml
-        // Optimisation : pas de vérification de reset ici pour performance
-        // Le reset est géré à l'initialisation et peut être déclenché manuellement
+        // Un verre bu après minuit appartient à la nouvelle journée. Comparer deux
+        // dates coûte quelques nanosecondes : l'« optimisation » qui sautait cette
+        // vérification attribuait des prises à la mauvaise journée.
+        rollOverIfNewDay()
+
         
         // Enregistrer l'action pour undo (seulement si amount > 0 et skipUndo = false)
         if amount > 0 && !skipUndo {
@@ -433,6 +456,9 @@ class HydrationManager: ObservableObject {
     /// - Returns: true si une action a été annulée, false si le stack est vide
     @discardableResult
     func undo() -> Bool {
+        // Pas d'annulation par-dessus minuit : la bascule vide la pile, et on ne
+        // retire pas d'une journée neuve un verre bu la veille.
+        rollOverIfNewDay()
         guard !undoStack.isEmpty else { return false }
         
         let lastAction = undoStack.removeLast()
@@ -517,8 +543,16 @@ class HydrationManager: ObservableObject {
         // saveHistoryEntry est appelé dans saveEntry, donc pas besoin de l'appeler ici
     }
     
+    /// Défense en profondeur : aucune écriture ne part d'un historique non chargé.
+    /// L'ordre d'`init` est corrigé, mais un futur réordonnancement ne doit pas
+    /// pouvoir effacer à nouveau l'historique.
+    private func ensureHistoryLoaded() {
+        if !isHistoryLoaded { loadHistory() }
+    }
+
     /// Sauvegarde une entrée pour une date donnée
     private func saveEntry(date: Date, amount: Double) {
+        ensureHistoryLoaded()
         let calendar = Calendar.current
         let dateStart = calendar.startOfDay(for: date)
         
@@ -553,6 +587,7 @@ class HydrationManager: ObservableObject {
     
     /// Sauvegarde une HistoryEntry avec targetMl historique
     private func saveHistoryEntry(date: Date, amountMl: Double, targetMl: Double) {
+        ensureHistoryLoaded()
         let calendar = Calendar.current
         let dateStart = calendar.startOfDay(for: date)
         
@@ -587,6 +622,7 @@ class HydrationManager: ObservableObject {
     
     /// Charge l'historique depuis les fichiers JSON.
     private func loadHistory() {
+        defer { isHistoryLoaded = true }
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
 
