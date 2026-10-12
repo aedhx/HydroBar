@@ -14,9 +14,10 @@ website/
 N'importe quel hébergement statique convient : GitHub Pages, Netlify, Cloudflare Pages, ou
 un simple serveur. Le dossier `website/` se publie tel quel.
 
-- **GitHub Pages** : Settings › Pages › Deploy from a branch, dossier `/website` n'existe
-  pas comme option, donc soit une action qui publie `website/`, soit une branche
-  `gh-pages` qui contient son contenu. Le fichier `CNAME` règle le domaine.
+- **GitHub Pages** : le mode « Deploy from a branch » ne publie que la racine ou `/docs`.
+  Pour publier `website/`, choisis « GitHub Actions » comme source, avec une action qui
+  envoie ce dossier (`actions/upload-pages-artifact` puis `actions/deploy-pages`).
+  Le fichier `CNAME` règle le domaine.
 - **DNS** : un enregistrement `CNAME` de `hydrobar` vers l'hôte choisi
   (par exemple `aedhx.github.io`).
 
