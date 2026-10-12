@@ -89,8 +89,6 @@ struct ContentSizeKey: PreferenceKey {
 struct MainView: View {
     @ObservedObject private var manager = HydrationManager.shared
     @ObservedObject private var navigation = AppNavigation.shared
-    @State private var isHolding = false
-    @State private var holdTimer: Timer?
     @State private var currentView: ViewType = .main
     
     var body: some View {
@@ -144,7 +142,7 @@ struct MainView: View {
             Group {
                 switch currentView {
                 case .main:
-                    MainContentView(manager: manager, isHolding: $isHolding, holdTimer: $holdTimer)
+                    MainContentView(manager: manager)
                 case .statistics:
                     StatisticsView(manager: manager, currentView: $currentView)
                 case .settings:
@@ -174,15 +172,6 @@ struct MainView: View {
             // Vue demandée par un deep link `hydrobar://open/...`.
             if let request { currentView = request.view }
         }
-        .onDisappear {
-            stopHolding()
-        }
-    }
-    
-    private func stopHolding() {
-        isHolding = false
-        holdTimer?.invalidate()
-        holdTimer = nil
     }
     
     private var titleForCurrentView: String {
@@ -221,10 +210,22 @@ struct MainView: View {
 // MARK: - MainContentView
 struct MainContentView: View {
     @ObservedObject var manager: HydrationManager
-    @Binding var isHolding: Bool
-    @Binding var holdTimer: Timer?
-    @State private var holdStartAmount: Double = 0.0
-    @State private var holdTotalAmount: Double = 0.0
+    @State private var isHolding = false
+    @State private var holdTimer: Timer?
+
+    /// Quantité ajoutée à chaque tick pendant l'appui. 25 ml toutes les 50 ms
+    /// faisaient 500 ml par seconde : deux secondes d'inattention ajoutaient un
+    /// litre. 10 ml donnent 200 ml/s, et le total s'affiche en direct sur le
+    /// bouton (cf. AUDIT § P2-3).
+    private static let gulpMl: Double = 10
+    private static let tickInterval: TimeInterval = 0.05
+
+    /// Libellé du bouton : son rôle au repos, le total ajouté pendant l'appui.
+    private var holdButtonLabel: String {
+        isHolding
+            ? "+" + manager.displayValue(for: manager.holdTotalMl)
+            : String(localized: "Hold to Add", comment: "Button to add water continuously while pressed")
+    }
     
     var body: some View {
         VStack(spacing: 24) {
@@ -257,7 +258,7 @@ struct MainContentView: View {
             
             // Bouton Hold-to-Add
             HoldButton(
-                label: String(localized: "Hold to Add", comment: "Button to add water continuously while pressed"),
+                label: holdButtonLabel,
                 isHolding: isHolding,
                 onPress: { if !isHolding { startHolding() } },
                 onRelease: { stopHolding() }
@@ -286,42 +287,27 @@ struct MainContentView: View {
     
     private func startHolding() {
         isHolding = true
-        holdStartAmount = manager.currentMl
-        holdTotalAmount = 0.0
-        
-        // Calculer la quantité d'une gorgée selon l'unité sélectionnée
-        // Une gorgée = ~25ml = ~2.5cl
-        let gulpAmountMl: Double = 25.0 // ~25ml par gorgée
-        
-        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            if isHolding {
-                // Ajouter une gorgée sans enregistrer dans undo (on le fera en groupe à la fin)
-                manager.addWater(amount: gulpAmountMl, skipUndo: true)
-                holdTotalAmount += gulpAmountMl
-                DispatchQueue.main.async {
-                    NSApplication.shared.windows.first(where: { $0.isVisible })?.makeKey()
-                    NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
-                }
-            }
+        manager.beginHoldSession()
+        // Une fois au début de l'appui, et non plus à chaque tick : rendre la
+        // fenêtre active parcourait la liste des fenêtres 20 fois par seconde.
+        NSApplication.shared.windows.first(where: { $0.isVisible })?.makeKey()
+
+        holdTimer = Timer.scheduledTimer(withTimeInterval: Self.tickInterval, repeats: true) { _ in
+            guard isHolding else { return }
+            manager.addHeldWater(Self.gulpMl)
+            NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
         }
     }
-    
+
+    /// Une seule entrée d'annulation pour tout l'appui, une seule écriture :
+    /// c'est `endHoldSession()` qui s'en charge. La vue modifiait auparavant la
+    /// pile d'annulation du manager elle-même (cf. AUDIT § P1-3).
     private func stopHolding() {
+        guard isHolding else { return }
         isHolding = false
         holdTimer?.invalidate()
         holdTimer = nil
-        
-        // Si on a ajouté de l'eau pendant le hold, regrouper les actions undo
-        // en une seule action pour que undo retire tout le groupe
-        if holdTotalAmount > 0 {
-            // Ajouter une action groupée dans le stack undo
-            manager.undoStack.append((amount: holdTotalAmount, timestamp: Date()))
-            
-            // Limiter la taille du stack
-            if manager.undoStack.count > 50 {
-                manager.undoStack.removeFirst()
-            }
-        }
+        manager.endHoldSession()
     }
 }
 
