@@ -103,6 +103,21 @@ class HoldButtonNSView: NSView {
     }
 }
 
+/// Fond des boutons de preset : Liquid Glass sur macOS 26, teinté d'eau et
+/// réactif au survol ; le fond actuel sur les versions précédentes.
+struct PresetSurface: ViewModifier {
+    func body(content: Content) -> some View {
+        if #available(macOS 26.0, *) {
+            content.glassEffect(.regular.tint(Theme.water.opacity(0.25)).interactive(),
+                                in: .rect(cornerRadius: Theme.Radius.control))
+        } else {
+            content
+                .background(Theme.presetFill)
+                .cornerRadius(Theme.Radius.control)
+        }
+    }
+}
+
 enum ViewType {
     case main
     case statistics
@@ -149,19 +164,14 @@ struct MainView: View {
                 
                 Spacer()
                 
-                // Bouton Réglages (droite) - Toggle entre settings et main
-                Button(action: {
-                    if currentView == .settings {
-                        currentView = .main
-                    } else {
-                        currentView = .settings
-                    }
-                }) {
+                // Bouton Réglages (droite) : ouvre la fenêtre de réglages (v2.2).
+                Button(action: { SettingsWindowController.shared.show() }) {
                     Image(systemName: "gearshape.fill")
                         .font(Theme.Font.control)
-                        .foregroundColor(currentView == .settings ? Theme.water : .secondary)
+                        .foregroundColor(.secondary)
                 }
                 .buttonStyle(.plain)
+                .help(String(localized: "Settings", comment: "Title for settings view"))
             }
             .padding(.horizontal, 20)
             .padding(.vertical, 12)
@@ -172,12 +182,12 @@ struct MainView: View {
             // Corps - Affichage conditionnel selon la vue
             Group {
                 switch currentView {
-                case .main:
+                case .main, .settings:
+                    // Les réglages ont leur fenêtre : le popover n'affiche
+                    // jamais `.settings`.
                     MainContentView(manager: manager)
                 case .statistics:
                     StatisticsView(manager: manager, currentView: $currentView)
-                case .settings:
-                    SettingsView(manager: manager, currentView: $currentView)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)
@@ -201,7 +211,7 @@ struct MainView: View {
         }
         .onChange(of: navigation.pendingRequest) { _, request in
             // Vue demandée par un deep link `hydrobar://open/...`.
-            if let request { currentView = request.view }
+            if let request, request.view != .settings { currentView = request.view }
         }
     }
     
@@ -279,8 +289,7 @@ struct MainContentView: View {
                             .foregroundColor(.primary)
                             .frame(maxWidth: .infinity)
                             .padding(.vertical, 10)
-                            .background(Theme.water.opacity(0.1))
-                            .cornerRadius(8)
+                            .modifier(PresetSurface())
                     }
                     .buttonStyle(.plain)
                     // « Ajouter 25 cl » plutôt que « 25 cl » seul.

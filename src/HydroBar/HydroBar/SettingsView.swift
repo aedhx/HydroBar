@@ -120,9 +120,16 @@ enum NotificationInterval: String, CaseIterable {
     }
 }
 
+/// Onglets de la fenêtre de réglages (v2.2). Douze sections s'empilaient
+/// dans un popover de 320 px.
+enum SettingsTab: String {
+    case general, hydration, reminders, shortcuts, data, integrations
+}
+
 struct SettingsView: View {
     @ObservedObject var manager: HydrationManager
-    @Binding var currentView: ViewType
+    /// Onglet affiché, retrouvé à la réouverture de la fenêtre.
+    @AppStorage("settingsTab") private var selectedTab: SettingsTab = .general
     @StateObject private var updateChecker = GitHubUpdateChecker()
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
@@ -132,10 +139,49 @@ struct SettingsView: View {
     @State private var notificationsDenied = false
 
     var body: some View {
-        ScrollView {
-        VStack(alignment: .leading, spacing: 14) {
-            generalSection
+        TabView(selection: $selectedTab) {
+            page { generalSection; appearanceSection; languageSection; updatesSection }
+                .tabItem { Label(String(localized: "General", comment: "Settings tab"), systemImage: "gearshape") }
+                .tag(SettingsTab.general)
+            page { goalSection; activeHoursSection; presetsSection }
+                .tabItem { Label(String(localized: "Hydration", comment: "Settings tab"), systemImage: "drop") }
+                .tag(SettingsTab.hydration)
+            page { remindersSection }
+                .tabItem { Label(String(localized: "Reminders", comment: "Onboarding step title"), systemImage: "bell") }
+                .tag(SettingsTab.reminders)
+            page { shortcutsSection }
+                .tabItem { Label(String(localized: "Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts"), systemImage: "keyboard") }
+                .tag(SettingsTab.shortcuts)
+            page { DataSettingsSection(manager: manager) }
+                .tabItem { Label(String(localized: "Data", comment: "Settings tab"), systemImage: "externaldrive") }
+                .tag(SettingsTab.data)
+            page { integrationsSection; debugSection }
+                .tabItem { Label(String(localized: "Integrations", comment: "Settings tab"), systemImage: "puzzlepiece.extension") }
+                .tag(SettingsTab.integrations)
+        }
+        .frame(width: 520, height: 580)
+        .onAppear {
+            // La source de vérité du lancement au démarrage est le système :
+            // l'utilisateur a pu le changer dans Réglages Système entre-temps.
+            launchAtLogin.refresh()
+        }
+    }
 
+    /// Une page d'onglet : défilante, avec les marges d'une fenêtre de réglages.
+    private func page<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                content()
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    // MARK: - Sections des onglets
+
+    @ViewBuilder
+    private var appearanceSection: some View {
             // Section Style Icône Menu Bar + Unités (groupées)
             VStack(alignment: .leading, spacing: 6) {
                 Text("MENU BAR ICON STYLE", comment: "Settings section title for menu bar icon style")
@@ -176,7 +222,10 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 .frame(maxWidth: .infinity)
             }
-            
+    }
+
+    @ViewBuilder
+    private var goalSection: some View {
             // Section Objectif
             VStack(alignment: .leading, spacing: 6) {
                 Text("DAILY GOAL", comment: "Settings section title for daily goal")
@@ -198,9 +247,10 @@ struct SettingsView: View {
                         .frame(width: 35, alignment: .leading)
                 }
             }
+    }
 
-            activeHoursSection
-
+    @ViewBuilder
+    private var presetsSection: some View {
             // Section Verres Rapides
             VStack(alignment: .leading, spacing: 6) {
                 Text("QUICK PRESETS", comment: "Settings section title for quick presets")
@@ -228,7 +278,10 @@ struct SettingsView: View {
                     }
                 }
             }
-            
+    }
+
+    @ViewBuilder
+    private var shortcutsSection: some View {
             // Section Raccourcis clavier
             VStack(alignment: .leading, spacing: 6) {
                 Text("Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts")
@@ -246,9 +299,10 @@ struct SettingsView: View {
                     }
                 }
             }
-            
-            Divider()
+    }
 
+    @ViewBuilder
+    private var remindersSection: some View {
             // Section Rappels
             VStack(alignment: .leading, spacing: 6) {
                 Text("REMINDERS", comment: "Settings section title for reminders")
@@ -376,9 +430,10 @@ struct SettingsView: View {
                     }
                 }
             }
-            
-            Divider()
+    }
 
+    @ViewBuilder
+    private var debugSection: some View {
             // Section Debug (si activée — accès via 5 taps sur le numéro de version)
             if manager.debugModeEnabled {
                 VStack(alignment: .leading, spacing: 6) {
@@ -480,7 +535,10 @@ struct SettingsView: View {
                 
                 Divider()
             }
+    }
 
+    @ViewBuilder
+    private var updatesSection: some View {
             // Section Vérification des mises à jour
             VStack(alignment: .leading, spacing: 6) {
                 Text("UPDATES", comment: "Settings section title for updates")
@@ -570,13 +628,10 @@ struct SettingsView: View {
                     .padding(.top, 4)
                 }
             }
-            
-            Divider()
+    }
 
-            DataSettingsSection(manager: manager)
-
-            Divider()
-
+    @ViewBuilder
+    private var integrationsSection: some View {
             // Section Raycast Extension
             VStack(alignment: .leading, spacing: 6) {
                 Text("INTEGRATIONS", comment: "Settings section title for integrations")
@@ -633,9 +688,10 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
                     .padding(.leading, 28)
             }
+    }
 
-            Divider()
-
+    @ViewBuilder
+    private var languageSection: some View {
             // Section Langue (en bas)
             VStack(alignment: .leading, spacing: 6) {
                 Text("LANGUAGE", comment: "Settings section title for language")
@@ -660,16 +716,8 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
             }
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        } // ScrollView
-        .onAppear {
-            // La source de vérité du lancement au démarrage est le système :
-            // l'utilisateur a pu le changer dans Réglages Système entre-temps.
-            launchAtLogin.refresh()
-        }
     }
+
     
     // MARK: - Sections extraites
     // Sorties du `body` pour limiter la complexité que le type-checker SwiftUI
@@ -1027,7 +1075,7 @@ struct SettingsView: View {
 }
 
 #Preview {
-    SettingsView(manager: HydrationManager.shared, currentView: .constant(.settings))
+    SettingsView(manager: HydrationManager.shared)
         .padding()
         .background(Color.black)
 }
