@@ -51,6 +51,23 @@ class HoldButtonNSView: NSView {
         onRelease?()
     }
 
+    // MARK: Accessibilité (F7)
+    // Une NSView dessinée à la main est invisible pour VoiceOver. Elle se
+    // présente comme un bouton ; un « appui » VoiceOver équivaut à maintenir
+    // une seconde, un appui long n'ayant pas d'équivalent au clavier.
+
+    override func isAccessibilityElement() -> Bool { true }
+    override func accessibilityRole() -> NSAccessibility.Role? { .button }
+    override func accessibilityLabel() -> String? { label }
+
+    override func accessibilityPerformPress() -> Bool {
+        onPress?()
+        DispatchQueue.main.asyncAfter(deadline: .now() + 1) { [weak self] in
+            self?.onRelease?()
+        }
+        return true
+    }
+
     override func draw(_ dirtyRect: NSRect) {
         let color = isHolding ? NSColor.systemBlue.withAlphaComponent(0.75) : NSColor.systemBlue
         let path = NSBezierPath(roundedRect: bounds, xRadius: 8, yRadius: 8)
@@ -243,7 +260,7 @@ struct MainContentView: View {
                     Button(action: {
                         manager.addWater(amount: preset)
                     }) {
-                        Text(manager.displayValue(for: preset))
+                        Text(verbatim: manager.displayValue(for: preset))
                             .font(.system(size: 13, weight: .medium))
                             .foregroundColor(.primary)
                             .frame(maxWidth: .infinity)
@@ -252,6 +269,9 @@ struct MainContentView: View {
                             .cornerRadius(8)
                     }
                     .buttonStyle(.plain)
+                    // « Ajouter 25 cl » plutôt que « 25 cl » seul.
+                    .accessibilityLabel(String(format: String(localized: "Add %@", comment: "Context menu item; %@ is an amount"),
+                                               manager.displayValue(for: preset)))
                 }
             }
             .padding(.horizontal, 20)

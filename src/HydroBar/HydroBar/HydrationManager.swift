@@ -920,6 +920,25 @@ class HydrationManager: ObservableObject {
                                        endHour: activeHoursEnd)
     }
 
+    /// Phrase complète pour VoiceOver : progression, quantités et allure. Partagée
+    /// par l'anneau du popover et l'icône de la barre de menu.
+    var progressAccessibilitySummary: String {
+        let percentage = targetMl > 0 ? Int(currentMl / targetMl * 100) : 0
+        let base = String(
+            format: String(localized: "Hydration: %lld percent, %@ of %@",
+                           comment: "VoiceOver description of the progress ring"),
+            percentage, displayValue(for: currentMl), displayValue(for: targetMl)
+        )
+        guard expectedProgress != nil else { return base }
+        if let deficit = paceDeficitMl {
+            let behind = String(format: String(localized: "%@ behind",
+                                               comment: "Pace caption when the user is behind schedule"),
+                                displayValue(for: deficit))
+            return "\(base). \(behind)"
+        }
+        return "\(base). " + String(localized: "On track", comment: "Pace caption when the user is on schedule")
+    }
+
     /// Quantité manquante, en ml, pour être dans les temps. `nil` si à jour ou hors plage.
     var paceDeficitMl: Double? {
         HydrationPace.deficitMl(currentMl: currentMl,
