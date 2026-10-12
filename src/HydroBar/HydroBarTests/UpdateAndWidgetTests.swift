@@ -2,12 +2,13 @@
 //  UpdateAndWidgetTests.swift
 //  HydroBarTests
 //
-//  Comparaison de versions du vérificateur de mises à jour, et instantané
-//  partagé avec le widget.
+//  Comparaison de versions du vérificateur de mises à jour, instantané
+//  partagé avec le widget, et affichage des raccourcis.
 //
 
 import Testing
 import Foundation
+import AppKit
 @testable import HydroBar
 
 // MARK: - Versions
@@ -69,4 +70,17 @@ private func snapshot(at date: Date, presets: [Double]? = nil) -> HydrationSnaps
     let decoded = try JSONDecoder().decode(HydrationSnapshot.self, from: Data(legacy.utf8))
     #expect(decoded.presetsMl == nil)
     #expect(decoded.widgetPresetsMl == HydrationSnapshot.defaultPresetsMl)
+}
+
+// MARK: - Raccourcis
+
+@Test func displaysShortcutsWithModifierSymbols() {
+    let modifiers = Int(NSEvent.ModifierFlags([.command, .shift]).rawValue)
+    #expect(Shortcut(keyCode: VirtualKeyCodes.p, modifiers: modifiers).displayString == "⇧ ⌘ P")
+    #expect(Shortcut(keyCode: VirtualKeyCodes.f5, modifiers: 0).displayString == "F5")
+}
+
+@Test func fallsBackToTheRawCodeForUnmappedKeys() {
+    // 0x7E : flèche haut, absente de la table des symboles.
+    #expect(Shortcut(keyCode: 0x7E, modifiers: 0).displayString == "Key(126)")
 }

@@ -33,4 +33,3 @@ struct AddWaterIntent: AppIntent {
         return .result()
     }
 }
-

@@ -115,7 +115,7 @@ struct HydrationSnapshot: Codable {
     /// Presets de l'utilisateur. Optionnel : absent des instantanés écrits avant
     /// son ajout, qui doivent rester décodables. Le widget affichait jusqu'ici
     /// trois valeurs codées en dur, quels que soient les presets de l'app.
-    var presetsMl: [Double]? = nil
+    var presetsMl: [Double]?
 
     var progress: Double { min(currentMl / max(targetMl, 1.0), 1.0) }
     var rawProgress: Double { currentMl / max(targetMl, 1.0) }

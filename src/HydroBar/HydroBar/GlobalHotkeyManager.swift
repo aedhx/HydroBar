@@ -39,64 +39,67 @@ struct Shortcut: Codable, Equatable {
         return parts.isEmpty ? "—" : parts.joined(separator: " ")
     }
     
+    /// Table plutôt que `switch` : 54 branches donnaient une complexité
+    /// cyclomatique de 55, pour une simple correspondance.
+    private static let keySymbols: [Int: String] = [
+        VirtualKeyCodes.zero: "0",
+        VirtualKeyCodes.one: "1",
+        VirtualKeyCodes.two: "2",
+        VirtualKeyCodes.three: "3",
+        VirtualKeyCodes.four: "4",
+        VirtualKeyCodes.five: "5",
+        VirtualKeyCodes.six: "6",
+        VirtualKeyCodes.seven: "7",
+        VirtualKeyCodes.eight: "8",
+        VirtualKeyCodes.nine: "9",
+        VirtualKeyCodes.a: "A",
+        VirtualKeyCodes.b: "B",
+        VirtualKeyCodes.c: "C",
+        VirtualKeyCodes.d: "D",
+        VirtualKeyCodes.e: "E",
+        VirtualKeyCodes.f: "F",
+        VirtualKeyCodes.g: "G",
+        VirtualKeyCodes.h: "H",
+        VirtualKeyCodes.i: "I",
+        VirtualKeyCodes.j: "J",
+        VirtualKeyCodes.k: "K",
+        VirtualKeyCodes.l: "L",
+        VirtualKeyCodes.m: "M",
+        VirtualKeyCodes.n: "N",
+        VirtualKeyCodes.o: "O",
+        VirtualKeyCodes.p: "P",
+        VirtualKeyCodes.q: "Q",
+        VirtualKeyCodes.r: "R",
+        VirtualKeyCodes.s: "S",
+        VirtualKeyCodes.t: "T",
+        VirtualKeyCodes.u: "U",
+        VirtualKeyCodes.v: "V",
+        VirtualKeyCodes.w: "W",
+        VirtualKeyCodes.x: "X",
+        VirtualKeyCodes.y: "Y",
+        VirtualKeyCodes.z: "Z",
+        VirtualKeyCodes.space: "Space",
+        VirtualKeyCodes.returnKey: "↩",
+        VirtualKeyCodes.enter: "⌤",
+        VirtualKeyCodes.tab: "⇥",
+        VirtualKeyCodes.delete: "⌫",
+        VirtualKeyCodes.escape: "⎋",
+        VirtualKeyCodes.f1: "F1",
+        VirtualKeyCodes.f2: "F2",
+        VirtualKeyCodes.f3: "F3",
+        VirtualKeyCodes.f4: "F4",
+        VirtualKeyCodes.f5: "F5",
+        VirtualKeyCodes.f6: "F6",
+        VirtualKeyCodes.f7: "F7",
+        VirtualKeyCodes.f8: "F8",
+        VirtualKeyCodes.f9: "F9",
+        VirtualKeyCodes.f10: "F10",
+        VirtualKeyCodes.f11: "F11",
+        VirtualKeyCodes.f12: "F12",
+    ]
+
     private static func keyCodeToSymbol(_ keyCode: Int) -> String? {
-        switch keyCode {
-        case VirtualKeyCodes.zero: return "0"
-        case VirtualKeyCodes.one: return "1"
-        case VirtualKeyCodes.two: return "2"
-        case VirtualKeyCodes.three: return "3"
-        case VirtualKeyCodes.four: return "4"
-        case VirtualKeyCodes.five: return "5"
-        case VirtualKeyCodes.six: return "6"
-        case VirtualKeyCodes.seven: return "7"
-        case VirtualKeyCodes.eight: return "8"
-        case VirtualKeyCodes.nine: return "9"
-        case VirtualKeyCodes.a: return "A"
-        case VirtualKeyCodes.b: return "B"
-        case VirtualKeyCodes.c: return "C"
-        case VirtualKeyCodes.d: return "D"
-        case VirtualKeyCodes.e: return "E"
-        case VirtualKeyCodes.f: return "F"
-        case VirtualKeyCodes.g: return "G"
-        case VirtualKeyCodes.h: return "H"
-        case VirtualKeyCodes.i: return "I"
-        case VirtualKeyCodes.j: return "J"
-        case VirtualKeyCodes.k: return "K"
-        case VirtualKeyCodes.l: return "L"
-        case VirtualKeyCodes.m: return "M"
-        case VirtualKeyCodes.n: return "N"
-        case VirtualKeyCodes.o: return "O"
-        case VirtualKeyCodes.p: return "P"
-        case VirtualKeyCodes.q: return "Q"
-        case VirtualKeyCodes.r: return "R"
-        case VirtualKeyCodes.s: return "S"
-        case VirtualKeyCodes.t: return "T"
-        case VirtualKeyCodes.u: return "U"
-        case VirtualKeyCodes.v: return "V"
-        case VirtualKeyCodes.w: return "W"
-        case VirtualKeyCodes.x: return "X"
-        case VirtualKeyCodes.y: return "Y"
-        case VirtualKeyCodes.z: return "Z"
-        case VirtualKeyCodes.space: return "Space"
-        case VirtualKeyCodes.returnKey: return "↩"
-        case VirtualKeyCodes.enter: return "⌤"
-        case VirtualKeyCodes.tab: return "⇥"
-        case VirtualKeyCodes.delete: return "⌫"
-        case VirtualKeyCodes.escape: return "⎋"
-        case VirtualKeyCodes.f1: return "F1"
-        case VirtualKeyCodes.f2: return "F2"
-        case VirtualKeyCodes.f3: return "F3"
-        case VirtualKeyCodes.f4: return "F4"
-        case VirtualKeyCodes.f5: return "F5"
-        case VirtualKeyCodes.f6: return "F6"
-        case VirtualKeyCodes.f7: return "F7"
-        case VirtualKeyCodes.f8: return "F8"
-        case VirtualKeyCodes.f9: return "F9"
-        case VirtualKeyCodes.f10: return "F10"
-        case VirtualKeyCodes.f11: return "F11"
-        case VirtualKeyCodes.f12: return "F12"
-        default: return nil
-        }
+        keySymbols[keyCode]
     }
 }
 

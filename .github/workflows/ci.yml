@@ -42,7 +42,9 @@ jobs:
             echo "### SwiftLint : ${errors} erreur(s), ${warnings} avertissement(s)"
             echo
             echo '```'
-            sed 's|.*/HydroBar/HydroBar/src/|src/|' swiftlint.log | head -60
+            # Les erreurs d'abord : ce sont elles qui bloquent.
+            { grep ": error:" swiftlint.log; grep ": warning:" swiftlint.log; } \
+              | sed 's|.*/HydroBar/HydroBar/src/|src/|' | head -80
             echo '```'
           } | tee -a "$GITHUB_STEP_SUMMARY"
           exit $status
