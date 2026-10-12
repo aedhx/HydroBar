@@ -750,88 +750,25 @@ class HydrationManager: ObservableObject {
     
     // MARK: - Computed Properties for Statistics
     
-    /// Somme des 7 derniers jours (aujourd'hui inclus)
+    private var todayForStats: HydrationStats.Today {
+        HydrationStats.Today(date: Date(), amountMl: currentMl, targetMl: targetMl)
+    }
+
+    /// Somme des 7 derniers jours, aujourd'hui inclus.
     var weeklyTotal: Double {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        var total: Double = 0
-        
-        // Parcourir les 7 derniers jours (aujourd'hui inclus)
-        for i in 0..<7 {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            
-            if calendar.isDate(date, inSameDayAs: today) {
-                // Aujourd'hui : utiliser currentMl
-                total += currentMl
-            } else {
-                // Jours passés : chercher dans l'historique
-                if let entry = historyEntries.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                    total += entry.amountMl
-                }
-                // Si pas d'entrée, c'est 0 (jour sans consommation)
-            }
-        }
-        
-        return total
+        HydrationStats.total(lastDays: 7, history: historyEntries, today: todayForStats)
     }
-    
-    /// Moyenne sur les 7 derniers jours (aujourd'hui inclus)
-    /// Divise par 7 pour avoir la vraie moyenne quotidienne
+
+    /// Moyenne quotidienne sur 7 jours : un jour sans consommation compte pour zéro.
     var dailyAverage: Double {
-        // Toujours diviser par 7 jours pour avoir la moyenne réelle
-        return weeklyTotal / 7.0
+        weeklyTotal / 7.0
     }
-    
-    /// Calcule la série de jours consécutifs (en comptant aujourd'hui si > 0, sinon en partant d'hier)
-    /// où amountMl >= targetMl
+
+    /// Jours consécutifs où l'objectif est atteint (cf. `HydrationStats.streak`).
     var currentStreak: Int {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        var streak = 0
-        var currentDate: Date
-        
-        // Vérifier si aujourd'hui a des données ou si currentMl > 0
-        let todayEntry = historyEntries.first { calendar.isDate($0.date, inSameDayAs: today) }
-        let todayAmount = todayEntry?.amountMl ?? currentMl
-        
-        if todayAmount > 0 {
-            // Commencer par aujourd'hui
-            currentDate = today
-            let todayTarget = todayEntry?.targetMl ?? targetMl
-            if todayAmount >= todayTarget {
-                streak = 1
-            } else {
-                // Aujourd'hui n'a pas atteint l'objectif, streak = 0
-                return 0
-            }
-        } else {
-            // Pas de données aujourd'hui, commencer par hier
-            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return 0 }
-            currentDate = yesterday
-        }
-        
-        // Compter les jours consécutifs où l'objectif est atteint
-        while true {
-            // Passer au jour précédent
-            guard let previousDate = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
-            currentDate = previousDate
-            
-            if let entry = historyEntries.first(where: { calendar.isDate($0.date, inSameDayAs: currentDate) }) {
-                if entry.amountMl >= entry.targetMl {
-                    streak += 1
-                } else {
-                    break
-                }
-            } else {
-                // Pas de données pour ce jour, arrêter le streak
-                break
-            }
-        }
-        
-        return streak
+        HydrationStats.streak(history: historyEntries, today: todayForStats)
     }
-    
+
     // MARK: - Allure
 
     /// Fraction de l'objectif attendue à cet instant, au prorata de la plage active.

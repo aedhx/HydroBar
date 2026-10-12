@@ -70,7 +70,7 @@ private func versionComponents(_ version: String) -> [Int] {
 
 /// Compare two semantic versions (e.g. "1.0.0" and "1.1.0").
 /// Returns true if `latest` is strictly greater than `current`.
-private func isVersionNewer(current: String, latest: String) -> Bool {
+func isVersionNewer(current: String, latest: String) -> Bool {
     let cur = versionComponents(current)
     let lat = versionComponents(latest)
     let maxCount = max(cur.count, lat.count)
