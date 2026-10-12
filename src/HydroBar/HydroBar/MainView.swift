@@ -274,6 +274,12 @@ struct MainContentView: View {
             ProgressRingView(manager: manager)
                 .padding(.top, 20)
             
+            // Mode gourde
+            if manager.bottleModeEnabled {
+                BottleView(manager: manager)
+                    .padding(.horizontal, 20)
+            }
+
             // Grille Presets
             LazyVGrid(columns: [
                 GridItem(.flexible(), spacing: 12),

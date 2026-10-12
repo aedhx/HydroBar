@@ -472,6 +472,42 @@ class HydrationManager: ObservableObject {
         syncToAppGroup()
     }
 
+    // MARK: - Mode gourde
+
+    @AppStorage("bottleModeEnabled") var bottleModeEnabled: Bool = false {
+        willSet { objectWillChange.send() }
+    }
+    @AppStorage("bottleCapacityMl") var bottleCapacityMl: Double = Bottle.defaultCapacityMl {
+        willSet { objectWillChange.send() }
+    }
+    /// Numéro de la gourde en cours, valable pour `bottleDayKey` seulement :
+    /// chaque journée repart de la première gourde.
+    @AppStorage("bottleNumber") private var bottleNumber: Int = 1
+    @AppStorage("bottleDay") private var bottleDayKey: String = ""
+
+    var currentBottle: Int {
+        bottleDayKey == IntakeLog.dayKey(for: Date(), calendar: .current) ? bottleNumber : 1
+    }
+
+    /// Quantité déjà bue dans la gourde en cours.
+    var bottleDrunkMl: Double {
+        Bottle.drunkMl(events: log.events, bottle: currentBottle, on: Date(), calendar: .current)
+    }
+
+    /// Enregistre ce qui manque pour que la gourde soit à `fraction`.
+    func setBottleLevel(_ fraction: Double) {
+        guard let amount = Bottle.amountToReach(fraction: fraction, drunkMl: bottleDrunkMl,
+                                                capacityMl: bottleCapacityMl) else { return }
+        addWater(amount: amount, bottle: currentBottle)
+    }
+
+    func startNewBottle() {
+        objectWillChange.send()
+        let next = currentBottle + 1
+        bottleDayKey = IntakeLog.dayKey(for: Date(), calendar: .current)
+        bottleNumber = next
+    }
+
     // MARK: - Preset suggéré
 
     /// Quantités dont l'utilisateur a refusé la suggestion.
@@ -850,15 +886,16 @@ class HydrationManager: ObservableObject {
     
     // MARK: - Public Methods
     
-    /// Ajoute une prise, en ml.
-    func addWater(amount: Double) {
+    /// Ajoute une prise, en ml. `bottle` : numéro de la gourde du jour, en
+    /// mode gourde.
+    func addWater(amount: Double, bottle: Int? = nil) {
         // Un verre bu après minuit appartient à la nouvelle journée.
         rollOverIfNewDay()
         guard amount > 0, amount.isFinite else { return }
 
         let now = Date()
         let previousTotal = currentMl
-        let event = IntakeEvent(date: now, amountMl: amount)
+        let event = IntakeEvent(date: now, amountMl: amount, bottle: bottle)
         log.add(event)
         log.setGoal(targetMl, on: now, calendar: .current)
         pushUndo(.added(event.id))
