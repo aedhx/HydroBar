@@ -5,6 +5,11 @@
 //  Checks for new releases via GitHub Releases API and compares with current app version.
 //
 
+// Build DMG seulement : une app du Mac App Store ne doit pas chercher ses
+// mises à jour elle-même (règle 2.4.5), et la build App Store n'a pas accès
+// au réseau.
+#if !APP_STORE
+
 import Foundation
 import AppKit
 
@@ -151,3 +156,5 @@ final class GitHubUpdateChecker: ObservableObject {
         result = nil
     }
 }
+
+#endif
