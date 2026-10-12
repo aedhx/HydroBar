@@ -64,6 +64,29 @@ jobs:
             CODE_SIGNING_ALLOWED=NO \
             2>&1 | tee compile.log
 
+      # Étape 1 bis : la variante Mac App Store compile aussi, sans le
+      # vérificateur de mises à jour GitHub (cf. build-appstore.sh).
+      - name: Compile (App Store variant)
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project "$PROJECT" \
+            -scheme "$SCHEME" \
+            -configuration Release \
+            -destination 'platform=macOS' \
+            -derivedDataPath build-appstore \
+            CODE_SIGNING_ALLOWED=NO \
+            SWIFT_ACTIVE_COMPILATION_CONDITIONS=APP_STORE \
+            ENABLE_OUTGOING_NETWORK_CONNECTIONS=NO \
+            2>&1 | tee compile-appstore.log | grep -E "error:|BUILD (SUCCEEDED|FAILED)" || true
+          binary=build-appstore/Build/Products/Release/HydroBar.app/Contents/MacOS/HydroBar
+          test -f "$binary"
+          if strings "$binary" | grep -q "api.github.com"; then
+            echo "::error::La build App Store contient encore le vérificateur GitHub."
+            exit 1
+          fi
+          test -f build-appstore/Build/Products/Release/HydroBar.app/Contents/Resources/PrivacyInfo.xcprivacy
+
       # Étape 2 : les tests unitaires.
       # Séparée volontairement de la compilation : lancer un bundle de tests dans
       # une app sandboxée demande une signature (ad-hoc suffit), ce qui est une
@@ -117,6 +140,7 @@ jobs:
           path: |
             swiftlint.log
             compile.log
+            compile-appstore.log
             test.log
           if-no-files-found: ignore
           retention-days: 7

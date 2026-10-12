@@ -130,7 +130,10 @@ struct SettingsView: View {
     @ObservedObject var manager: HydrationManager
     /// Onglet affiché, retrouvé à la réouverture de la fenêtre.
     @AppStorage("settingsTab") private var selectedTab: SettingsTab = .general
+    #if !APP_STORE
+    // Build DMG seulement : sur le Mac App Store, c'est le Store qui met à jour.
     @StateObject private var updateChecker = GitHubUpdateChecker()
+    #endif
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
     @ObservedObject private var focusMonitor = FocusModeMonitor.shared
@@ -683,7 +686,7 @@ struct SettingsView: View {
                     Text("Version", comment: "Label for current app version")
                         .font(Theme.Font.body)
                         .foregroundColor(.secondary)
-                    Text(verbatim: updateChecker.currentAppVersion)
+                    Text(verbatim: Self.appVersion)
                         .font(Theme.Font.bodyMedium)
                         .foregroundColor(.primary)
                         .onTapGesture {
@@ -701,6 +704,11 @@ struct SettingsView: View {
                     }
                 }
                 
+                #if APP_STORE
+                Text("Updates are installed by the App Store.", comment: "Settings: App Store build, no update check")
+                    .font(Theme.Font.caption)
+                    .foregroundColor(.secondary)
+                #else
                 Button(action: { updateChecker.checkForUpdates() }) {
                     HStack(spacing: 6) {
                         if updateChecker.isChecking {
@@ -761,7 +769,16 @@ struct SettingsView: View {
                     }
                     .padding(.top, 4)
                 }
+                #endif
             }
+    }
+
+    /// Version affichée, avec le numéro de build : « 2.0 (4) ».
+    private static var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
     }
 
     @ViewBuilder
