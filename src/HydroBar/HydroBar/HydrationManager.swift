@@ -81,6 +81,7 @@ class HydrationManager: ObservableObject {
     @AppStorage("selectedUnit") private var storedSelectedUnitRaw: String = AppUnit.cl.rawValue
     @AppStorage("presetsMl") private var storedPresetsMlRaw: String = "[200.0, 500.0, 750.0]" // Toujours en ml en interne
     @AppStorage("lastResetDate") private var lastResetDateString: String = ""
+    /// Total du jour de la v1. Lu une seule fois, par la migration vers le journal.
     @AppStorage("currentMl") private var storedCurrentMl: Double = 0.0
     // MARK: - Réglages publiés
     //
@@ -215,15 +216,31 @@ class HydrationManager: ObservableObject {
         willSet { objectWillChange.send() }
     }
     
-    // MARK: - Published Properties
-    @Published var currentMl: Double = 0.0 {
-        didSet {
-            // Immédiat : UserDefaults est la source de vérité du jour en cours.
-            // Un crash avant l'écriture différée ne perd donc rien — au lancement
-            // suivant, la valeur est reprise d'ici.
-            storedCurrentMl = currentMl
-            schedulePersist()
-        }
+    // MARK: - Journal des prises (F5)
+
+    /// Source de vérité : un événement par prise. Tout le reste en est dérivé —
+    /// le total du jour comme l'historique des statistiques.
+    @Published private(set) var log = IntakeLog() {
+        didSet { refreshDerivedState() }
+    }
+
+    private let store: IntakeLogStore
+
+    /// Total du jour, dérivé du journal (plus l'appui long en cours). Ce n'est
+    /// plus une valeur stockée : l'ancien total en cache était archivé à la
+    /// bascule de jour, et c'est ce mécanisme qui a effacé l'historique au
+    /// lancement et attribué des verres à la veille (cf. AUDIT § R3-1, R3-5).
+    @Published private(set) var currentMl: Double = 0.0
+
+    /// Prises du jour, de la plus récente à la plus ancienne.
+    var todayEvents: [IntakeEvent] {
+        log.events(on: Date(), calendar: .current).reversed()
+    }
+
+    private func refreshDerivedState() {
+        let calendar = Calendar.current
+        historyEntries = log.dailyEntries(calendar: calendar, defaultGoal: targetMl)
+        currentMl = log.total(on: Date(), calendar: calendar) + (holdSessionTotal ?? 0)
     }
     
     // MARK: - Journalisation et diagnostic
@@ -234,30 +251,27 @@ class HydrationManager: ObservableObject {
     /// Mieux vaut un message visible qu'un historique disparu sans trace.
     @Published private(set) var lastDataIssue: String?
 
-    /// Historique complet, une entrée par jour, avec l'objectif de ce jour-là.
-    /// Unique source de vérité : un second store (`DailyEntry`, history.json,
-    /// sans objectif, 7 jours) était écrit en parallèle à chaque mutation
-    /// (cf. AUDIT § P1-2).
-    @Published var historyEntries: [HistoryEntry] = []
-
-    /// Vrai une fois les fichiers d'historique lus. Écrire avant, c'est écraser
-    /// le fichier avec un tableau partiel — la cause exacte de la perte
-    /// d'historique au lancement. Voir `ensureHistoryLoaded()`.
-    private var isHistoryLoaded = false
+    /// Une entrée par jour, avec l'objectif de ce jour-là. Dérivé du journal,
+    /// jamais écrit directement.
+    @Published private(set) var historyEntries: [HistoryEntry] = []
     @Published var showReminderBadge: Bool = false
     
     // MARK: - Undo Stack
 
-    /// Privée : `MainContentView` y ajoutait directement ses entrées, avec sa
-    /// propre copie de la limite de taille (cf. AUDIT § P1-3). Les vues passent
-    /// désormais par `beginHoldSession()` / `endHoldSession()`.
-    /// `amount` est la quantité à retirer pour annuler : positive pour un ajout,
-    /// négative pour un reset (annuler un reset rend la quantité effacée).
-    private var undoStack: [(amount: Double, timestamp: Date)] = []
+    /// Ce qu'annuler veut dire, action par action. Privée : `MainContentView` y
+    /// ajoutait directement ses entrées (cf. AUDIT § P1-3).
+    private enum UndoAction {
+        /// Annuler retire cette prise.
+        case added(UUID)
+        /// Annuler remet ces prises (suppression à l'unité, ou reset du jour).
+        case removed([IntakeEvent])
+    }
+
+    private var undoStack: [UndoAction] = []
     private let maxUndoStackSize = 50
 
-    private func pushUndo(_ amount: Double) {
-        undoStack.append((amount: amount, timestamp: Date()))
+    private func pushUndo(_ action: UndoAction) {
+        undoStack.append(action)
         if undoStack.count > maxUndoStackSize {
             undoStack.removeFirst()
         }
@@ -279,21 +293,26 @@ class HydrationManager: ObservableObject {
         holdTotalMl = 0
     }
 
+    /// Pendant l'appui, rien n'est écrit dans le journal : seul l'affichage
+    /// suit. Le geste entier devient une seule prise à la fin.
     func addHeldWater(_ ml: Double) {
         guard let total = holdSessionTotal else { return }
         holdSessionTotal = total + ml
         holdTotalMl = total + ml
-        addWater(amount: ml, skipUndo: true)
+        refreshDerivedState()
     }
 
-    /// Clôt l'appui : une seule entrée d'annulation pour tout le geste, une seule
-    /// reprogrammation des notifications, une seule écriture.
+    /// Clôt l'appui : une seule prise dans le journal, une seule entrée
+    /// d'annulation, une seule reprogrammation des notifications.
     func endHoldSession() {
         guard let total = holdSessionTotal else { return }
         holdSessionTotal = nil
         holdTotalMl = 0
-        if total > 0 { pushUndo(total) }
-        if notificationsEnabled { scheduleNotifications() }
+        if total > 0 {
+            addWater(amount: total)
+        } else {
+            refreshDerivedState()
+        }
         flushPendingWrites()
     }
 
@@ -313,6 +332,9 @@ class HydrationManager: ObservableObject {
         set {
             objectWillChange.send()
             storedTargetMl = newValue
+            // Le jour se juge contre l'objectif qu'il avait : on le note.
+            log.setGoal(targetMl, on: Date(), calendar: .current)
+            persistLog()
             syncToAppGroup()
         }
     }
@@ -355,18 +377,18 @@ class HydrationManager: ObservableObject {
     }
     
     // MARK: - Initialization
-    private init() {
+    private init(store: IntakeLogStore = .applicationSupport()) {
+        self.store = store
         // Avant toute lecture de `doNotDisturb` (programmation des rappels).
         Self.migrateFocusOwnedDoNotDisturb()
 
-        // L'historique DOIT être chargé avant la bascule de jour : celle-ci archive
-        // la veille dans `historyEntries`. Dans l'ordre d'origine, inverse,
-        // `historyEntries` était encore vide au moment de l'archivage — qui
-        // réécrivait alors historyEntries.json avec la seule journée d'hier.
-        // Résultat : tout l'historique était effacé à chaque lancement un jour
-        // différent du dernier reset (Mac éteint la nuit, redémarrage, app quittée).
-        loadHistory()
-        restoreTodayOnLaunch()
+        loadLog()
+        if lastResetDateString.isEmpty || DateFormat.iso8601.date(from: lastResetDateString) == nil {
+            updateLastResetDate()
+        } else {
+            rollOverIfNewDay()
+        }
+        refreshDerivedState()
         setupNotificationCategories()
         
         // Initialiser la date de dernière consommation si elle n'existe pas
@@ -397,47 +419,69 @@ class HydrationManager: ObservableObject {
         minuteTimer?.invalidate()
     }
     
-    // MARK: - Changement de jour
+    // MARK: - Chargement du journal
 
-    /// Au lancement : bascule si le jour a changé depuis la dernière session,
-    /// sinon reprend la consommation du jour là où elle s'était arrêtée.
-    private func restoreTodayOnLaunch() {
-        guard !lastResetDateString.isEmpty,
-              DateFormat.iso8601.date(from: lastResetDateString) != nil
-        else {
-            // Premier lancement, ou date illisible : on repart proprement d'ici.
-            updateLastResetDate()
-            return
-        }
-        if !rollOverIfNewDay() {
-            currentMl = storedCurrentMl
+    /// Charge le journal, ou le construit depuis l'ancien format au premier
+    /// lancement de la v2.
+    private func loadLog() {
+        switch store.load() {
+        case .loaded(let loaded):
+            log = loaded
+        case .missing:
+            log = migratedLegacyLog()
+            persistLog()
+            // Le total en cours est désormais dans le journal. Laissé en place, il
+            // serait repris une seconde fois par une migration de secours.
+            storedCurrentMl = 0
+        case .corrupt(let backupName):
+            Self.logger.error("Journal illisible, mis de côté sous \(backupName ?? "—", privacy: .public)")
+            if let backupName {
+                report(issue: String(format: String(localized: "%@ was unreadable and has been set aside as %@.",
+                                                    comment: "Data issue: corrupt file quarantined; %@ are file names"),
+                                     IntakeLogStore.fileName, backupName))
+            } else {
+                report(issue: String(format: String(localized: "%@ is unreadable.",
+                                                    comment: "Data issue: unreadable file"),
+                                     IntakeLogStore.fileName))
+            }
+            // L'ancien historique, s'il existe, vaut mieux qu'un journal vide.
+            log = migratedLegacyLog()
+            persistLog()
         }
     }
 
-    /// Archive la journée précédente et repart de zéro si la date a changé.
+    /// Reprend historyEntries.json et le total en cours stocké dans
+    /// UserDefaults. Les journées passées deviennent un événement agrégé
+    /// chacune ; l'ancien fichier reste en place.
+    private func migratedLegacyLog() -> IntakeLog {
+        let pendingDay = DateFormat.iso8601.date(from: lastResetDateString)
+        return IntakeLog.migrating(history: store.loadLegacyHistory() ?? [],
+                                   pendingDay: pendingDay,
+                                   pendingMl: pendingDay == nil ? 0 : storedCurrentMl,
+                                   defaultGoal: targetMl,
+                                   calendar: .current)
+    }
+
+    // MARK: - Changement de jour
+
+    /// Passe à la nouvelle journée si la date a changé.
     ///
-    /// Appelé au lancement, par le minuteur, **et avant tout ajout ou annulation**.
-    /// Avant, seul un minuteur de 60 s s'en chargeait, et `addWater` sautait
-    /// volontairement la vérification « pour la performance » : un verre logué
-    /// juste après minuit — ou au réveil du Mac, avant que le minuteur ne tourne —
-    /// s'ajoutait au total de la veille, puis était archivé sous la date d'hier.
-    ///
-    /// Le même jour, cette fonction ne touche à rien. L'ancienne version
-    /// réassignait `currentMl` à chaque appel, ce qui réécrivait les fichiers
-    /// d'historique toutes les minutes, 24 h/24.
+    /// Avec le journal, il n'y a plus rien à archiver : les prises de la veille
+    /// sont déjà enregistrées avec leur date. La bascule se contente de vider la
+    /// pile d'annulation — on ne retire pas d'une journée neuve un verre bu la
+    /// veille — et de rafraîchir le total affiché. Toujours appelée avant un
+    /// ajout ou une annulation.
     ///
     /// - Returns: `true` si un changement de jour a eu lieu.
     @discardableResult
     private func rollOverIfNewDay() -> Bool {
         guard let lastReset = DateFormat.iso8601.date(from: lastResetDateString) else { return false }
         let calendar = Calendar.current
-        let lastResetDay = calendar.startOfDay(for: lastReset)
-        guard lastResetDay < calendar.startOfDay(for: Date()) else { return false }
+        guard calendar.startOfDay(for: lastReset) < calendar.startOfDay(for: Date()) else { return false }
 
-        saveHistoryEntry(date: lastResetDay, amountMl: storedCurrentMl, targetMl: targetMl)
-        currentMl = 0.0
         undoStack.removeAll()
         updateLastResetDate()
+        refreshDerivedState()
         syncToAppGroup()
         return true
     }
@@ -530,31 +574,32 @@ class HydrationManager: ObservableObject {
     
     // MARK: - Public Methods
     
-    /// Ajoute de l'eau (amount toujours en ml)
-    /// Optimisée pour être appelée très fréquemment (ex: toutes les 0.05s pour "Hold to Add")
-    /// - Parameter amount: Quantité en ml à ajouter
-    /// - Parameter skipUndo: Si true, n'enregistre pas l'action dans le stack undo (pour regroupement)
-    func addWater(amount: Double, skipUndo: Bool = false) {
-        // Un verre bu après minuit appartient à la nouvelle journée. Comparer deux
-        // dates coûte quelques nanosecondes : l'« optimisation » qui sautait cette
-        // vérification attribuait des prises à la mauvaise journée.
+    /// Ajoute une prise, en ml.
+    func addWater(amount: Double) {
+        // Un verre bu après minuit appartient à la nouvelle journée.
         rollOverIfNewDay()
+        guard amount > 0, amount.isFinite else { return }
 
-        
-        if amount > 0 && !skipUndo {
-            pushUndo(amount)
-        }
+        let now = Date()
+        let event = IntakeEvent(date: now, amountMl: amount)
+        log.add(event)
+        log.setGoal(targetMl, on: now, calendar: .current)
+        pushUndo(.added(event.id))
+        persistLog()
 
-        currentMl += amount
         updateLastWaterAddedDate()
         showReminderBadge = false
+        // Repousser le prochain rappel.
+        if notificationsEnabled { scheduleNotifications() }
+        syncToAppGroup()
+    }
 
-        // Repousser le prochain rappel — sauf pendant un appui long, où ce serait
-        // fait 20 fois par seconde : endHoldSession() s'en charge une seule fois.
-        if notificationsEnabled && holdSessionTotal == nil {
-            scheduleNotifications()
-        }
-
+    /// Supprime une prise du jour (journal du jour, F17). Annulable.
+    func removeEvent(id: UUID) {
+        rollOverIfNewDay()
+        guard let removed = log.remove(id: id) else { return }
+        pushUndo(.removed([removed]))
+        persistLog()
         syncToAppGroup()
     }
     
@@ -572,43 +617,37 @@ class HydrationManager: ObservableObject {
         return date
     }
     
-    /// Annule la dernière action : un ajout, ou un reset de la journée.
-    /// - Returns: true si une action a été annulée, false si le stack est vide
+    /// Annule la dernière action : un ajout, une suppression ou un reset.
+    /// - Returns: true si une action a été annulée, false si la pile est vide
     @discardableResult
     func undo() -> Bool {
-        // Pas d'annulation par-dessus minuit : la bascule vide la pile, et on ne
-        // retire pas d'une journée neuve un verre bu la veille.
+        // Pas d'annulation par-dessus minuit : la bascule vide la pile.
         rollOverIfNewDay()
-        guard !undoStack.isEmpty else { return false }
-        
-        let lastAction = undoStack.removeLast()
+        guard let action = undoStack.popLast() else { return false }
 
-        // Retirer la quantité ajoutée
-        currentMl = max(0, currentMl - lastAction.amount)
-
-        // NEW: sync updated state to App Group
+        switch action {
+        case .added(let id):
+            log.remove(id: id)
+        case .removed(let events):
+            log.restore(events)
+        }
+        persistLog()
         syncToAppGroup()
-
         return true
     }
-    
+
     /// Vérifie si une action peut être annulée
     var canUndo: Bool {
-        return !undoStack.isEmpty
+        !undoStack.isEmpty
     }
-    
-    /// Remet la consommation du jour à zéro.
-    ///
-    /// Annulable : le bouton « Reset my day » agit sur un simple clic, et vidait
-    /// en plus la pile d'annulation — un clic malheureux effaçait la journée
-    /// sans retour possible. L'annulation rend la quantité effacée.
+
+    /// Remet la journée à zéro en retirant ses prises. Annulable : l'annulation
+    /// les remet toutes.
     func resetDay() {
-        let erased = currentMl
-        currentMl = 0.0
-        if erased > 0 { pushUndo(-erased) }
-        updateLastResetDate()
-        // Seul chemin de mutation qui oubliait de propager l'état : le widget
-        // gardait l'ancienne valeur après un reset (bouton ou hydrobar://reset).
+        rollOverIfNewDay()
+        let removed = log.removeEvents(on: Date(), calendar: .current)
+        if !removed.isEmpty { pushUndo(.removed(removed)) }
+        persistLog()
         syncToAppGroup()
     }
     
@@ -627,136 +666,19 @@ class HydrationManager: ObservableObject {
         return selectedUnit.toMl(display)
     }
     
-    // MARK: - History Management
-    
-    /// Chemin vers le fichier d'historique complet (avec targetMl)
-    private var historyEntriesFileURL: URL {
-        let fileManager = FileManager.default
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appFolderURL = appSupportURL.appendingPathComponent("HydroBar", isDirectory: true)
-        
-        // Créer le dossier s'il n'existe pas
-        try? fileManager.createDirectory(at: appFolderURL, withIntermediateDirectories: true)
-        
-        return appFolderURL.appendingPathComponent("historyEntries.json")
-    }
-    
-    /// Sauvegarde l'entrée du jour actuel
-    private func saveTodayEntry() {
-        let today = Calendar.current.startOfDay(for: Date())
-        saveHistoryEntry(date: today, amountMl: currentMl, targetMl: targetMl)
-    }
+    // MARK: - Persistance du journal
 
-    /// Défense en profondeur : aucune écriture ne part d'un historique non chargé.
-    /// L'ordre d'`init` est corrigé, mais un futur réordonnancement ne doit pas
-    /// pouvoir effacer à nouveau l'historique.
-    private func ensureHistoryLoaded() {
-        if !isHistoryLoaded { loadHistory() }
-    }
-
-    /// Sauvegarde une HistoryEntry avec targetMl historique
-    private func saveHistoryEntry(date: Date, amountMl: Double, targetMl: Double) {
-        ensureHistoryLoaded()
-        let calendar = Calendar.current
-        let dateStart = calendar.startOfDay(for: date)
-        
-        // Charger l'historique complet
-        var entries = historyEntries
-        
-        // Retirer l'ancienne entrée pour cette date si elle existe
-        entries.removeAll { entry in
-            calendar.isDate(entry.date, inSameDayAs: dateStart)
-        }
-        
-        // Ajouter la nouvelle entrée avec targetMl historique
-        let historyEntry = HistoryEntry(date: dateStart, amountMl: amountMl, targetMl: targetMl)
-        entries.append(historyEntry)
-        
-        // Trier par date (plus ancien en premier)
-        entries.sort { $0.date < $1.date }
-        
-        historyEntries = entries
-        saveHistoryEntries()
-    }
-    
-    /// Charge l'historique. Il est conservé **en entier** : l'ancienne version le
-    /// tronquait à 30 jours au chargement comme à l'écriture, si bien que les
-    /// données plus anciennes étaient détruites, pas archivées (cf. AUDIT § P1-2).
-    /// Une année d'historique pèse environ 30 Ko ; chaque vue filtre la période
-    /// qu'elle affiche.
-    ///
-    /// L'ancien fichier history.json n'est ni lu ni supprimé : son contenu est un
-    /// sous-ensemble strict d'historyEntries.json, et on ne détruit pas un fichier
-    /// utilisateur sans nécessité.
-    private func loadHistory() {
-        defer { isHistoryLoaded = true }
-        historyEntries = (readJSON([HistoryEntry].self,
-                                   from: historyEntriesFileURL,
-                                   label: "historyEntries.json") ?? [])
-            .sorted { $0.date < $1.date }
-    }
-
-    /// Sauvegarde l'historique complet (HistoryEntry) dans le fichier JSON
-    private func saveHistoryEntries() {
-        writeJSON(historyEntries, to: historyEntriesFileURL, label: "historyEntries.json")
-    }
-
-    // MARK: - Persistance JSON
-
-    /// Écrit en **atomique** : les données passent par un fichier temporaire
-    /// renommé à la fin. Sans cette option, une coupure en pleine écriture
-    /// laissait un JSON tronqué, que `readJSON` interprétait comme « pas
-    /// d'historique » — et le prochain enregistrement l'écrasait pour de bon.
-    private func writeJSON<T: Encodable>(_ value: T, to url: URL, label: String) {
+    /// Écrit le journal immédiatement : une prise est un geste rare, et une
+    /// écriture différée exposerait le dernier verre à un crash. L'appui long
+    /// ne passe ici qu'une fois, à la fin.
+    private func persistLog() {
         do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(value)
-            try data.write(to: url, options: [.atomic])
+            try store.save(log)
         } catch {
-            Self.logger.error("Échec d'écriture de \(label, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("Échec d'écriture du journal: \(error.localizedDescription, privacy: .public)")
             report(issue: String(format: String(localized: "Could not save %@.",
                                                 comment: "Data issue: write failure, %@ is a file name"),
-                                 label))
-        }
-    }
-
-    /// Lit un fichier JSON en distinguant deux cas que l'ancien code confondait :
-    /// le fichier **absent** (premier lancement, normal) et le fichier **présent
-    /// mais illisible** (corruption, anormal). Dans le second cas, le fichier est
-    /// mis de côté plutôt qu'écrasé en silence.
-    private func readJSON<T: Decodable>(_ type: T.Type, from url: URL, label: String) -> T? {
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            return nil // premier lancement
-        }
-        do {
-            let data = try Data(contentsOf: url)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            return try decoder.decode(type, from: data)
-        } catch {
-            quarantine(url, label: label, error: error)
-            return nil
-        }
-    }
-
-    /// Renomme un fichier illisible en `<nom>.corrupt-<date>` pour que son contenu
-    /// reste récupérable à la main. Perdre un mois d'historique sans trace était le
-    /// pire scénario de l'ancienne implémentation.
-    private func quarantine(_ url: URL, label: String, error: Error) {
-        let stamp = DateFormat.iso8601.string(from: Date()).replacingOccurrences(of: ":", with: "-")
-        let backup = url.appendingPathExtension("corrupt-\(stamp)")
-        do {
-            try FileManager.default.moveItem(at: url, to: backup)
-            Self.logger.error("\(label, privacy: .public) illisible, mis de côté dans \(backup.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
-            report(issue: String(format: String(localized: "%@ was unreadable and has been set aside as %@.",
-                                                comment: "Data issue: corrupt file quarantined; %@ are file names"),
-                                 label, backup.lastPathComponent))
-        } catch {
-            Self.logger.error("\(label, privacy: .public) illisible et impossible à mettre de côté: \(error.localizedDescription, privacy: .public)")
-            report(issue: String(format: String(localized: "%@ is unreadable.",
-                                                comment: "Data issue: unreadable file"),
-                                 label))
+                                 IntakeLogStore.fileName))
         }
     }
 
@@ -969,8 +891,8 @@ class HydrationManager: ObservableObject {
 
     // MARK: - Persistance différée
 
-    /// Toute écriture — historique JSON et instantané du widget — passe par un
-    /// délai unique. Avant, chaque gorgée de « Hold to Add » réécrivait les deux
+    /// L'instantané du widget passe par un délai unique (le journal, lui, est
+    /// écrit à chaque prise). Avant, chaque gorgée de « Hold to Add » réécrivait les deux
     /// fichiers d'historique, encodait l'instantané du widget et le stockait,
     /// 20 fois par seconde ; seul le rechargement du widget était différé
     /// (cf. AUDIT § P2-2). Les écritures atomiques de P3-3 rendaient le problème
@@ -997,7 +919,6 @@ class HydrationManager: ObservableObject {
     func flushPendingWrites() {
         pendingPersist?.cancel()
         pendingPersist = nil
-        saveTodayEntry()
         writeWidgetSnapshot()
     }
 
@@ -1049,43 +970,29 @@ class HydrationManager: ObservableObject {
 
     #if DEBUG
     /// Génère de fausses données d'historique pour les tests. Remplace tout
-    /// l'historique : jamais compilé dans une version publiée.
+    /// l'historique passé : jamais compilé dans une version publiée.
     func generateFakeHistoryData() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        
-        // Générer des données pour les 30 derniers jours
-        var fakeEntries: [HistoryEntry] = []
-        
-        for i in stride(from: 29, through: 0, by: -1) {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            
-            // Pour aujourd'hui, utiliser les données actuelles
-            if calendar.isDate(date, inSameDayAs: today) {
-                let todayEntry = HistoryEntry(date: date, amountMl: currentMl, targetMl: targetMl)
-                fakeEntries.append(todayEntry)
-                continue
+        var fake = IntakeLog(events: log.events(on: today, calendar: calendar))
+
+        for offset in 1...29 {
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: today) else { continue }
+            fake.setGoal(targetMl, on: day, calendar: calendar)
+            // Un jour sur dix vide ; sinon 3 à 8 prises, de 50 à 150 % de l'objectif.
+            guard Int.random(in: 1...10) != 1 else { continue }
+            let count = Int.random(in: 3...8)
+            let dayTotal = targetMl * Double.random(in: 0.5...1.5)
+            for index in 0..<count {
+                let hour = 8 + index * 14 / count
+                guard let date = calendar.date(byAdding: .hour, value: hour, to: day) else { continue }
+                fake.add(IntakeEvent(date: date, amountMl: (dayTotal / Double(count)).rounded()))
             }
-            
-            // Générer des données aléatoires mais réalistes
-            // Variation entre 50% et 150% de l'objectif
-            let randomFactor = Double.random(in: 0.5...1.5)
-            let fakeAmount = targetMl * randomFactor
-            
-            // Ajouter quelques jours avec 0% (pour tester les cas vides)
-            let isEmptyDay = Int.random(in: 1...10) == 1 // 10% de chance d'avoir un jour vide
-            let finalAmount = isEmptyDay ? 0.0 : fakeAmount
-            
-            let entry = HistoryEntry(date: date, amountMl: finalAmount, targetMl: targetMl)
-            fakeEntries.append(entry)
         }
-        
-        // Sauvegarder les fausses données
-        historyEntries = fakeEntries
-        saveHistoryEntries()
-        
-        // Notifier le changement
-        objectWillChange.send()
+        undoStack.removeAll()
+        log = fake
+        persistLog()
+        syncToAppGroup()
     }
     #endif
 
