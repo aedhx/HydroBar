@@ -67,7 +67,8 @@ private func event(day: Int, _ hour: Int, _ ml: Double) -> IntakeEvent {
     let lunch = event(day: 15, 12, 500)
     var log = IntakeLog(events: [event(day: 15, 9, 250), lunch])
 
-    let removed = try #require(log.remove(id: lunch.id))
+    let removedEvent = log.remove(id: lunch.id)
+    let removed = try #require(removedEvent)
     #expect(log.total(on: at(day: 15, 0), calendar: utc) == 250)
 
     log.restore([removed])
@@ -124,7 +125,8 @@ private func event(day: Int, _ hour: Int, _ ml: Double) -> IntakeEvent {
 
     #expect(log.events.count == 2)
     #expect(log.events.allSatisfy(\.isAggregate))
-    #expect(utc.component(.hour, from: try #require(log.events.first).date) == 12)
+    let first = try #require(log.events.first)
+    #expect(utc.component(.hour, from: first.date) == 12)
     #expect(log.goal(on: at(day: 14, 0), calendar: utc) == 2500)
 }
 
@@ -154,7 +156,8 @@ private func temporaryStore() throws -> IntakeLogStore {
 }
 
 @Test func reportsAMissingLogOnFirstLaunch() throws {
-    #expect(try temporaryStore().load() == .missing)
+    let store = try temporaryStore()
+    #expect(store.load() == .missing)
 }
 
 @Test func savesAndReloadsTheLogUnchanged() throws {
