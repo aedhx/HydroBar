@@ -211,8 +211,7 @@ struct DaysSettingsSection: View {
                 if let goal = plan.offGoalMl {
                     ValidatedNumberField(
                         value: manager.selectedUnit.fromMl(goal),
-                        range: manager.selectedUnit.fromMl(HydrationLimits.goal.lowerBound)
-                            ...manager.selectedUnit.fromMl(HydrationLimits.goal.upperBound),
+                        range: goalRange,
                         format: { NumberInput.fieldText($0, fractionDigits: manager.selectedUnit.inputFractionDigits) },
                         onCommit: { value in update { $0.offGoalMl = manager.mlValue(from: value) } }
                     )
@@ -225,6 +224,12 @@ struct DaysSettingsSection: View {
             caption(Text("Without its own goal, a day off uses your goal for that day of the week.",
                          comment: "Explanation of the days off goal"))
         }
+    }
+
+    /// Bornes de l'objectif, dans l'unité affichée.
+    private var goalRange: ClosedRange<Double> {
+        let unit = manager.selectedUnit
+        return unit.fromMl(HydrationLimits.goal.lowerBound)...unit.fromMl(HydrationLimits.goal.upperBound)
     }
 
     // MARK: Congés
