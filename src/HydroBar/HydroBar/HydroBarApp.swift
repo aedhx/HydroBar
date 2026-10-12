@@ -512,6 +512,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
         menu.addItem(NSMenuItem.separator())
 
+        // Jour off ponctuel : un férié, un congé, un jour malade.
+        if manager.dayPlan.enabled {
+            let dayOffItem = NSMenuItem(title: String(localized: "Today Is a Day Off", comment: "Context menu item"),
+                                        action: #selector(toggleDayOff), keyEquivalent: "")
+            dayOffItem.target = self
+            dayOffItem.state = manager.todayKind == .off ? .on : .off
+            dayOffItem.isEnabled = !manager.todayKindSetByFocus
+            menu.addItem(dayOffItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+
         // Pause des rappels (F19)
         if manager.notificationsEnabled {
             if let until = manager.remindersSnoozedUntil {
@@ -596,6 +607,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
 
     @objc func resumeReminders() {
         HydrationManager.shared.resumeReminders()
+    }
+
+    @objc func toggleDayOff() {
+        let manager = HydrationManager.shared
+        manager.setTodayKind(manager.todayKind == .off ? .work : .off)
     }
     
     @objc func showAbout() {

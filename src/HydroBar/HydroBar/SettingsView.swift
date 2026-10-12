@@ -123,7 +123,7 @@ enum NotificationInterval: String, CaseIterable {
 /// Onglets de la fenêtre de réglages (v2). Douze sections s'empilaient
 /// dans un popover de 320 px.
 enum SettingsTab: String {
-    case general, hydration, reminders, shortcuts, data, integrations
+    case general, hydration, reminders, days, shortcuts, data, integrations
 }
 
 struct SettingsView: View {
@@ -149,6 +149,9 @@ struct SettingsView: View {
             page { remindersSection }
                 .tabItem { Label(String(localized: "Reminders", comment: "Onboarding step title"), systemImage: "bell") }
                 .tag(SettingsTab.reminders)
+            page { DaysSettingsSection(manager: manager) }
+                .tabItem { Label(String(localized: "Days", comment: "Settings tab for work days and days off"), systemImage: "calendar") }
+                .tag(SettingsTab.days)
             page { shortcutsSection }
                 .tabItem { Label(String(localized: "Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts"), systemImage: "keyboard") }
                 .tag(SettingsTab.shortcuts)
@@ -159,7 +162,7 @@ struct SettingsView: View {
                 .tabItem { Label(String(localized: "Integrations", comment: "Settings tab"), systemImage: "puzzlepiece.extension") }
                 .tag(SettingsTab.integrations)
         }
-        .frame(width: 520, height: 580)
+        .frame(width: 620, height: 580)
         .onAppear {
             // La source de vérité du lancement au démarrage est le système :
             // l'utilisateur a pu le changer dans Réglages Système entre-temps.

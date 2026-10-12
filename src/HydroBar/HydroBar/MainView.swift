@@ -241,6 +241,12 @@ struct MainContentView: View {
             // Jauge circulaire
             ProgressRingView(manager: manager)
                 .padding(.top, 20)
+
+            // Type de journée, quand les jours off ont leurs propres réglages.
+            if manager.dayPlan.enabled {
+                DayKindChip(manager: manager)
+                    .padding(.top, -12)
+            }
             
             // Mode gourde
             if manager.bottleModeEnabled {
@@ -341,4 +347,49 @@ struct MainContentView: View {
     MainView()
         .padding()
         .background(Color.black)
+}
+
+/// « Jour off · 10:00–22:00 » : le type de la journée et sa plage active, en
+/// un coup d'œil. Un menu permet de changer pour aujourd'hui seulement.
+struct DayKindChip: View {
+    @ObservedObject var manager: HydrationManager
+
+    var body: some View {
+        let rules = manager.todayRules
+        let isOff = rules.kind == .off
+        Menu {
+            Picker(String(localized: "Today", comment: "Popover: today's day type menu title"),
+                   selection: Binding(get: { manager.todayKind }, set: { manager.setTodayKind($0) })) {
+                Text("Work Day", comment: "Day type").tag(DayKind.work)
+                Text("Day Off", comment: "Day type").tag(DayKind.off)
+            }
+            .pickerStyle(.inline)
+            .disabled(manager.todayKindSetByFocus)
+        } label: {
+            Label {
+                Text(verbatim: summary(rules))
+            } icon: {
+                Image(systemName: isOff ? "sun.max" : "briefcase")
+            }
+            .font(Theme.Font.caption)
+            .foregroundColor(.secondary)
+        }
+        .menuStyle(.borderlessButton)
+        .menuIndicator(.hidden)
+        .fixedSize()
+        .accessibilityLabel(Text(verbatim: summary(rules)))
+    }
+
+    private func summary(_ rules: DayRules) -> String {
+        let kind = rules.kind == .off
+            ? String(localized: "Day Off", comment: "Day type")
+            : String(localized: "Work Day", comment: "Day type")
+        let calendar = Calendar.current
+        let today = calendar.startOfDay(for: Date())
+        guard let start = calendar.date(byAdding: .hour, value: rules.startHour, to: today),
+              let end = calendar.date(byAdding: .hour, value: rules.endHour, to: today)
+        else { return kind }
+        let style = Date.FormatStyle.dateTime.hour().minute()
+        return "\(kind) · \(start.formatted(style))–\(end.formatted(style))"
+    }
 }
