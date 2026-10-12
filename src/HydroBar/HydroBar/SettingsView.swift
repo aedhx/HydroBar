@@ -124,6 +124,9 @@ struct SettingsView: View {
     @ObservedObject var manager: HydrationManager
     @Binding var currentView: ViewType
     @StateObject private var updateChecker = GitHubUpdateChecker()
+    @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
+    @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
+    @ObservedObject private var focusMonitor = FocusModeMonitor.shared
     @State private var targetValue: String = ""
     @State private var presetValues: [String] = ["", "", ""]
     @State private var customMinutes: String = "60"
@@ -132,6 +135,8 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
         VStack(alignment: .leading, spacing: 14) {
+            generalSection
+
             // Section Style Icône Menu Bar + Unités (groupées)
             VStack(alignment: .leading, spacing: 6) {
                 Text("MENU BAR ICON STYLE", comment: "Settings section title for menu bar icon style")
@@ -161,7 +166,7 @@ struct SettingsView: View {
                     }
                 )) {
                     ForEach(AppUnit.allCases, id: \.self) { unit in
-                        Text(unit.rawValue.uppercased()).tag(unit)
+                        Text(verbatim: unit.pickerLabel).tag(unit)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -185,13 +190,15 @@ struct SettingsView: View {
                             }
                         }
                     
-                    Text(manager.selectedUnit.rawValue)
+                    Text(verbatim: manager.selectedUnit.symbol)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.secondary)
                         .frame(width: 35, alignment: .leading)
                 }
             }
-            
+
+            activeHoursSection
+
             // Section Verres Rapides
             VStack(alignment: .leading, spacing: 6) {
                 Text("QUICK PRESETS", comment: "Settings section title for quick presets")
@@ -337,36 +344,7 @@ struct SettingsView: View {
                         }
                     }
                     
-                    // Toggle Synchronisation Focus Mode (macOS 12+)
-                    if #available(macOS 12.0, *) {
-                        HStack(alignment: .center, spacing: 8) {
-                            Image(systemName: "moon.stars.fill")
-                                .font(.system(size: 13))
-                                .foregroundColor(.secondary)
-                                .frame(width: 20, alignment: .leading)
-                            
-                            Text("Sync with Focus Mode", comment: "Toggle label to sync with macOS Focus Mode")
-                                .font(.system(size: 13))
-                            
-                            Spacer()
-                            
-                            Toggle("", isOn: Binding(
-                                get: { manager.focusModeAutoSync },
-                                set: { newValue in
-                                    manager.focusModeAutoSync = newValue
-                                }
-                            ))
-                            .toggleStyle(.switch)
-                            .labelsHidden()
-                        }
-                        
-                        if manager.focusModeAutoSync {
-                            Text("Do Not Disturb mode automatically follows macOS Focus Mode", comment: "Explanation text for Focus Mode sync")
-                                .font(.system(size: 11))
-                                .foregroundColor(.secondary)
-                                .padding(.leading, 28)
-                        }
-                    }
+                    focusModeSection
                     
                     // Toggle Ne pas déranger (manuel si pas de sync)
                     HStack(alignment: .center, spacing: 8) {
@@ -459,6 +437,37 @@ struct SettingsView: View {
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
+
+                        // Journal des deep links — sans lui, un ajout inexpliqué
+                        // (script, page web, Raycast) est indébuggable.
+                        if !deepLinkRouter.log.isEmpty {
+                            Text("RECENT DEEP LINKS", comment: "Debug section title for deep link log")
+                                .font(.system(size: 10, weight: .semibold))
+                                .foregroundColor(.secondary)
+                                .padding(.top, 4)
+
+                            VStack(alignment: .leading, spacing: 2) {
+                                ForEach(Array(deepLinkRouter.log.suffix(10).reversed())) { entry in
+                                    HStack(spacing: 6) {
+                                        Image(systemName: entry.outcome == "ok"
+                                              ? "checkmark.circle.fill" : "xmark.circle.fill")
+                                            .font(.system(size: 9))
+                                            .foregroundColor(entry.outcome == "ok" ? .green : .orange)
+                                        Text(entry.date, style: .time)
+                                            .font(.system(size: 9, design: .monospaced))
+                                            .foregroundColor(.secondary)
+                                        Text(verbatim: entry.url)
+                                            .font(.system(size: 10, design: .monospaced))
+                                            .lineLimit(1)
+                                            .truncationMode(.middle)
+                                        Spacer(minLength: 0)
+                                        Text(verbatim: entry.outcome)
+                                            .font(.system(size: 9))
+                                            .foregroundColor(.secondary)
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
                 
@@ -588,6 +597,30 @@ struct SettingsView: View {
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
+
+                // Deep links : autoriser les actions destructives sans confirmation.
+                // Désactivé par défaut — n'importe quelle page web peut ouvrir une URL.
+                HStack(alignment: .center, spacing: 8) {
+                    Image(systemName: "link")
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, alignment: .leading)
+
+                    Text("Allow destructive links without confirmation", comment: "Toggle label for destructive deep links")
+                        .font(.system(size: 13))
+                        .fixedSize(horizontal: false, vertical: true)
+
+                    Spacer()
+
+                    Toggle("", isOn: $manager.allowDestructiveDeepLinks)
+                        .toggleStyle(.switch)
+                        .labelsHidden()
+                }
+
+                Text("Applies to hydrobar://reset and hydrobar://set-goal. Adding water and undo are never blocked.", comment: "Explanation for destructive deep links toggle")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+                    .padding(.leading, 28)
             }
 
             Divider()
@@ -646,6 +679,10 @@ struct SettingsView: View {
         .frame(maxWidth: .infinity, alignment: .leading)
         } // ScrollView
         .onAppear {
+            // La source de vérité du lancement au démarrage est le système :
+            // l'utilisateur a pu le changer dans Réglages Système entre-temps.
+            launchAtLogin.refresh()
+
             // Initialiser presetValues avec la bonne taille
             if presetValues.count < manager.presetsMl.count {
                 presetValues = Array(repeating: "", count: manager.presetsMl.count)
@@ -657,6 +694,210 @@ struct SettingsView: View {
         }
     }
     
+    // MARK: - Sections extraites
+    // Sorties du `body` pour limiter la complexité que le type-checker SwiftUI
+    // doit résoudre d'un bloc : ce fichier dépasse les 800 lignes.
+
+    private var generalSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("GENERAL", comment: "Settings section title for general options")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.secondary)
+
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "power")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+
+                Text("Launch at login", comment: "Toggle label for launching the app at login")
+                    .font(.system(size: 13))
+
+                Spacer()
+
+                Toggle("", isOn: Binding(
+                    get: { launchAtLogin.isEnabled },
+                    set: { launchAtLogin.setEnabled($0) }
+                ))
+                .toggleStyle(.switch)
+                .labelsHidden()
+            }
+
+            // macOS 13+ : l'app est enregistrée mais ne démarrera pas tant que
+            // l'utilisateur n'a pas validé l'élément d'ouverture.
+            if launchAtLogin.needsApproval {
+                Button(action: { launchAtLogin.openLoginItemsSettings() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.orange)
+                        Text("Approval needed in System Settings", comment: "Warning when the login item awaits user approval")
+                            .font(.system(size: 11))
+                            .underline()
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 28)
+            }
+
+            // Un échec silencieux serait pire que l'absence de la fonctionnalité :
+            // l'utilisateur croirait l'option active.
+            if let failure = launchAtLogin.failureMessage {
+                Text(failure)
+                    .font(.system(size: 11))
+                    .foregroundColor(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 28)
+            }
+
+            // Problème de persistance : délibérément visible hors mode debug.
+            // Un historique mis de côté pour corruption doit se savoir — c'est
+            // le genre de perte qu'on ne découvre sinon jamais.
+            if let issue = manager.lastDataIssue {
+                HStack(alignment: .firstTextBaseline, spacing: 6) {
+                    Image(systemName: "exclamationmark.triangle.fill")
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                    Text(issue)
+                        .font(.system(size: 11))
+                        .foregroundColor(.orange)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+                .padding(.top, 2)
+            }
+        }
+    }
+
+    /// Synchronisation Focus Mode. L'ancien interrupteur activait le réglage sans
+    /// jamais demander l'autorisation : il restait allumé alors que la
+    /// fonctionnalité ne pouvait pas fonctionner. Chaque cas d'échec est désormais
+    /// affiché — voir l'en-tête de FocusModeMonitor.swift.
+    private var focusModeSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "moon.stars.fill")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+
+                Text("Sync with Focus Mode", comment: "Toggle label to sync with macOS Focus Mode")
+                    .font(.system(size: 13))
+
+                Spacer()
+
+                Toggle("", isOn: Binding(
+                    get: { manager.focusModeAutoSync },
+                    set: { newValue in
+                        // L'autorisation est demandée ici, pas au lancement :
+                        // une invite système n'a de sens qu'au moment où
+                        // l'utilisateur réclame la fonctionnalité.
+                        if newValue {
+                            focusMonitor.enableAutoSync()
+                        } else {
+                            focusMonitor.disableAutoSync()
+                        }
+                    }
+                ))
+                .toggleStyle(.switch)
+                .labelsHidden()
+            }
+
+            switch focusMonitor.availability {
+            case .denied:
+                Button(action: { focusMonitor.openFocusPrivacySettings() }) {
+                    HStack(spacing: 6) {
+                        Image(systemName: "exclamationmark.triangle.fill")
+                            .font(.system(size: 11))
+                            .foregroundColor(.orange)
+                        Text("Access denied — grant it under Privacy & Security › Focus", comment: "Focus Mode authorization denied")
+                            .font(.system(size: 11))
+                            .underline()
+                            .fixedSize(horizontal: false, vertical: true)
+                    }
+                }
+                .buttonStyle(.plain)
+                .padding(.leading, 28)
+
+            case .unavailable:
+                Text("Focus status is unreadable. Check that HydroBar is allowed to send notifications — the Focus status also needs it.", comment: "Focus Mode status unreadable despite authorization")
+                    .font(.system(size: 11))
+                    .foregroundColor(.orange)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.leading, 28)
+
+            case .authorized, .notRequested:
+                if manager.focusModeAutoSync {
+                    Text("Do Not Disturb mode automatically follows macOS Focus Mode", comment: "Explanation text for Focus Mode sync")
+                        .font(.system(size: 11))
+                        .foregroundColor(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .padding(.leading, 28)
+                }
+            }
+        }
+    }
+
+    private var activeHoursSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("ACTIVE HOURS", comment: "Settings section title for active hours")
+                .font(.system(size: 11, weight: .semibold))
+                .foregroundColor(.secondary)
+
+            HStack(spacing: 8) {
+                Picker("", selection: Binding(
+                    get: { manager.activeHoursStart },
+                    set: { newValue in
+                        manager.activeHoursStart = newValue
+                        // La plage ne doit jamais passer minuit : la journée est
+                        // remise à zéro à 0 h, une plage à cheval porterait sur
+                        // deux journées de données différentes.
+                        if manager.activeHoursEnd <= newValue {
+                            manager.activeHoursEnd = min(newValue + 1, 24)
+                        }
+                    }
+                )) {
+                    ForEach(HydrationPace.selectableStartHours, id: \.self) { hour in
+                        Text(verbatim: hourLabel(hour)).tag(hour)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 90)
+
+                Text("to", comment: "Separator between start and end hour")
+                    .font(.system(size: 12))
+                    .foregroundColor(.secondary)
+
+                Picker("", selection: Binding(
+                    get: { manager.activeHoursEnd },
+                    set: { manager.activeHoursEnd = $0 }
+                )) {
+                    ForEach(HydrationPace.selectableEndHours.filter { $0 > manager.activeHoursStart }, id: \.self) { hour in
+                        Text(verbatim: hourLabel(hour)).tag(hour)
+                    }
+                }
+                .pickerStyle(.menu)
+                .frame(width: 90)
+
+                Spacer(minLength: 0)
+            }
+
+            Text("Used by the pace marker on the ring: it shows where you should be at this time of day.", comment: "Explanation for the active hours setting")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+        }
+    }
+
+    /// Heure formatée selon la locale (« 8 AM » ou « 08:00 » selon la région).
+    private func hourLabel(_ hour: Int) -> String {
+        // 24 = minuit de fin de journée, affiché comme 0 h.
+        let normalized = hour == 24 ? 0 : hour
+        guard let date = Calendar.current.date(bySettingHour: normalized, minute: 0, second: 0, of: Date()) else {
+            return String(format: "%02d:00", normalized)
+        }
+        return date.formatted(.dateTime.hour().minute())
+    }
+
     private func formatPresetValue(_ preset: Double) -> String {
         let unit = manager.selectedUnit
         let value = unit.fromMl(preset)

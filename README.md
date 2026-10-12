@@ -2,6 +2,8 @@
 
 # 💧 HYDROBAR
 
+[![CI](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml/badge.svg)](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml)
+
 ![macOS](https://img.shields.io/badge/macOS-12.0+-black?style=for-the-badge&logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange?style=for-the-badge&logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
@@ -60,6 +62,12 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 </div>
 
+### ⏱️ Pace Marker
+
+The ring shows a tick at where you *should* be at this time of day, based on your
+active hours (8 AM – 10 PM by default, adjustable in Settings). 15 % at 9 AM is on
+track, not a failure — the marker says so instead of leaving you to guess.
+
 ### 🎨 Modern Interface
 - **Clean, minimal design** following macOS design principles
 - **Adaptive dark/light mode** matching system preferences
@@ -79,6 +87,26 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
   - 🇨🇳 Simplified Chinese
 - **Automatic language detection** based on system settings
 - **Manual language selection** available in settings
+
+### 🔗 Deep Links & Automation
+
+HydroBar registers the `hydrobar://` URL scheme, so any tool that can open a URL can
+log water — Raycast, Alfred, Shortcuts, Stream Deck, Keyboard Maestro, Automator, or a
+plain `open` in Terminal:
+
+```bash
+open "hydrobar://add?ml=250"       # add 250 ml (also ?cl= ?l= ?oz=)
+open "hydrobar://add?preset=1"     # add your first configured preset
+open "hydrobar://undo"             # undo the last entry
+open "hydrobar://open/stats"       # open the popover on Statistics
+```
+
+Destructive actions (`reset`, `set-goal`) require an explicit `confirm=1` **and** a
+confirmation in the app, because any web page can open a URL scheme. Amounts are
+validated and rejected if out of range, and calls are rate limited.
+
+Full grammar, security model, error codes and `x-callback-url` support:
+[docs/specs/DEEP_LINKS.md](docs/specs/DEEP_LINKS.md).
 
 ### 🔄 Additional Features
 - **Check for updates** in Settings: compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available
@@ -141,17 +169,20 @@ open HydroBar.xcodeproj
 
 ## Raycast Extension
 
-Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: add water with presets (0.3 L, 0.5 L, 1 L) or a custom amount in ml, without leaving your keyboard.
+Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: log a preset or a custom amount, undo, or jump to your statistics — without leaving your keyboard.
 
-
-**Requirements:** HydroBar installed and running in the menu bar, and Raycast.
+**Requirements:** Raycast, and HydroBar 1.3 or later (earlier versions do not register the `hydrobar://` scheme). HydroBar does not need to be running: macOS launches it on demand.
 
 | Command | Description |
 |--------|-------------|
-| **Add Water – 0.3 L** | Log preset 1 (e.g. small glass) |
-| **Add Water – 0.5 L** | Log preset 2 |
-| **Add Water – 1 L** | Log preset 3 |
-| **Add Water (Custom)** | Log a custom amount in ml (e.g. 250) |
+| **Add Water – Preset 1** | Log your first preset |
+| **Add Water – Preset 2** | Log your second preset |
+| **Add Water – Preset 3** | Log your third preset |
+| **Add Water (Custom)** | Log a custom amount in ml, between 1 and 5000 |
+| **Undo Last Water** | Remove the last entry |
+| **Open HydroBar Statistics** | Open HydroBar on the statistics view |
+
+The preset commands follow whatever amounts you configure in HydroBar — change a preset in Settings and the Raycast command follows it.
 
 <img width="831" height="530" alt="Raycast - Hydrobar" src="https://github.com/user-attachments/assets/68d8ed4d-19c7-4065-b13f-109b759b1686" />
 
@@ -297,6 +328,16 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 - `HydroBarWidget/AppGroupStore.swift`: Shared data bridge between app and widget
 - `Localizable.xcstrings`: Multi-language support (9 languages)
 
+### Technical Documentation
+
+In-depth engineering docs live in [`docs/`](docs/README.md):
+
+- [**Technical audit**](docs/AUDIT_TECHNIQUE.md) — code review, 32 findings ranked P0→P4, with a 6-step action plan
+- [**Feature roadmap**](docs/ROADMAP_FONCTIONNALITES.md) — 16 proposals ranked by value/effort, sequenced v1.3→v1.6
+- [**Deep links spec**](docs/specs/DEEP_LINKS.md) — the `hydrobar://` URL scheme: grammar, security model, callbacks, tests
+
+> These documents are written in French.
+
 ---
 
 ## 🔒 Privacy & Security
@@ -309,7 +350,11 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 
 ### Gatekeeper Notice
 
-HydroBar is not signed with a paid Apple Developer certificate. macOS may show a "damaged" or "cannot be opened" warning. This is expected — run the following command in Terminal to remove the quarantine flag, then open normally:
+> **Going away soon.** The build script now supports Developer ID signing and
+> notarization; once a signed release ships, this whole section disappears and
+> HydroBar opens on a double-click.
+
+Current releases are signed ad-hoc, so macOS may show a "damaged" or "cannot be opened" warning. This is expected — run the following command in Terminal to remove the quarantine flag, then open normally:
 
 ```bash
 xattr -cr /Applications/HydroBar.app
@@ -352,6 +397,9 @@ xattr -cr /Applications/HydroBar.app
 ## 🛣️ Roadmap
 
 Future improvements planned:
+- [x] Deep links / URL scheme *(v1.3)*
+- [x] Launch at login *(v1.3)*
+- [x] Pace marker on the progress ring *(v1.3)*
 - [ ] Data export functionality
 - [ ] iCloud sync (optional)
 - [ ] Widget support *(planned v1.3)*

@@ -56,23 +56,11 @@ struct HydroRing: View {
 
 // MARK: - Helpers
 
+/// Délègue au formateur partagé avec l'app (`AppUnit`, dans AppGroupStore.swift).
+/// Le formateur local qu'il remplace utilisait un autre facteur pour l'once et
+/// d'autres décimales que l'app.
 private func formatMl(_ ml: Double, unit: String) -> String {
-    switch unit {
-    case "cl":
-        let val = ml / 10
-        return val.truncatingRemainder(dividingBy: 1) == 0
-            ? "\(Int(val)) cl"
-            : String(format: "%.1f cl", val)
-    case "L":
-        return String(format: "%.2f L", ml / 1000)
-    case "oz":
-        return String(format: "%.0f oz", ml / 29.5735)
-    default:
-        let val = ml / 10
-        return val.truncatingRemainder(dividingBy: 1) == 0
-            ? "\(Int(val)) cl"
-            : String(format: "%.1f cl", val)
-    }
+    (AppUnit(rawValue: unit) ?? .cl).format(ml: ml)
 }
 
 /// Green intensity matching the app's monthly heatmap style.
