@@ -23,7 +23,7 @@ struct DataSettingsSection: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("DATA", comment: "Settings section title for data export and import")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Theme.Font.sectionTitle)
                 .foregroundColor(.secondary)
 
             actionButton(String(localized: "Export as CSV…", comment: "Button: export daily totals as CSV"),
@@ -35,7 +35,7 @@ struct DataSettingsSection: View {
 
             Text("Restoring adds the entries you don't have yet: importing the same backup twice changes nothing.",
                  comment: "Explanation under the data import button")
-                .font(.system(size: 11))
+                .font(Theme.Font.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -45,10 +45,10 @@ struct DataSettingsSection: View {
         Button(action: action) {
             HStack(spacing: 8) {
                 Image(systemName: systemImage)
-                    .font(.system(size: 12))
+                    .font(Theme.Font.callout)
                     .frame(width: 20, alignment: .leading)
                 Text(title)
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                 Spacer()
             }
             .contentShape(Rectangle())

@@ -100,7 +100,7 @@ struct ValidatedNumberField: View {
                 Text(String(format: String(localized: "Between %@ and %@",
                                            comment: "Validation hint for a numeric field; %@ are the bounds"),
                             format(range.lowerBound), format(range.upperBound)))
-                    .font(.system(size: 10))
+                    .font(Theme.Font.footnote)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
             }

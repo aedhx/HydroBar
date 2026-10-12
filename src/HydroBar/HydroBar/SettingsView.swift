@@ -139,7 +139,7 @@ struct SettingsView: View {
             // Section Style Icône Menu Bar + Unités (groupées)
             VStack(alignment: .leading, spacing: 6) {
                 Text("MENU BAR ICON STYLE", comment: "Settings section title for menu bar icon style")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
                 Picker("", selection: Binding(
                     get: { manager.menuBarIconStyle },
@@ -151,11 +151,19 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.segmented)
                 .frame(maxWidth: .infinity)
+
+                Toggle(isOn: Binding(get: { manager.coloredMenuBarIcon },
+                                     set: { manager.coloredMenuBarIcon = $0 })) {
+                    Text("Colored icon", comment: "Toggle: show the menu bar icon in color instead of monochrome")
+                        .font(Theme.Font.body)
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("UNITS", comment: "Settings section title for units")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
                 Picker("", selection: Binding(
                     get: { manager.selectedUnit },
@@ -172,7 +180,7 @@ struct SettingsView: View {
             // Section Objectif
             VStack(alignment: .leading, spacing: 6) {
                 Text("DAILY GOAL", comment: "Settings section title for daily goal")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
@@ -185,7 +193,7 @@ struct SettingsView: View {
                     .font(.system(size: 15))
 
                     Text(verbatim: manager.selectedUnit.symbol)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Theme.Font.bodyMedium)
                         .foregroundColor(.secondary)
                         .frame(width: 35, alignment: .leading)
                 }
@@ -196,7 +204,7 @@ struct SettingsView: View {
             // Section Verres Rapides
             VStack(alignment: .leading, spacing: 6) {
                 Text("QUICK PRESETS", comment: "Settings section title for quick presets")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
 
@@ -210,7 +218,7 @@ struct SettingsView: View {
                                 alignment: .center,
                                 onCommit: { updatePreset(at: index, displayValue: $0) }
                             )
-                            .font(.system(size: 14, weight: .medium))
+                            .font(Theme.Font.controlMedium)
                             .frame(maxWidth: .infinity)
                             
                             Image(systemName: iconForPreset(at: index))
@@ -224,7 +232,7 @@ struct SettingsView: View {
             // Section Raccourcis clavier
             VStack(alignment: .leading, spacing: 6) {
                 Text("Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
 
@@ -244,19 +252,19 @@ struct SettingsView: View {
             // Section Rappels
             VStack(alignment: .leading, spacing: 6) {
                 Text("REMINDERS", comment: "Settings section title for reminders")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
 
                 // Toggle Activer les rappels
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "bell.fill")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .foregroundColor(.secondary)
                         .frame(width: 20, alignment: .leading)
                     
                     Text("Enable reminders", comment: "Toggle label to enable reminders")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                     
                     Spacer()
                     
@@ -280,11 +288,11 @@ struct SettingsView: View {
                     Button(action: { manager.openNotificationSettings() }) {
                         HStack(spacing: 6) {
                             Image(systemName: "exclamationmark.triangle.fill")
-                                .font(.system(size: 11))
+                                .font(Theme.Font.caption)
                                 .foregroundColor(.orange)
                             Text("Notifications are turned off for HydroBar in System Settings.",
                                  comment: "Shown when the user enables reminders but notifications are denied")
-                                .font(.system(size: 11))
+                                .font(Theme.Font.caption)
                                 .underline()
                                 .fixedSize(horizontal: false, vertical: true)
                         }
@@ -321,11 +329,11 @@ struct SettingsView: View {
                                     manager.scheduleNotifications()
                                 }
                             )
-                            .font(.system(size: 13))
+                            .font(Theme.Font.body)
                             .frame(width: 80)
                             
                             Text("minutes", comment: "Unit label for custom notification minutes")
-                                .font(.system(size: 12))
+                                .font(Theme.Font.callout)
                                 .foregroundColor(.secondary)
                         }
                     }
@@ -339,12 +347,12 @@ struct SettingsView: View {
                     // Toggle Ne pas déranger (manuel si pas de sync)
                     HStack(alignment: .center, spacing: 8) {
                         Image(systemName: "moon.fill")
-                            .font(.system(size: 13))
+                            .font(Theme.Font.body)
                             .foregroundColor(.secondary)
                             .frame(width: 20, alignment: .leading)
                         
                         Text("Do Not Disturb Mode", comment: "Toggle label for Do Not Disturb mode")
-                            .font(.system(size: 13))
+                            .font(Theme.Font.body)
                         
                         Spacer()
                         
@@ -362,7 +370,7 @@ struct SettingsView: View {
                     if manager.focusModeAutoSync && manager.focusIsActive && !manager.doNotDisturb {
                         Text("A Focus is on: reminders appear as a badge.",
                              comment: "Shown when a macOS Focus currently silences reminders")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.secondary)
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -375,7 +383,7 @@ struct SettingsView: View {
             if manager.debugModeEnabled {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("DEBUG", comment: "Settings section title for debug")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Theme.Font.sectionTitle)
                         .foregroundColor(.secondary)
 
                     
@@ -398,9 +406,9 @@ struct SettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "chart.bar.doc.horizontal.fill")
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                 Text("Generate Fake History Data", comment: "Debug button to generate fake data")
-                                    .font(.system(size: 13, weight: .regular))
+                                    .font(Theme.Font.body)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 8)
@@ -425,14 +433,14 @@ struct SettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "bell.badge.fill")
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                 Text("Test Notification", comment: "Debug button to test notification")
-                                    .font(.system(size: 13, weight: .regular))
+                                    .font(Theme.Font.body)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 6)
-                            .background(Color.blue.opacity(0.1))
+                            .background(Theme.water.opacity(0.1))
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
@@ -441,7 +449,7 @@ struct SettingsView: View {
                         // (script, page web, Raycast) est indébuggable.
                         if !deepLinkRouter.log.isEmpty {
                             Text("RECENT DEEP LINKS", comment: "Debug section title for deep link log")
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(Theme.Font.footnoteEmphasis)
                                 .foregroundColor(.secondary)
                                 .padding(.top, 4)
 
@@ -450,8 +458,8 @@ struct SettingsView: View {
                                     HStack(spacing: 6) {
                                         Image(systemName: entry.outcome == "ok"
                                               ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                            .font(.system(size: 9))
-                                            .foregroundColor(entry.outcome == "ok" ? .green : .orange)
+                                            .font(Theme.Font.micro)
+                                            .foregroundColor(entry.outcome == "ok" ? Theme.goal : .orange)
                                         Text(entry.date, style: .time)
                                             .font(.system(size: 9, design: .monospaced))
                                             .foregroundColor(.secondary)
@@ -461,7 +469,7 @@ struct SettingsView: View {
                                             .truncationMode(.middle)
                                         Spacer(minLength: 0)
                                         Text(verbatim: entry.outcome)
-                                            .font(.system(size: 9))
+                                            .font(Theme.Font.micro)
                                             .foregroundColor(.secondary)
                                     }
                                 }
@@ -476,15 +484,15 @@ struct SettingsView: View {
             // Section Vérification des mises à jour
             VStack(alignment: .leading, spacing: 6) {
                 Text("UPDATES", comment: "Settings section title for updates")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
                 HStack(alignment: .center, spacing: 8) {
                     Text("Version", comment: "Label for current app version")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .foregroundColor(.secondary)
                     Text(verbatim: updateChecker.currentAppVersion)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Theme.Font.bodyMedium)
                         .foregroundColor(.primary)
                         .onTapGesture {
                             debugTapCount += 1
@@ -496,7 +504,7 @@ struct SettingsView: View {
                     Spacer()
                     if manager.debugModeEnabled {
                         Image(systemName: "ladybug.fill")
-                            .font(.system(size: 10))
+                            .font(Theme.Font.footnote)
                             .foregroundColor(.orange)
                     }
                 }
@@ -509,15 +517,15 @@ struct SettingsView: View {
                             Text("Checking…", comment: "Button label while checking for updates")
                         } else {
                             Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 12))
+                                .font(Theme.Font.callout)
                             Text("Check for Updates", comment: "Button to check for app updates")
                         }
                     }
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Theme.Font.bodyMedium)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.15))
-                    .foregroundColor(.blue)
+                    .background(Theme.water.opacity(0.15))
+                    .foregroundColor(Theme.water)
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -529,23 +537,23 @@ struct SettingsView: View {
                         case .upToDate:
                             HStack(spacing: 6) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(Theme.goal)
                                 Text("You're up to date.", comment: "Message when no update is available")
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                     .foregroundColor(.secondary)
                             }
                         case .updateAvailable(let version, let url):
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "arrow.down.circle.fill")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(Theme.water)
                                     Text(String(format: String(localized: "Version %@ is available.", comment: "Message when update is available"), version))
-                                        .font(.system(size: 12))
+                                        .font(Theme.Font.callout)
                                         .foregroundColor(.primary)
                                 }
                                 Button(action: { updateChecker.openUpdateURL(url) }) {
                                     Text("Open Download Page", comment: "Button to open GitHub release page")
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(Theme.Font.calloutMedium)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -554,7 +562,7 @@ struct SettingsView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
                                 Text(message)
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                     .foregroundColor(.secondary)
                             }
                         }
@@ -572,7 +580,7 @@ struct SettingsView: View {
             // Section Raycast Extension
             VStack(alignment: .leading, spacing: 6) {
                 Text("INTEGRATIONS", comment: "Settings section title for integrations")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
 
@@ -584,12 +592,12 @@ struct SettingsView: View {
                 }) {
                     HStack(spacing: 8) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 12))
+                            .font(Theme.Font.callout)
                         Text("Raycast Extension", comment: "Button to open Raycast extension page")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Theme.Font.bodyMedium)
                         Spacer()
                         Image(systemName: "arrow.up.right")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity)
@@ -605,12 +613,12 @@ struct SettingsView: View {
                 // Désactivé par défaut — n'importe quelle page web peut ouvrir une URL.
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "link")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .foregroundColor(.secondary)
                         .frame(width: 20, alignment: .leading)
 
                     Text("Allow destructive links without confirmation", comment: "Toggle label for destructive deep links")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Spacer()
@@ -621,7 +629,7 @@ struct SettingsView: View {
                 }
 
                 Text("Applies to hydrobar://reset and hydrobar://set-goal. Adding water and undo are never blocked.", comment: "Explanation for destructive deep links toggle")
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.secondary)
                     .padding(.leading, 28)
             }
@@ -631,7 +639,7 @@ struct SettingsView: View {
             // Section Langue (en bas)
             VStack(alignment: .leading, spacing: 6) {
                 Text("LANGUAGE", comment: "Settings section title for language")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
                 
@@ -670,17 +678,17 @@ struct SettingsView: View {
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("GENERAL", comment: "Settings section title for general options")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Theme.Font.sectionTitle)
                 .foregroundColor(.secondary)
 
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "power")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                     .foregroundColor(.secondary)
                     .frame(width: 20, alignment: .leading)
 
                 Text("Launch at login", comment: "Toggle label for launching the app at login")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
 
                 Spacer()
 
@@ -698,10 +706,10 @@ struct SettingsView: View {
                 Button(action: { launchAtLogin.openLoginItemsSettings() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.orange)
                         Text("Approval needed in System Settings", comment: "Warning when the login item awaits user approval")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .underline()
                     }
                 }
@@ -713,7 +721,7 @@ struct SettingsView: View {
             // l'utilisateur croirait l'option active.
             if let failure = launchAtLogin.failureMessage {
                 Text(failure)
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.leading, 28)
@@ -725,10 +733,10 @@ struct SettingsView: View {
             if let issue = manager.lastDataIssue {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 11))
+                        .font(Theme.Font.caption)
                         .foregroundColor(.orange)
                     Text(issue)
-                        .font(.system(size: 11))
+                        .font(Theme.Font.caption)
                         .foregroundColor(.orange)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -745,12 +753,12 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "moon.stars.fill")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                     .foregroundColor(.secondary)
                     .frame(width: 20, alignment: .leading)
 
                 Text("Sync with Focus Mode", comment: "Toggle label to sync with macOS Focus Mode")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
 
                 Spacer()
 
@@ -776,10 +784,10 @@ struct SettingsView: View {
                 Button(action: { focusMonitor.openFocusPrivacySettings() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.orange)
                         Text("Access denied — grant it under Privacy & Security › Focus", comment: "Focus Mode authorization denied")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .underline()
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -789,7 +797,7 @@ struct SettingsView: View {
 
             case .unavailable:
                 Text("Focus status is unreadable. Check that HydroBar is allowed to send notifications — the Focus status also needs it.", comment: "Focus Mode status unreadable despite authorization")
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.leading, 28)
@@ -797,7 +805,7 @@ struct SettingsView: View {
             case .authorized, .notRequested:
                 if manager.focusModeAutoSync {
                     Text("Do Not Disturb mode automatically follows macOS Focus Mode", comment: "Explanation text for Focus Mode sync")
-                        .font(.system(size: 11))
+                        .font(Theme.Font.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.leading, 28)
@@ -809,7 +817,7 @@ struct SettingsView: View {
     private var activeHoursSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("ACTIVE HOURS", comment: "Settings section title for active hours")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Theme.Font.sectionTitle)
                 .foregroundColor(.secondary)
 
             HStack(spacing: 8) {
@@ -833,7 +841,7 @@ struct SettingsView: View {
                 .frame(width: 90)
 
                 Text("to", comment: "Separator between start and end hour")
-                    .font(.system(size: 12))
+                    .font(Theme.Font.callout)
                     .foregroundColor(.secondary)
 
                 Picker("", selection: Binding(
@@ -851,7 +859,7 @@ struct SettingsView: View {
             }
 
             Text("Used by the pace marker on the ring: it shows where you should be at this time of day.", comment: "Explanation for the active hours setting")
-                .font(.system(size: 11))
+                .font(Theme.Font.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -870,7 +878,7 @@ struct SettingsView: View {
     private func shortcutRow(for action: HotkeyAction) -> some View {
         HStack(alignment: .center, spacing: 12) {
             Text(verbatim: action.localizedName)
-                .font(.system(size: 13, weight: .regular))
+                .font(Theme.Font.body)
                 .foregroundColor(.primary)
                 .lineLimit(1)
                 .minimumScaleFactor(0.8)
@@ -888,11 +896,11 @@ struct SettingsView: View {
         VStack(alignment: .leading, spacing: 4) {
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "gauge.with.dots.needle.33percent")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                     .foregroundColor(.secondary)
                     .frame(width: 20, alignment: .leading)
                 Text("Adapt to my pace", comment: "Toggle: remind more often when behind schedule")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                 Spacer()
                 Toggle("", isOn: Binding(get: { manager.adaptiveReminders },
                                          set: { manager.adaptiveReminders = $0 }))
@@ -901,7 +909,7 @@ struct SettingsView: View {
             }
             Text("Reminders follow your active hours, stop once your goal is reached, and come a bit more often when you're behind.",
                  comment: "Explanation of how reminders are scheduled")
-                .font(.system(size: 11))
+                .font(Theme.Font.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
                 .padding(.leading, 28)
@@ -916,7 +924,7 @@ struct SettingsView: View {
     private var snoozeRow: some View {
         HStack(alignment: .center, spacing: 8) {
             Image(systemName: "zzz")
-                .font(.system(size: 13))
+                .font(Theme.Font.body)
                 .foregroundColor(.secondary)
                 .frame(width: 20, alignment: .leading)
 
@@ -924,7 +932,7 @@ struct SettingsView: View {
                 Text(String(format: String(localized: "Paused until %@",
                                            comment: "Reminders snooze status; %@ is a time"),
                             until.formatted(date: .omitted, time: .shortened)))
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                 Spacer()
                 Button(String(localized: "Resume", comment: "Button to end the reminders pause")) {
                     manager.resumeReminders()
@@ -932,7 +940,7 @@ struct SettingsView: View {
                 .controlSize(.small)
             } else {
                 Text("Pause reminders", comment: "Label of the snooze menu in settings")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                 Spacer()
                 Menu {
                     ForEach(SnoozeOption.allCases) { option in

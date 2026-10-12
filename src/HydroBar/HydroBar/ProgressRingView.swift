@@ -31,13 +31,13 @@ struct ProgressRingView: View {
     private var ringGradient: AngularGradient {
         progress >= 1.0
             ? AngularGradient(
-                colors: [.green, .mint],
+                colors: [Theme.goal, Theme.goalLight],
                 center: .center,
                 startAngle: .degrees(-90),
                 endAngle: .degrees(270)
             )
             : AngularGradient(
-                colors: [Color(red: 0.2, green: 0.5, blue: 1.0), .cyan],
+                colors: [Theme.water, Theme.waterLight],
                 center: .center,
                 startAngle: .degrees(-90),
                 endAngle: .degrees(270)
@@ -73,15 +73,15 @@ struct ProgressRingView: View {
                 if progress >= 1.0 {
                     Image(systemName: "checkmark.circle.fill")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundColor(.green)
+                        .foregroundColor(Theme.goal)
                 }
 
                 Text("\(percentage)%")
-                    .font(.system(size: 32, weight: .bold, design: .rounded))
+                    .font(Theme.Font.ringValue)
                     .foregroundColor(.primary)
 
                 Text("\(manager.displayValue(for: manager.currentMl)) / \(manager.displayValue(for: manager.targetMl))")
-                    .font(.system(size: 11, weight: .medium, design: .rounded))
+                    .font(Theme.Font.ringCaption)
                     .foregroundColor(.secondary)
 
                 if manager.expectedProgress != nil {
@@ -130,7 +130,7 @@ struct ProgressRingView: View {
                     .foregroundColor(.secondary)
             }
         }
-        .font(.system(size: 10, weight: .medium, design: .rounded))
+        .font(Theme.Font.ringFootnote)
     }
 }
 

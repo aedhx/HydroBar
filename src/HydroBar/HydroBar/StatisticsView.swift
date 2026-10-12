@@ -25,7 +25,7 @@ struct StatisticsView: View {
             // Section Cette Semaine
             VStack(alignment: .leading, spacing: 10) {
                 Text("This Week", comment: "Section title for weekly statistics")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Theme.Font.bodyEmphasis)
                     .foregroundColor(.primary)
                     .padding(.horizontal, 20)
                 
@@ -35,7 +35,7 @@ struct StatisticsView: View {
             // Section Quand je bois (par heure, 30 jours)
             VStack(alignment: .leading, spacing: 10) {
                 Text("When You Drink (30 days)", comment: "Title for the hourly intake pattern chart")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Theme.Font.bodyEmphasis)
                     .foregroundColor(.primary)
                     .padding(.horizontal, 20)
 
@@ -45,7 +45,7 @@ struct StatisticsView: View {
             // Section Activité Mensuelle
             VStack(alignment: .leading, spacing: 10) {
                 Text("Consistency (30 days)", comment: "Title for 30-day consistency heatmap")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Theme.Font.bodyEmphasis)
                     .foregroundColor(.primary)
                     .padding(.horizontal, 20)
                 
@@ -60,8 +60,8 @@ struct StatisticsView: View {
                 
                 if streak > 3 {
                     Text("You're unstoppable!", comment: "Motivational message for long streaks")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.green)
+                        .font(Theme.Font.captionMedium)
+                        .foregroundColor(Theme.goal)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -72,8 +72,8 @@ struct StatisticsView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.green.opacity(0.1),
-                                Color.blue.opacity(0.05)
+                                Theme.goal.opacity(0.1),
+                                Theme.water.opacity(0.05)
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -83,7 +83,7 @@ struct StatisticsView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        streak > 3 ? Color.green.opacity(0.3) : Color.blue.opacity(0.2),
+                        streak > 3 ? Theme.goal.opacity(0.3) : Theme.water.opacity(0.2),
                         lineWidth: 1.5
                     )
             )

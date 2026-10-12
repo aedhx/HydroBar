@@ -31,7 +31,7 @@ struct HourlyPatternView: View {
             if data.dayCount < Self.minimumDays {
                 Text("Log a few days to see when you drink.",
                      comment: "Hourly pattern empty state")
-                    .font(.system(size: 12))
+                    .font(Theme.Font.callout)
                     .foregroundColor(.secondary)
                     .frame(maxWidth: .infinity, minHeight: 60)
             } else {
@@ -56,7 +56,7 @@ struct HourlyPatternView: View {
             } icon: {
                 Image(systemName: "hourglass")
             }
-            .font(.system(size: 12))
+            .font(Theme.Font.callout)
             .foregroundColor(.secondary)
         }
     }
@@ -70,7 +70,7 @@ struct HourlyPatternView: View {
                     x: .value("Hour", hour),
                     y: .value("Average", manager.selectedUnit.fromMl(averages[hour]))
                 )
-                .foregroundStyle(Color.blue.opacity(hoveredHour == nil || hoveredHour == hour ? 0.85 : 0.4))
+                .foregroundStyle(Theme.water.opacity(hoveredHour == nil || hoveredHour == hour ? 0.85 : 0.4))
                 .cornerRadius(2)
             }
         }
@@ -78,7 +78,7 @@ struct HourlyPatternView: View {
             AxisMarks(values: [0, 6, 12, 18]) { value in
                 AxisValueLabel {
                     if let hour = value.as(Int.self) {
-                        Text(hourLabel(hour)).font(.system(size: 10))
+                        Text(hourLabel(hour)).font(Theme.Font.footnote)
                     }
                 }
             }
@@ -109,11 +109,11 @@ struct HourlyPatternView: View {
             if let hour = hoveredHour {
                 VStack(alignment: .trailing, spacing: 2) {
                     Text(verbatim: manager.displayValue(for: averages[hour]))
-                        .font(.system(size: 12, weight: .semibold))
+                        .font(Theme.Font.calloutEmphasis)
                     Text(String(format: String(localized: "on average around %@",
                                                comment: "Hourly pattern tooltip; %@ is a time of day"),
                                 hourLabel(hour)))
-                        .font(.system(size: 10))
+                        .font(Theme.Font.footnote)
                         .foregroundColor(.secondary)
                 }
                 .padding(6)

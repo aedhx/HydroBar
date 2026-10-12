@@ -114,7 +114,7 @@ struct MenuBarIconView: View {
                         // Retour au centre pour fermer le camembert
                         path.closeSubpath()
                     }
-                    .fill(isGoalReached ? Color.green : Color.blue)
+                    .fill(isGoalReached ? Theme.goal : Theme.water)
                 }
 
                 // Bordure toujours visible pour ancrer l'icône sur fond transparent
@@ -128,7 +128,7 @@ struct MenuBarIconView: View {
     private var percentageView: some View {
         Text("\(percentage)%")
             .font(.system(size: 12, weight: .bold, design: .rounded))
-            .foregroundColor(isGoalReached ? Color(red: 0.2, green: 0.8, blue: 0.2) : Color(red: 0.2, green: 0.5, blue: 1.0))
+            .foregroundColor(isGoalReached ? Theme.goal : Theme.water)
             .monospacedDigit()
             .frame(minWidth: 45, alignment: .center)
             .padding(.horizontal, 2)
@@ -264,6 +264,30 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         button.toolTip = summary + "\n" + String(localized: "Option-click to log your first preset.",
                                                  comment: "Menu bar icon tooltip hint")
 
+        let target = manager.targetMl
+        let progress = target > 0 ? manager.currentMl / target : 0
+
+        // Icône monochrome par défaut (v2.2) : une image template, teintée par
+        // macOS. Redessinée à chaque changement, ce qui ne coûte presque rien.
+        if !manager.coloredMenuBarIcon {
+            if hostingController != nil {
+                button.subviews.forEach { $0.removeFromSuperview() }
+                hostingController = nil
+            }
+            renderedIconStyle = nil
+            button.title = ""
+            button.imagePosition = .imageOnly
+            switch manager.menuBarIconStyle {
+            case .pieRing:
+                statusItem?.length = NSStatusItem.squareLength
+                button.image = MenuBarIconRenderer.ring(progress: progress, showBadge: manager.showReminderBadge)
+            case .percentage:
+                statusItem?.length = NSStatusItem.variableLength
+                button.image = MenuBarIconRenderer.percentage(Int(progress * 100), showBadge: manager.showReminderBadge)
+            }
+            return
+        }
+
         switch manager.menuBarIconStyle {
         case .percentage:
             if renderedIconStyle != .percentage {
@@ -274,7 +298,6 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
                 button.title = ""
             }
             // Une image texte coûte peu : elle est redessinée à chaque changement.
-            let target = manager.targetMl
             let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
             let isGoalReached = target > 0 && manager.currentMl >= target
             button.image = createPercentageImage(percentage: percentage,
@@ -319,7 +342,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         let font = NSFont.systemFont(ofSize: fontSize, weight: .bold)
         
         // Couleur selon si l'objectif est atteint
-        let color = isGoalReached ? NSColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0) : NSColor(red: 0.2, green: 0.5, blue: 1.0, alpha: 1.0)
+        let color = isGoalReached ? Theme.NS.goal : Theme.NS.water
         
         // Calculer la taille du texte
         let attributes: [NSAttributedString.Key: Any] = [

@@ -30,17 +30,17 @@ struct PastDrinkForm: View {
             DatePicker(String(localized: "When", comment: "Past drink form: date and time"),
                        selection: $date, in: allowedDates)
                 .datePickerStyle(.compact)
-                .font(.system(size: 12))
+                .font(Theme.Font.callout)
 
             HStack(spacing: 8) {
                 Text("Amount", comment: "Past drink form: amount")
-                    .font(.system(size: 12))
+                    .font(Theme.Font.callout)
                 TextField("", text: $amountText)
                     .textFieldStyle(.roundedBorder)
                     .frame(width: 70)
                     .onSubmit(add)
                 Text(verbatim: manager.selectedUnit.symbol)
-                    .font(.system(size: 12))
+                    .font(Theme.Font.callout)
                     .foregroundColor(.secondary)
                 Spacer()
             }
@@ -50,7 +50,7 @@ struct PastDrinkForm: View {
                                            comment: "Validation hint for a numeric field; %@ are the bounds"),
                             manager.displayValue(for: HydrationLimits.single.lowerBound),
                             manager.displayValue(for: HydrationLimits.single.upperBound)))
-                    .font(.system(size: 10))
+                    .font(Theme.Font.footnote)
                     .foregroundColor(.orange)
             }
 
