@@ -442,12 +442,50 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         menu.addItem(NSMenuItem.separator())
         
-        // Ajouter 25cl / 250ml
-        let addWaterItem = NSMenuItem(title: String(localized: "Add 25cl / 250ml", comment: "Menu item to add water"), action: #selector(addWater), keyEquivalent: "")
-        addWaterItem.target = self
-        menu.addItem(addWaterItem)
-        
+        // Un élément par preset réel. L'ancien « Add 25cl / 250ml » ajoutait une
+        // quantité codée en dur, quels que soient les presets de l'utilisateur.
+        let manager = HydrationManager.shared
+        for (index, preset) in manager.presetsMl.enumerated() {
+            let title = String(format: String(localized: "Add %@", comment: "Context menu item; %@ is an amount"),
+                               manager.displayValue(for: preset))
+            let item = NSMenuItem(title: title, action: #selector(addPresetFromMenu(_:)), keyEquivalent: "")
+            item.target = self
+            item.tag = index
+            menu.addItem(item)
+        }
+
+        let undoItem = NSMenuItem(title: String(localized: "Undo", comment: "Undo menu item"),
+                                  action: #selector(performUndo), keyEquivalent: "")
+        undoItem.target = self
+        undoItem.isEnabled = manager.canUndo
+        menu.addItem(undoItem)
+
         menu.addItem(NSMenuItem.separator())
+
+        // Pause des rappels (F19)
+        if manager.notificationsEnabled {
+            if let until = manager.remindersSnoozedUntil {
+                let title = String(format: String(localized: "Resume Reminders (paused until %@)",
+                                                  comment: "Context menu item; %@ is a time"),
+                                   until.formatted(date: .omitted, time: .shortened))
+                let resumeItem = NSMenuItem(title: title, action: #selector(resumeReminders), keyEquivalent: "")
+                resumeItem.target = self
+                menu.addItem(resumeItem)
+            } else {
+                let pauseItem = NSMenuItem(title: String(localized: "Pause Reminders", comment: "Context menu submenu"),
+                                           action: nil, keyEquivalent: "")
+                let pauseMenu = NSMenu()
+                for option in SnoozeOption.allCases {
+                    let item = NSMenuItem(title: option.title, action: #selector(snoozeFromMenu(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = option.rawValue
+                    pauseMenu.addItem(item)
+                }
+                pauseItem.submenu = pauseMenu
+                menu.addItem(pauseItem)
+            }
+            menu.addItem(NSMenuItem.separator())
+        }
         
         // Sous-menu : Raccourcis clavier configurés
         let shortcutsTitle = String(localized: "Keyboard Shortcuts", comment: "Context menu submenu for configured shortcuts")
@@ -491,8 +529,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height), in: sender)
     }
     
-    @objc func addWater() {
-        HydrationManager.shared.addWater(amount: 250.0)
+    @objc func addPresetFromMenu(_ sender: NSMenuItem) {
+        let manager = HydrationManager.shared
+        guard manager.presetsMl.indices.contains(sender.tag) else { return }
+        manager.addWater(amount: manager.presetsMl[sender.tag])
+    }
+
+    @objc func snoozeFromMenu(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let option = SnoozeOption(rawValue: raw) else { return }
+        HydrationManager.shared.snoozeReminders(option)
+    }
+
+    @objc func resumeReminders() {
+        HydrationManager.shared.resumeReminders()
     }
     
     @objc func showAbout() {
@@ -557,12 +607,17 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        if response.actionIdentifier == "DRINK_ACTION" {
+        let manager = HydrationManager.shared
+        switch response.actionIdentifier {
+        case "DRINK_ACTION":
             // Ajouter le premier preset
-            let manager = HydrationManager.shared
-            if !manager.presetsMl.isEmpty {
-                manager.addWater(amount: manager.presetsMl[0])
+            if let first = manager.presetsMl.first {
+                manager.addWater(amount: first)
             }
+        case "SNOOZE_ACTION":
+            manager.snoozeReminders(.oneHour)
+        default:
+            break
         }
         
         completionHandler()

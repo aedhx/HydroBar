@@ -315,6 +315,8 @@ struct SettingsView: View {
                         }
                     }
                     
+                    snoozeRow
+
                     focusModeSection
                     
                     // Toggle Ne pas déranger (manuel si pas de sync)
@@ -846,6 +848,45 @@ struct SettingsView: View {
             return String(format: "%02d:00", normalized)
         }
         return date.formatted(.dateTime.hour().minute())
+    }
+
+    // MARK: - Pause des rappels (F19)
+
+    /// L'état de la pause est toujours visible et annulable : c'est ce qui
+    /// manque au mode Ne pas déranger, qu'on oublie de désactiver.
+    @ViewBuilder
+    private var snoozeRow: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "zzz")
+                .font(.system(size: 13))
+                .foregroundColor(.secondary)
+                .frame(width: 20, alignment: .leading)
+
+            if let until = manager.remindersSnoozedUntil {
+                Text(String(format: String(localized: "Paused until %@",
+                                           comment: "Reminders snooze status; %@ is a time"),
+                            until.formatted(date: .omitted, time: .shortened)))
+                    .font(.system(size: 13))
+                Spacer()
+                Button(String(localized: "Resume", comment: "Button to end the reminders pause")) {
+                    manager.resumeReminders()
+                }
+                .controlSize(.small)
+            } else {
+                Text("Pause reminders", comment: "Label of the snooze menu in settings")
+                    .font(.system(size: 13))
+                Spacer()
+                Menu {
+                    ForEach(SnoozeOption.allCases) { option in
+                        Button(option.title) { manager.snoozeReminders(option) }
+                    }
+                } label: {
+                    Text("Pause…", comment: "Snooze menu button")
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+            }
+        }
     }
 
     // MARK: - Langue

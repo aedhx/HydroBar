@@ -212,6 +212,39 @@ class HydrationManager: ObservableObject {
         willSet { objectWillChange.send() }
     }
 
+    // MARK: - Pause des rappels (F19)
+
+    /// Fin de la pause, en secondes depuis 1970 ; 0 sans pause.
+    @AppStorage("remindersSnoozedUntil") private var snoozedUntilTimestamp: Double = 0
+
+    /// Fin de la pause en cours, ou `nil`.
+    var remindersSnoozedUntil: Date? {
+        snoozedUntilTimestamp > Date().timeIntervalSince1970
+            ? Date(timeIntervalSince1970: snoozedUntilTimestamp)
+            : nil
+    }
+
+    func snoozeReminders(_ option: SnoozeOption) {
+        objectWillChange.send()
+        snoozedUntilTimestamp = option.endDate(from: Date(),
+                                               activeStartHour: activeHoursStart,
+                                               activeEndHour: activeHoursEnd,
+                                               calendar: .current).timeIntervalSince1970
+        scheduleNotifications()
+    }
+
+    func resumeReminders() {
+        objectWillChange.send()
+        snoozedUntilTimestamp = 0
+        scheduleNotifications()
+    }
+
+    /// Appelée par le minuteur et au réveil : la pause se termine seule.
+    private func resumeRemindersIfSnoozeEnded() {
+        guard snoozedUntilTimestamp > 0, snoozedUntilTimestamp <= Date().timeIntervalSince1970 else { return }
+        resumeReminders()
+    }
+
     @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing {
         willSet { objectWillChange.send() }
     }
@@ -493,6 +526,7 @@ class HydrationManager: ObservableObject {
         // macOS regrouper ce réveil avec d'autres — l'ancien code n'en avait pas.
         let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
             self?.rollOverIfNewDay()
+            self?.resumeRemindersIfSnoozeEnded()
             // Filet de sécurité si une notification Darwin du widget s'est perdue.
             self?.applyPendingWidgetDelta()
             self?.checkReminderStatus()
@@ -514,6 +548,7 @@ class HydrationManager: ObservableObject {
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
         ) { [weak self] _ in
             self?.rollOverIfNewDay()
+            self?.resumeRemindersIfSnoozeEnded()
             self?.checkReminderStatus()
         }
 
@@ -540,7 +575,7 @@ class HydrationManager: ObservableObject {
 
     /// Vérifie si un rappel doit être affiché (badge ou notification)
     func checkReminderStatus() {
-        guard notificationsEnabled else {
+        guard notificationsEnabled, remindersSnoozedUntil == nil else {
             showReminderBadge = false
             return
         }
@@ -813,10 +848,17 @@ class HydrationManager: ObservableObject {
             options: []
         )
         
-        // Catégorie avec action
+        // Pause d'une heure, depuis la notification elle-même (F19).
+        let snoozeAction = UNNotificationAction(
+            identifier: "SNOOZE_ACTION",
+            title: String(localized: "Snooze 1 Hour", comment: "Notification action button"),
+            options: []
+        )
+
+        // Catégorie avec actions
         let category = UNNotificationCategory(
             identifier: "HYDRATION_REMINDER",
-            actions: [drinkAction],
+            actions: [drinkAction, snoozeAction],
             intentIdentifiers: [],
             options: []
         )
@@ -833,6 +875,13 @@ class HydrationManager: ObservableObject {
             return
         }
         
+        // En pause : rien jusqu'à la fin, que le minuteur détecte.
+        if remindersSnoozedUntil != nil {
+            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+            showReminderBadge = false
+            return
+        }
+
         // Si mode Ne pas déranger est activé, ne pas programmer de notifications système
         // Le badge sera géré par checkReminderStatus()
         if isQuietMode {
