@@ -15,12 +15,10 @@ struct HydroBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
-        // Configurer la langue de l'application
-        let manager = HydrationManager.shared
-        if manager.appLanguage != "system" {
-            UserDefaults.standard.set([manager.appLanguage], forKey: "AppleLanguages")
-            UserDefaults.standard.synchronize()
-        }
+        // Avant de créer le manager, qui produit déjà des textes localisés.
+        HydrationManager.applyLanguagePreference(
+            UserDefaults.standard.string(forKey: "appLanguage") ?? "system"
+        )
         
         // Configurer le delegate pour les notifications
         UNUserNotificationCenter.current().delegate = appDelegate
