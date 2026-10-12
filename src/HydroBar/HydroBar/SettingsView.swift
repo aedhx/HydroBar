@@ -166,7 +166,7 @@ struct SettingsView: View {
                     }
                 )) {
                     ForEach(AppUnit.allCases, id: \.self) { unit in
-                        Text(unit.rawValue.uppercased()).tag(unit)
+                        Text(verbatim: unit.pickerLabel).tag(unit)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -190,7 +190,7 @@ struct SettingsView: View {
                             }
                         }
                     
-                    Text(manager.selectedUnit.rawValue)
+                    Text(verbatim: manager.selectedUnit.symbol)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.secondary)
                         .frame(width: 35, alignment: .leading)

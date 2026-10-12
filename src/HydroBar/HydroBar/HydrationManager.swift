@@ -48,46 +48,7 @@ enum MenuBarIconStyle: String, CaseIterable, Codable {
     case percentage = "Percentage"
 }
 
-// MARK: - AppUnit Enum
-enum AppUnit: String, CaseIterable, Codable {
-    case cl = "cl"
-    case liter = "L"
-    case oz = "oz"
-    
-    // Conversion vers cl (unité de base interne)
-    func toCl(_ value: Double) -> Double {
-        switch self {
-        case .cl:
-            return value
-        case .liter:
-            return value * 100.0 // 1 L = 100 cl
-        case .oz:
-            return value * 2.957 // 1 oz = 29.57 ml = 2.957 cl
-        }
-    }
-    
-    // Conversion depuis cl (unité de base interne)
-    func fromCl(_ valueInCl: Double) -> Double {
-        switch self {
-        case .cl:
-            return valueInCl
-        case .liter:
-            return valueInCl / 100.0
-        case .oz:
-            return valueInCl / 2.957
-        }
-    }
-    
-    // Conversion vers ml (pour compatibilité interne - stockage toujours en ml)
-    func toMl(_ value: Double) -> Double {
-        return toCl(value) * 10.0 // 1 cl = 10 ml
-    }
-    
-    // Conversion depuis ml (pour compatibilité interne)
-    func fromMl(_ valueInMl: Double) -> Double {
-        return fromCl(valueInMl / 10.0)
-    }
-}
+// `AppUnit` est défini dans AppGroupStore.swift, partagé avec le widget.
 
 // MARK: - Extension pour Array<Double> avec AppStorage
 extension Array: @retroactive RawRepresentable where Element == Double {
@@ -503,36 +464,12 @@ class HydrationManager: ObservableObject {
     
     // MARK: - UI Helper Methods
     
-    /// Convertit une valeur en ml vers l'unité choisie et la formate pour l'affichage
-    /// - Parameter ml: Valeur en millilitres
-    /// - Returns: String formatée avec l'unité (ex: "25.0 cl", "2.5 L", "8.5 oz")
+    /// Quantité formatée dans l'unité choisie, selon la locale.
+    /// Délègue au formateur partagé avec le widget — voir `AppUnit.format(ml:)`.
     func displayValue(for ml: Double) -> String {
-        let convertedValue = selectedUnit.fromMl(ml)
-        
-        // Formatage selon l'unité
-        switch selectedUnit {
-        case .cl:
-            // Pour cl, afficher sans décimales si entier, sinon 1 décimale
-            if convertedValue.truncatingRemainder(dividingBy: 1) == 0 {
-                return String(format: "%.0f cl", convertedValue)
-            } else {
-                return String(format: "%.1f cl", convertedValue)
-            }
-        case .liter:
-            // Pour L, afficher 1-2 décimales si < 1L, sinon sans décimales si entier
-            if convertedValue < 1.0 {
-                return String(format: "%.2f L", convertedValue)
-            } else if convertedValue.truncatingRemainder(dividingBy: 1) == 0 {
-                return String(format: "%.0f L", convertedValue)
-            } else {
-                return String(format: "%.1f L", convertedValue)
-            }
-        case .oz:
-            // Pour oz, toujours 1 décimale
-            return String(format: "%.1f oz", convertedValue)
-        }
+        selectedUnit.format(ml: ml)
     }
-    
+
     /// Convertit une valeur d'affichage (dans l'unité choisie) vers ml
     /// - Parameter display: Valeur dans l'unité actuellement sélectionnée
     /// - Returns: Valeur équivalente en millilitres
