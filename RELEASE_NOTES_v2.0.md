@@ -26,7 +26,25 @@ Reminders used to fire at a fixed interval, day and night, even after you'd reac
 - with a **Focus filter** (System Settings › Focus), any Focus can turn them into a menu bar badge. It needs no extra permission;
 - a **weekly summary** arrives on the last evening of the week: days on goal, daily average and streak;
 - you can **pause** them for 1 hour, until this evening or until tomorrow, from the notification itself, the menu bar icon's context menu, or Settings. The pause ends by itself;
-- a single notification celebrates the moment you cross your daily goal, with your current streak.
+- a single notification celebrates the moment you cross your daily goal, with your current streak;
+- a **last call** comes one hour before your day ends if your goal isn't reached yet, with what's left to drink;
+- while an app uses your **microphone or camera**, for a call or a video meeting, they wait. If one was due during the call, it comes a minute after you hang up.
+
+### Notifications You Can Act On
+- A reminder now tells you where you are: "1.2 L of 2 L · 800 ml to go by 10:00 PM". When you're behind, it says where you'd ideally be by now.
+- Its buttons are your own presets, plus **Other Amount…** to type any amount right in the notification, and **Snooze 1 Hour**. In bottle mode, they become **Bottle at ¼, ½, ¾** and **Bottle Finished**.
+- On-track reminders arrive silently; only the ones that matter make a sound.
+- Only one reminder stays on screen at a time, and they're cleared as soon as you log a drink.
+
+### Work Days and Days Off
+Turn on **Different settings on days off** in the new **Days** tab of Settings. Your usual settings then describe a work day, and days off get their own:
+- active hours, for example 10:00 AM to 10:00 PM;
+- reminder cadence, or no reminders at all;
+- goal, if you want a different one.
+
+Weekends are days off by default; pick your own. For a public holiday or a sick day, choose **Today Is a Day Off** from the menu bar icon's context menu or the popover; the next day goes back to normal. Going on holiday? **Add Time Off…** with a start and end date.
+
+It can also be automatic: add the HydroBar filter to your Work Focus in System Settings › Focus, and choose its **Day Type**. The Shortcuts app gets a **Set Today's Day Type** action.
 
 ### Bottle Mode
 Drink from a bottle at your desk? Turn on **Bottle mode** in Settings › Hydration. The popover then shows your bottle, and you log how much of it you've had: a quarter, half, three quarters, or finished. HydroBar records the difference each time and draws the bottle emptying. Undo puts the water back.
@@ -43,7 +61,7 @@ When you keep logging the same amount, for example 33 cl, HydroBar suggests turn
 - **Your Year**: your daily average for each of the last 12 months, against your goal.
 
 ### Shortcuts, Spotlight and Siri
-Five actions for the Shortcuts app: **Log Water**, **Log a Preset**, **Get Hydration Status**, **Undo Last Drink** and **Set Daily Goal**. They return values, so you can build automations around them, such as logging a glass every morning or showing your progress in a widget of your own.
+Six actions for the Shortcuts app: **Log Water**, **Log a Preset**, **Get Hydration Status**, **Undo Last Drink**, **Set Daily Goal** and **Set Today's Day Type**. They return values, so you can build automations around them, such as logging a glass every morning or showing your progress in a widget of your own.
 
 ### Export and Backup
 In the new **Data** tab of Settings:
@@ -52,7 +70,7 @@ In the new **Data** tab of Settings:
 - **Restore from Backup** adds only the entries you don't already have, so importing the same backup twice changes nothing. Backups from v1 can be restored too.
 
 ### A Real Settings Window
-Settings now open in their own window, organized in tabs: **General**, **Hydration**, **Reminders**, **Keyboard Shortcuts**, **Data** and **Integrations**. Open it from the gear in the popover, from the menu bar icon's context menu (⌘,), or with `hydrobar://open/settings`.
+Settings now open in their own window, organized in tabs: **General**, **Hydration**, **Reminders**, **Days**, **Keyboard Shortcuts**, **Data** and **Integrations**. Open it from the gear in the popover, from the menu bar icon's context menu (⌘,), or with `hydrobar://open/settings`.
 
 ### Feedback Outside the Popover
 When you log a drink without opening HydroBar, the menu bar icon flashes and a "+20 cl" label appears below it. This covers keyboard shortcuts, the Shortcuts app, the widget and deep links. You can also **Option-click** the icon to log your first preset.

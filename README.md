@@ -55,7 +55,17 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **Pause reminders** for 1 hour, until this evening or until tomorrow, from the notification, the menu bar icon or Settings; the pause ends by itself
 - **Focus Mode integration**: reminders turn into a menu bar badge while a macOS Focus is on
 - **Visual badge** in menu bar when reminders are active
-- **Quick action buttons** in notifications to add water or snooze instantly
+- **Actionable notifications**: your presets as buttons, an *Other Amount…* field to type any amount, and Snooze; in bottle mode, the bottle levels
+- **Informative text**: where you are, what's left before the end of your day, or how far behind your pace
+- **Last call** one hour before your day ends if the goal isn't reached
+- **Hold during calls**: no reminder while an app uses your microphone or camera
+
+### 🗓️ Work Days and Days Off
+- Days off get their own active hours, reminder cadence (or none) and goal
+- Weekends by default; pick your own days
+- **Today Is a Day Off** from the menu bar icon or the popover, for a holiday or a sick day
+- **Time off**: a start and end date, every day in between is a day off
+- Automatic with a Focus: add the HydroBar filter to your Work Focus and set its day type
 
 ### ⌨️ Global Keyboard Shortcuts
 - **Custom shortcuts** for each preset amount, plus **Undo** and **Open HydroBar**
@@ -119,8 +129,9 @@ Full grammar, security model, error codes and `x-callback-url` support:
 
 ### 🧩 Shortcuts, Spotlight and Siri
 
-HydroBar adds five actions to the Shortcuts app: **Log Water**, **Log a Preset**,
-**Get Hydration Status**, **Undo Last Drink** and **Set Daily Goal**. Unlike deep
+HydroBar adds six actions to the Shortcuts app: **Log Water**, **Log a Preset**,
+**Get Hydration Status**, **Undo Last Drink**, **Set Daily Goal** and
+**Set Today's Day Type**. Unlike deep
 links, they return values (today's total, in milliliters), so you can build
 automations around them.
 
@@ -168,6 +179,9 @@ HydroBar asks for **notification** permission when you turn reminders on. If you
 declined it, enable it again in System Settings › Notifications › HydroBar.
 
 Global keyboard shortcuts need no special permission.
+
+**Hold during calls** needs no permission either: HydroBar only checks whether an
+app is using the microphone or camera, never what they capture.
 
 ### Method 2: Build from Source
 
