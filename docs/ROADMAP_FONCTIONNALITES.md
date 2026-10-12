@@ -663,6 +663,12 @@ arrêter le format avant d'écrire l'export.
 
 ## Pistes pour la v3 — design et micro-animations
 
+> **Livré en v2.2.** Jetons de design (`Theme.swift`), icône de barre de menu
+> monochrome, toutes les micro-animations du tableau ci-dessous, fenêtre de
+> réglages à onglets, Liquid Glass sur les presets (macOS 26). Restent : le
+> dimensionnement automatique du popover, les tailles de texte dynamiques
+> (les jetons en sont le prérequis) et les pistes produit.
+
 > Exploration d'octobre 2026, après la v2.1. Un prototype interactif rejoue chaque
 > micro-animation proposée et la compare au comportement actuel (lien partagé
 > séparément : c'est une page privée, pas un fichier du dépôt).
