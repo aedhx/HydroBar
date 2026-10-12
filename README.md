@@ -33,17 +33,20 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **Customizable daily goal** (ml, cl, L, US fl oz, UK fl oz)
 - **Quick preset buttons** for common water amounts
 - **Hold-to-Add mode** for continuous water intake with haptic feedback, showing the running total on the button
-- **Today's log**: see every drink logged today with its time, and remove any single entry (⌘Z brings it back)
+- **Today's log**: see every drink logged today with its time, remove any single entry (⌘Z brings it back), or add a drink you forgot to log earlier
 - **Automatic daily reset** at midnight, and **Reset my day** can be undone
 
 ### 📊 Advanced Statistics
 - **Weekly bar chart** showing your progress over the last 7 days
 - **30-day heatmap** visualizing your consistency (hover any day to see date and amount, like GitHub’s contribution graph)
 - **Key metrics**: daily average, weekly total, current streak
+- **When you drink**: average intake by hour over 30 days, and your longest dry spell
 - **Color-coded indicators** (green for goal achieved, blue for in progress)
 
 ### 🔔 Smart Notifications
 - **Reminder intervals**: every 30 minutes, every 2 hours, or a custom interval (5 to 480 minutes)
+- **Smart scheduling**: reminders stay within your active hours, stop once your goal is reached, come a bit more often when you're behind your pace, and pause while your screen is asleep
+- **Goal celebration**: one notification when you cross your daily goal, with your streak
 - **Pause reminders** for 1 hour, until this evening or until tomorrow, from the notification, the menu bar icon or Settings; the pause ends by itself
 - **Focus Mode integration**: reminders turn into a menu bar badge while a macOS Focus is on
 - **Visual badge** in menu bar when reminders are active
@@ -252,6 +255,7 @@ later in Settings.
 ### Menu Bar Icon
 
 - **Click** the icon to open the main popover
+- **Option-click** to log your first preset without opening it
 - **Right-click** for the context menu:
   - **Version** at the top (current app version)
   - **Add** one of your presets, and **Undo**
@@ -425,6 +429,7 @@ Future improvements planned:
 - [x] Custom preset amounts
 - [x] Today's log, data export and backup *(v2.0)*
 - [x] Shortcuts app actions, reminder snooze, welcome screen *(v2.0)*
+- [x] Smart reminders, hourly pattern, logging earlier drinks, accessibility *(v2.1)*
 - [ ] iCloud sync (optional)
 - [ ] Advanced statistics filters
 
