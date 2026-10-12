@@ -157,7 +157,7 @@ Read the [privacy policy](PRIVACY.md).
 
 ### Mac App Store
 
-<!-- Remplacer par le lien de la fiche une fois l'app publiée : https://apps.apple.com/app/idXXXXXXXXXX -->
+<!-- Replace with the App Store link once the app is live: https://apps.apple.com/app/idXXXXXXXXXX -->
 Search for **HydroBar** in the Mac App Store. Updates come through the App Store.
 
 ### Direct download
