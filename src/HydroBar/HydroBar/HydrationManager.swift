@@ -1063,6 +1063,11 @@ class HydrationManager: ObservableObject {
         weeklyTotal / 7.0
     }
 
+    /// Les 12 derniers mois, pour la vue sur l'année et le bilan du mois.
+    var monthlySummaries: [HydrationStats.MonthSummary] {
+        HydrationStats.monthlySummaries(history: historyEntries, today: todayForStats)
+    }
+
     /// Jours consécutifs où l'objectif est atteint (cf. `HydrationStats.streak`).
     var currentStreak: Int {
         HydrationStats.streak(history: historyEntries, today: todayForStats)

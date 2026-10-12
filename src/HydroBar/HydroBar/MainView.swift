@@ -187,7 +187,12 @@ struct MainView: View {
                     // jamais `.settings`.
                     MainContentView(manager: manager)
                 case .statistics:
-                    StatisticsView(manager: manager, currentView: $currentView)
+                    // Défilante : avec la vue sur l'année et le bilan du mois, les
+                    // statistiques dépassent la hauteur maximale du popover.
+                    ScrollView {
+                        StatisticsView(manager: manager, currentView: $currentView)
+                    }
+                    .frame(maxHeight: 620)
                 }
             }
             .fixedSize(horizontal: false, vertical: true)

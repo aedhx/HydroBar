@@ -52,6 +52,26 @@ struct StatisticsView: View {
                 MonthlyHeatmapView(manager: manager)
             }
             
+            // Section Ce mois-ci : bilan partageable
+            VStack(alignment: .leading, spacing: 10) {
+                Text("This Month", comment: "Title for the monthly recap section")
+                    .font(Theme.Font.bodyEmphasis)
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+
+                MonthlyRecapView(manager: manager)
+            }
+
+            // Section Année : moyenne quotidienne de chaque mois
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Your Year", comment: "Title for the 12-month chart")
+                    .font(Theme.Font.bodyEmphasis)
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+
+                YearChartView(manager: manager)
+            }
+
             // Section Streak (mise en valeur)
             VStack(spacing: 4) {
                 Text(String(format: String(localized: "Current streak: %lld days 🔥", comment: "Current streak display with number of days"), streak))

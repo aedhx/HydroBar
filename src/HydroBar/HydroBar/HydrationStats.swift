@@ -157,6 +157,46 @@ enum HydrationStats {
         return key == lastSentKey ? nil : key
     }
 
+    // MARK: - Par mois
+
+    struct MonthSummary: Equatable, Identifiable {
+        /// Premier jour du mois.
+        let month: Date
+        /// Moyenne des jours où quelque chose a été noté (0 sans données).
+        let averageMl: Double
+        let trackedDays: Int
+        let goalDays: Int
+        /// Jour le plus arrosé du mois.
+        let bestDay: HistoryEntry?
+        var id: Date { month }
+    }
+
+    /// Les `months` derniers mois, du plus ancien au plus récent, mois en cours
+    /// inclus. La moyenne ne compte que les jours suivis : un mois commencé en
+    /// cours de route, ou des vacances, ne doivent pas l'écraser.
+    static func monthlySummaries(history: [HistoryEntry], today: Today, months: Int = 12,
+                                 calendar: Calendar = .current) -> [MonthSummary] {
+        let todayStart = calendar.startOfDay(for: today.date)
+        var days = history.filter { !calendar.isDate($0.date, inSameDayAs: todayStart) && $0.amountMl > 0 }
+        if today.amountMl > 0 {
+            days.append(HistoryEntry(date: todayStart, amountMl: today.amountMl, targetMl: today.targetMl))
+        }
+        guard let currentMonth = calendar.dateInterval(of: .month, for: todayStart)?.start else { return [] }
+
+        return (0..<max(months, 0)).reversed().compactMap { offset in
+            guard let month = calendar.date(byAdding: .month, value: -offset, to: currentMonth) else { return nil }
+            let inMonth = days.filter { calendar.isDate($0.date, equalTo: month, toGranularity: .month) }
+            let total = inMonth.reduce(0) { $0 + $1.amountMl }
+            return MonthSummary(
+                month: month,
+                averageMl: inMonth.isEmpty ? 0 : total / Double(inMonth.count),
+                trackedDays: inMonth.count,
+                goalDays: inMonth.filter { $0.targetMl > 0 && $0.amountMl >= $0.targetMl }.count,
+                bestDay: inMonth.max { $0.amountMl < $1.amountMl }
+            )
+        }
+    }
+
     private static func entry(on day: Date, in history: [HistoryEntry], calendar: Calendar) -> HistoryEntry? {
         history.first { calendar.isDate($0.date, inSameDayAs: day) }
     }

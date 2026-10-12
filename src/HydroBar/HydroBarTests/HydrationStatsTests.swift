@@ -209,3 +209,28 @@ private func glasses(_ ml: Double, count: Int) -> [IntakeEvent] {
     #expect(PresetSuggestion.suggest(events: events, presets: [200, 500, 750], now: now,
                                      dismissed: [330], calendar: utc) == nil)
 }
+
+// MARK: - Par mois
+
+@Test func summarizesTwelveMonthsOldestFirst() throws {
+    let months = HydrationStats.monthlySummaries(history: [], today: today(500), calendar: utc)
+    #expect(months.count == 12)
+    let last = try #require(months.last)
+    #expect(utc.isDate(last.month, equalTo: now, toGranularity: .month))
+    #expect(last.trackedDays == 1)
+}
+
+@Test func averagesOnlyTrackedDaysAndFindsTheBestDay() throws {
+    // `now` est le 15 septembre : J-1 à J-3 sont en septembre, J-20 en août.
+    let history = [entry(1, 2000), entry(2, 1000), entry(3, 3000), entry(20, 2500)]
+    let months = HydrationStats.monthlySummaries(history: history, today: today(0), calendar: utc)
+    let september = try #require(months.last)
+    #expect(september.trackedDays == 3)
+    #expect(september.averageMl == 2000)
+    #expect(september.goalDays == 2)
+    #expect(september.bestDay?.amountMl == 3000)
+
+    let august = months[months.count - 2]
+    #expect(august.trackedDays == 1)
+    #expect(august.averageMl == 2500)
+}
