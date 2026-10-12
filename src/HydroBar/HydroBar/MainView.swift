@@ -77,7 +77,7 @@ class HoldButtonNSView: NSView {
         Theme.NS.water.setFill()
         path.fill()
 
-        // Pendant l'appui, le bouton se remplit comme un verre (v2.2) : on voit
+        // Pendant l'appui, le bouton se remplit comme un verre (v2) : on voit
         // combien on a versé, et quand relâcher.
         if isHolding, fillFraction > 0 {
             NSGraphicsContext.saveGraphicsState()
@@ -164,7 +164,7 @@ struct MainView: View {
                 
                 Spacer()
                 
-                // Bouton Réglages (droite) : ouvre la fenêtre de réglages (v2.2).
+                // Bouton Réglages (droite) : ouvre la fenêtre de réglages (v2).
                 Button(action: { SettingsWindowController.shared.show() }) {
                     Image(systemName: "gearshape.fill")
                         .font(Theme.Font.control)

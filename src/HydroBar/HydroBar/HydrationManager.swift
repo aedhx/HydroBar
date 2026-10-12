@@ -290,7 +290,7 @@ class HydrationManager: ObservableObject {
         resumeReminders()
     }
 
-    /// Icône de barre de menu en couleur, comme avant la v2.2. Par défaut,
+    /// Icône de barre de menu en couleur, comme avant la v2. Par défaut,
     /// l'icône est monochrome (« template ») et suit la barre de menu.
     @AppStorage("coloredMenuBarIcon") var coloredMenuBarIcon: Bool = false {
         willSet { objectWillChange.send() }

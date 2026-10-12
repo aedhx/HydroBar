@@ -52,7 +52,7 @@ struct TodayLogView: View {
                     ScrollView {
                         VStack(spacing: 2) {
                             // Une prise ajoutée glisse en tête, une prise
-                            // supprimée se replie (v2.2).
+                            // supprimée se replie (v2).
                             ForEach(events) { event in
                                 row(for: event)
                                     .transition(.move(edge: .top).combined(with: .opacity))
