@@ -10,7 +10,8 @@
             "value": "%1$@ / %2$@"
           }
         }
-      }
+      },
+      "shouldTranslate": false
     },
     "%@ / %@ (%lld%% of goal) on %@": {
       "comment": "Heatmap tooltip with amount and date",
@@ -20,15 +21,477 @@
             "state": "new",
             "value": "%1$@ / %2$@ (%3$d%% of goal) on %4$@"
           }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ (%3$lld %% des Ziels) am %4$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ (%3$lld %% del objetivo) el %4$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ (%3$lld %% de l'objectif) le %4$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ (%3$lld%% dell'obiettivo) il %4$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%4$@：%1$@ / %2$@（目標の %3$lld%%）"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ (%3$lld%% van doel) op %4$@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ / %2$@ (%3$lld%% do objetivo) em %4$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%4$@：%1$@ / %2$@（目标的 %3$lld%%）"
+          }
         }
       }
     },
-    "%lld%%": {},
+    "%@ behind": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ im Rückstand"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de retraso"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ de retard"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ indietro"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ 遅れています"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ achter"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ atrasado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "落后 %@"
+          }
+        }
+      }
+    },
+    "%@ is unreadable.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ ist nicht lesbar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ no se puede leer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ est illisible."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ non è leggibile."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ を読み込めません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ is onleesbaar."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ não pode ser lido."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取 %@。"
+          }
+        }
+      }
+    },
+    "%@ was unreadable and has been set aside as %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ war nicht lesbar und wurde als %2$@ beiseitegelegt."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ no se podía leer y se ha apartado como %2$@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ était illisible et a été mis de côté sous le nom %2$@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ non era leggibile ed è stato messo da parte come %2$@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ を読み込めなかったため、%2$@ として退避しました。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ was onleesbaar en is apart gezet als %2$@."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%1$@ não pôde ser lido e foi guardado à parte como %2$@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取 %1$@，已将其另存为 %2$@。"
+          }
+        }
+      }
+    },
+    "%lld%%": {
+      "shouldTranslate": false
+    },
     "2 h": {
-      "comment": "2 hours notification interval"
+      "comment": "2 hours notification interval",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 Std."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 h"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 h"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 h"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2時間"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 u"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2 h"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "2小时"
+          }
+        }
+      }
     },
     "30 min": {
-      "comment": "30 minutes notification interval"
+      "comment": "30 minutes notification interval",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 Min."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30分"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30 min"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "30分钟"
+          }
+        }
+      }
+    },
+    "A Focus is on: reminders appear as a badge.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Fokus ist aktiv: Erinnerungen erscheinen als Kennzeichen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hay un modo de concentración activo: los recordatorios aparecen como insignia."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Une concentration est active : les rappels s'affichent en pastille."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È attiva una modalità Full immersion: i promemoria appaiono come badge."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集中モードがオンです：リマインダーはバッジで表示されます。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Er is een focus actief: herinneringen verschijnen als badge."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um modo de foco está ativo: os lembretes aparecem como selo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "专注模式已开启：提醒将以标记显示。"
+          }
+        }
+      }
+    },
+    "A deep link is asking to reset today's intake to zero. This cannot be undone.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Deep Link möchte die heutige Trinkmenge auf null setzen. Dies kann nicht rückgängig gemacht werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un enlace profundo quiere poner a cero el consumo de hoy. No se puede deshacer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un lien profond demande de remettre à zéro la consommation du jour. Cette action est irréversible."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un deep link chiede di azzerare il consumo di oggi. L'operazione non può essere annullata."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディープリンクが今日の摂取量をゼロにリセットしようとしています。この操作は取り消せません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een deeplink wil de inname van vandaag op nul zetten. Dit kan niet ongedaan worden gemaakt."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um link direto quer zerar o consumo de hoje. Esta ação não pode ser desfeita."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个深层链接请求将今天的饮水量清零。此操作无法撤销。"
+          }
+        }
+      }
+    },
+    "A deep link is asking to set your daily goal to %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ein Deep Link möchte dein Tagesziel auf %@ setzen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un enlace profundo quiere fijar tu objetivo diario en %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un lien profond demande de fixer votre objectif quotidien à %@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Un deep link chiede di impostare il tuo obiettivo giornaliero a %@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ディープリンクが1日の目標を %@ に設定しようとしています。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Een deeplink wil je dagelijkse doel instellen op %@."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Um link direto quer definir seu objetivo diário como %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一个深层链接请求将你的每日目标设为 %@。"
+          }
+        }
+      }
     },
     "A test notification will appear in 1 second.": {
       "extractionState": "manual",
@@ -38,11 +501,58 @@
             "state": "translated",
             "value": "A test notification will appear in 1 second."
           }
+        }
+      },
+      "shouldTranslate": false
+    },
+    "ACTIVE HOURS": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AKTIVE STUNDEN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HORAS ACTIVAS"
+          }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Une notification de test apparaîtra dans 1 seconde."
+            "value": "PLAGE ACTIVE"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ORE ATTIVE"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクティブな時間帯"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTIEVE UREN"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HORAS ATIVAS"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "活跃时段"
           }
         }
       }
@@ -106,6 +616,110 @@
         }
       }
     },
+    "Access denied — grant it under Privacy & Security › Focus": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zugriff verweigert – unter Datenschutz & Sicherheit › Fokus erlauben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acceso denegado: concédelo en Privacidad y seguridad › Concentración"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accès refusé — autorisez-le dans Confidentialité et sécurité › Concentration"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Accesso negato: consentilo in Privacy e sicurezza › Full immersion"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アクセスが拒否されました — プライバシーとセキュリティ › 集中モード で許可してください"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Toegang geweigerd – sta het toe via Privacy en beveiliging › Focus"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acesso negado — permita em Privacidade e Segurança › Foco"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "访问被拒绝 — 请在“隐私与安全性 › 专注模式”中允许"
+          }
+        }
+      }
+    },
+    "Action cancelled.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aktion abgebrochen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acción cancelada."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action annulée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azione annullata."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作はキャンセルされました。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Actie geannuleerd."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ação cancelada."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "操作已取消。"
+          }
+        }
+      }
+    },
     "Add 25cl / 250ml": {
       "extractionState": "manual",
       "localizations": {
@@ -161,6 +775,266 @@
           "stringUnit": {
             "state": "translated",
             "value": "添加 25cl / 250ml"
+          }
+        }
+      }
+    },
+    "Allow destructive links without confirmation": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destruktive Links ohne Bestätigung erlauben"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir enlaces destructivos sin confirmación"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autoriser les liens destructifs sans confirmation"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Consenti link distruttivi senza conferma"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認なしで破壊的なリンクを許可"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Destructieve links zonder bevestiging toestaan"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Permitir links destrutivos sem confirmação"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "允许无需确认的破坏性链接"
+          }
+        }
+      }
+    },
+    "Already used by Preset %lld.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereits von Voreinstellung %lld verwendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya lo usa el preajuste %lld."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déjà utilisé par le preset %lld."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Già usata dal preset %lld."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "プリセット %lld で使用中です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al in gebruik door voorinstelling %lld."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Já usado pela predefinição %lld."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已被预设 %lld 使用。"
+          }
+        }
+      }
+    },
+    "Already used by another app.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Bereits von einer anderen App verwendet."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ya lo usa otra app."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Déjà utilisé par une autre app."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Già usata da un'altra app."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "別のアプリで使用中です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al in gebruik door een andere app."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Já usado por outro app."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已被其他应用使用。"
+          }
+        }
+      }
+    },
+    "Applies to hydrobar://reset and hydrobar://set-goal. Adding water and undo are never blocked.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gilt für hydrobar://reset und hydrobar://set-goal. Wasser hinzufügen und Widerrufen werden nie blockiert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se aplica a hydrobar://reset y hydrobar://set-goal. Añadir agua y deshacer nunca se bloquean."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Concerne hydrobar://reset et hydrobar://set-goal. L'ajout d'eau et l'annulation ne sont jamais bloqués."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vale per hydrobar://reset e hydrobar://set-goal. Aggiungere acqua e annullare non sono mai bloccati."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "hydrobar://reset と hydrobar://set-goal に適用されます。水の追加と取り消しがブロックされることはありません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geldt voor hydrobar://reset en hydrobar://set-goal. Water toevoegen en ongedaan maken worden nooit geblokkeerd."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aplica-se a hydrobar://reset e hydrobar://set-goal. Adicionar água e desfazer nunca são bloqueados."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "适用于 hydrobar://reset 和 hydrobar://set-goal。添加饮水和撤销永远不会被阻止。"
+          }
+        }
+      }
+    },
+    "Approval needed in System Settings": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freigabe in den Systemeinstellungen erforderlich"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se necesita aprobación en Ajustes del Sistema"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Autorisation requise dans Réglages Système"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Approvazione necessaria in Impostazioni di Sistema"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "システム設定での承認が必要です"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Goedkeuring nodig in Systeeminstellingen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aprovação necessária nos Ajustes do Sistema"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "需要在“系统设置”中批准"
           }
         }
       }
@@ -224,70 +1098,267 @@
         }
       }
     },
-    "Chart not available\n(macOS 13+ required)": {
-      "extractionState": "manual",
+    "Between %@ and %@": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Diagramm nicht verfügbar\n(macOS 13+ erforderlich)"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Chart not available\n(macOS 13+ required)"
+            "value": "Zwischen %1$@ und %2$@"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gráfico no disponible\n(macOS 13+ requerido)"
+            "value": "Entre %1$@ y %2$@"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Graphique non disponible\n(macOS 13+ requis)"
+            "value": "Entre %1$@ et %2$@"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grafico non disponibile\n(macOS 13+ richiesto)"
+            "value": "Tra %1$@ e %2$@"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "グラフは利用できません\n(macOS 13+が必要です)"
+            "value": "%1$@〜%2$@ の範囲で入力してください"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Grafiek niet beschikbaar\n(macOS 13+ vereist)"
+            "value": "Tussen %1$@ en %2$@"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Gráfico não disponível\n(macOS 13+ necessário)"
+            "value": "Entre %1$@ e %2$@"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "图表不可用\n(需要 macOS 13+)"
+            "value": "介于 %1$@ 和 %2$@ 之间"
+          }
+        }
+      }
+    },
+    "Cancel": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abbrechen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "キャンセル"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuleer"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cancelar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取消"
+          }
+        }
+      }
+    },
+    "Change your daily goal?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tagesziel ändern?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Cambiar tu objetivo diario?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Modifier votre objectif quotidien ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cambiare il tuo obiettivo giornaliero?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "1日の目標を変更しますか？"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je dagelijkse doel wijzigen?"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Alterar seu objetivo diário?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更改每日目标？"
           }
         }
       }
     },
     "Check for Updates": {
-      "comment": "Button to check for app updates"
+      "comment": "Button to check for app updates",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nach Updates suchen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Buscar actualizaciones"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rechercher des mises à jour"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controlla aggiornamenti"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデートを確認"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleer op updates"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificar atualizações"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "检查更新"
+          }
+        }
+      }
     },
     "Checking…": {
-      "comment": "Button label while checking for updates"
+      "comment": "Button label while checking for updates",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird geprüft …"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Comprobando…"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vérification…"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verifica in corso…"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "確認中…"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Controleren…"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Verificando…"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "正在检查…"
+          }
+        }
+      }
     },
     "Consistency (30 days)": {
       "extractionState": "manual",
@@ -344,6 +1415,110 @@
           "stringUnit": {
             "state": "translated",
             "value": "一致性（30天）"
+          }
+        }
+      }
+    },
+    "Continue": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Fortfahren"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuer"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continua"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "続ける"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doorgaan"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Continuar"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "继续"
+          }
+        }
+      }
+    },
+    "Could not save %@.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ konnte nicht gespeichert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo guardar %@."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossible d'enregistrer %@."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile salvare %@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@ を保存できませんでした。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kan %@ niet bewaren."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível salvar %@."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法保存 %@。"
           }
         }
       }
@@ -525,7 +1700,6 @@
         }
       }
     },
-    "Day": {},
     "DEBUG": {
       "extractionState": "manual",
       "localizations": {
@@ -534,28 +1708,58 @@
             "state": "translated",
             "value": "DEBUG"
           }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DEBUG"
-          }
         }
-      }
+      },
+      "shouldTranslate": false
     },
-    "Debug Mode": {
-      "extractionState": "manual",
+    "Day": {
       "localizations": {
-        "en": {
+        "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Debug Mode"
+            "value": "Tag"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Día"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Mode Debug"
+            "value": "Jour"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Giorno"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dag"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dia"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "日期"
           }
         }
       }
@@ -566,7 +1770,7 @@
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Nicht Stören Modus"
+            "value": "Nicht stören"
           }
         },
         "en": {
@@ -863,14 +2067,9 @@
             "state": "translated",
             "value": "Fake Data Generated"
           }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Fausses données générées"
-          }
         }
-      }
+      },
+      "shouldTranslate": false
     },
     "Fake history data has been generated for the last 30 days.": {
       "extractionState": "manual",
@@ -880,11 +2079,110 @@
             "state": "translated",
             "value": "Fake history data has been generated for the last 30 days."
           }
+        }
+      },
+      "shouldTranslate": false
+    },
+    "Focus status is unreadable. Check that HydroBar is allowed to send notifications — the Focus status also needs it.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Der Fokusstatus ist nicht lesbar. Prüfe, ob HydroBar Mitteilungen senden darf – der Fokusstatus benötigt das ebenfalls."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se puede leer el estado de concentración. Comprueba que HydroBar puede enviar notificaciones: el estado de concentración también lo necesita."
+          }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "De fausses données d'historique ont été générées pour les 30 derniers jours."
+            "value": "L'état de concentration est illisible. Vérifiez que HydroBar est autorisé à envoyer des notifications — l'état de concentration en a aussi besoin."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo stato Full immersion non è leggibile. Verifica che HydroBar possa inviare notifiche: ne ha bisogno anche lo stato Full immersion."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集中モードの状態を読み取れません。HydroBar に通知の送信が許可されているか確認してください。集中モードの状態にも必要です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "De focusstatus is onleesbaar. Controleer of HydroBar meldingen mag sturen – de focusstatus heeft dat ook nodig."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não é possível ler o estado de foco. Verifique se o HydroBar pode enviar notificações — o estado de foco também precisa disso."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法读取专注模式状态。请确认已允许 HydroBar 发送通知 — 专注模式状态也需要此权限。"
+          }
+        }
+      }
+    },
+    "GENERAL": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ALLGEMEIN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GENERAL"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GÉNÉRAL"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GENERALE"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "一般"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ALGEMEEN"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "GERAL"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "通用"
           }
         }
       }
@@ -897,14 +2195,9 @@
             "state": "translated",
             "value": "Generate Fake History Data"
           }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Générer de fausses données"
-          }
         }
-      }
+      },
+      "shouldTranslate": false
     },
     "Goal": {
       "extractionState": "manual",
@@ -965,7 +2258,6 @@
         }
       }
     },
-    "Hello, world!": {},
     "Hold to Add": {
       "extractionState": "manual",
       "localizations": {
@@ -1037,66 +2329,209 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Application de suivi d'hydratation pour macOS\nVersion %@\n\nPar Antoine Deshoux - https://adx.cool"
+            "value": "App de suivi d'hydratation pour macOS\nVersion %@\n\nCréée par Antoine Deshoux - https://adx.cool"
           }
-        }
-      }
-    },
-    "Hydration tracking app for macOS\nVersion 2.0": {
-      "extractionState": "manual",
-      "localizations": {
+        },
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hydratations-Tracking-App für macOS\nVersion 2.0"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Hydration tracking app for macOS\nVersion 2.0"
+            "value": "Trink-Tracker für macOS\nVersion %@\n\nVon Antoine Deshoux – https://adx.cool"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aplicación de seguimiento de hidratación para macOS\nVersión 2.0"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Application de suivi d'hydratation pour macOS\nVersion 2.0"
+            "value": "App de seguimiento de hidratación para macOS\nVersión %@\n\nCreada por Antoine Deshoux - https://adx.cool"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "App di monitoraggio idratazione per macOS\nVersione 2.0"
+            "value": "App per monitorare l'idratazione su macOS\nVersione %@\n\nCreata da Antoine Deshoux - https://adx.cool"
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS用水分補給追跡アプリ\nバージョン2.0"
+            "value": "macOS 用の水分補給トラッカー\nバージョン %@\n\n作者：Antoine Deshoux - https://adx.cool"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Hydratatietracking-app voor macOS\nVersie 2.0"
+            "value": "App om je hydratatie bij te houden voor macOS\nVersie %@\n\nGemaakt door Antoine Deshoux - https://adx.cool"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Aplicativo de rastreamento de hidratação para macOS\nVersão 2.0"
+            "value": "App de acompanhamento de hidratação para macOS\nVersão %@\n\nCriado por Antoine Deshoux - https://adx.cool"
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "macOS 水分追踪应用\n版本 2.0"
+            "value": "macOS 饮水追踪应用\n版本 %@\n\n作者：Antoine Deshoux - https://adx.cool"
+          }
+        }
+      }
+    },
+    "Hydration: %lld percent, %@ of %@": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hydration: %1$lld Prozent, %2$@ von %3$@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidratación: %1$lld por ciento, %2$@ de %3$@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hydratation : %1$lld pour cent, %2$@ sur %3$@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Idratazione: %1$lld percento, %2$@ di %3$@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "水分補給：%1$lld パーセント、%3$@ 中 %2$@"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hydratatie: %1$lld procent, %2$@ van %3$@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hidratação: %1$lld por cento, %2$@ de %3$@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "饮水：%1$lld%%，%2$@ / %3$@"
+          }
+        }
+      }
+    },
+    "HydroBar": {
+      "comment": "App name",
+      "shouldTranslate": false
+    },
+    "HydroBar link ignored": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar-Link ignoriert"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enlace de HydroBar ignorado"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lien HydroBar ignoré"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link HydroBar ignorato"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar のリンクを無視しました"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar-link genegeerd"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Link do HydroBar ignorado"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已忽略 HydroBar 链接"
+          }
+        }
+      }
+    },
+    "HydroBar will use the new language the next time it opens.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar verwendet die neue Sprache beim nächsten Öffnen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar usará el nuevo idioma la próxima vez que se abra."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar utilisera la nouvelle langue à sa prochaine ouverture."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar userà la nuova lingua alla prossima apertura."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "次回 HydroBar を開いたときに新しい言語が使用されます。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar gebruikt de nieuwe taal de volgende keer dat het wordt geopend."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "O HydroBar usará o novo idioma na próxima vez que for aberto."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar 将在下次打开时使用新语言。"
           }
         }
       }
@@ -1160,11 +2595,162 @@
         }
       }
     },
-    "HydroBar": {
-      "comment": "App name"
-    },
     "INTEGRATIONS": {
-      "comment": "Settings section title for integrations"
+      "comment": "Settings section title for integrations",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INTEGRATIONEN"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INTEGRACIONES"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INTÉGRATIONS"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INTEGRAZIONI"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "連携"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INTEGRATIES"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "INTEGRAÇÕES"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "集成"
+          }
+        }
+      }
+    },
+    "Inactive: another app is using this shortcut.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inaktiv: Eine andere App verwendet dieses Tastenkürzel."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inactivo: otra app usa este atajo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inactif : une autre app utilise ce raccourci."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inattiva: un'altra app usa questa scorciatoia."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "無効：別のアプリがこのショートカットを使用しています。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inactief: een andere app gebruikt deze sneltoets."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inativo: outro app está usando este atalho."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未生效：其他应用正在使用此快捷键。"
+          }
+        }
+      }
+    },
+    "Invalid or out-of-range amount.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ungültige Menge oder außerhalb des zulässigen Bereichs."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cantidad no válida o fuera de rango."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantité invalide ou hors limites."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantità non valida o fuori intervallo."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "量が無効か範囲外です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongeldige hoeveelheid of buiten bereik."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quantidade inválida ou fora do intervalo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "数量无效或超出范围。"
+          }
+        }
+      }
     },
     "Keyboard Shortcuts": {
       "extractionState": "manual",
@@ -1343,6 +2929,110 @@
         }
       }
     },
+    "Later": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Später"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Más tarde"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plus tard"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più tardi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "後で"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Later"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mais tarde"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "稍后"
+          }
+        }
+      }
+    },
+    "Launch at login": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Beim Anmelden starten"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir al iniciar sesión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lancer à l'ouverture de session"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri al login"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ログイン時に起動"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Open bij inloggen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir ao iniciar sessão"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "登录时启动"
+          }
+        }
+      }
+    },
     "Less": {
       "extractionState": "manual",
       "localizations": {
@@ -1402,9 +3092,6 @@
         }
       }
     },
-    "macOS Widget": {
-      "comment": "Widget integration label"
-    },
     "MENU BAR ICON STYLE": {
       "extractionState": "manual",
       "localizations": {
@@ -1460,124 +3147,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "菜单栏图标样式"
-          }
-        }
-      }
-    },
-    "minutes": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Minuten"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "minutes"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "minutos"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "minutes"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "minuti"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "minuten"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "minutos"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "分钟"
-          }
-        }
-      }
-    },
-    "Monthly Activity": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monatliche Aktivität"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Monthly Activity"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Actividad Mensual"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Activité Mensuelle"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Attività Mensile"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "月間アクティビティ"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Maandelijkse Activiteit"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Atividade Mensal"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "月度活动"
           }
         }
       }
@@ -1642,7 +3211,57 @@
       }
     },
     "No activity on %@": {
-      "comment": "Heatmap tooltip when no hydration"
+      "comment": "Heatmap tooltip when no hydration",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keine Aktivität am %@"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sin actividad el %@"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Aucune activité le %@"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nessuna attività il %@"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@：記録なし"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Geen activiteit op %@"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nenhuma atividade em %@"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "%@：无记录"
+          }
+        }
+      }
     },
     "None": {
       "extractionState": "manual",
@@ -1699,6 +3318,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "无"
+          }
+        }
+      }
+    },
+    "Nothing to undo.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nichts zum Widerrufen."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No hay nada que deshacer."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rien à annuler."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niente da annullare."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "取り消す操作はありません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Niets om ongedaan te maken."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nada para desfazer."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "没有可撤销的操作。"
           }
         }
       }
@@ -1762,10 +3433,215 @@
         }
       }
     },
-    "Open Download Page": {
-      "comment": "Button to open GitHub release page"
+    "On track": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Im Plan"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Al día"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dans les temps"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "In linea"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "順調です"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Op schema"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No ritmo"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "进度正常"
+          }
+        }
+      }
     },
-    "Percentage": {},
+    "Open Download Page": {
+      "comment": "Button to open GitHub release page",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloadseite öffnen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir página de descarga"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ouvrir la page de téléchargement"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Apri la pagina di download"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ダウンロードページを開く"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Downloadpagina openen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Abrir página de download"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "打开下载页面"
+          }
+        }
+      }
+    },
+    "Percentage": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Prozent"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porcentaje"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Pourcentage"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percentuale"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "パーセント"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Percentage"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Porcentagem"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "百分比"
+          }
+        }
+      }
+    },
+    "Pie Ring": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ring"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anillo"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anneau"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anello"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リング"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ring"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Anel"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "圆环"
+          }
+        }
+      }
+    },
     "Preset %lld": {
       "extractionState": "manual",
       "localizations": {
@@ -2002,8 +3878,109 @@
         }
       }
     },
-    "Raycast Extension": {
-      "comment": "Button to open Raycast extension page"
+    "Quit Now": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Jetzt beenden"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Salir ahora"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Quitter maintenant"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esci ora"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今すぐ終了"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Nu stoppen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Encerrar agora"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "立即退出"
+          }
+        }
+      }
+    },
+    "RECENT DEEP LINKS": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LETZTE DEEP LINKS"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ENLACES PROFUNDOS RECIENTES"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LIENS PROFONDS RÉCENTS"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "DEEP LINK RECENTI"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近のディープリンク"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "RECENTE DEEPLINKS"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "LINKS DIRETOS RECENTES"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最近的深层链接"
+          }
+        }
+      }
     },
     "REMINDERS": {
       "extractionState": "manual",
@@ -2060,6 +4037,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "提醒"
+          }
+        }
+      }
+    },
+    "Raycast Extension": {
+      "comment": "Button to open Raycast extension page",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raycast-Erweiterung"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensión de Raycast"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extension Raycast"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Estensione Raycast"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raycast 拡張機能"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raycast-extensie"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Extensão do Raycast"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raycast 扩展"
           }
         }
       }
@@ -2159,7 +4189,7 @@
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "私の日をリセット"
+            "value": "今日をリセット"
           }
         },
         "nl": {
@@ -2177,16 +4207,62 @@
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "重置我的日期"
+            "value": "重置今天"
           }
         }
       }
     },
-    "Right-click desktop → Edit Widgets": {
-      "comment": "Widget promo banner subtitle"
-    },
-    "Right-click your desktop → Edit Widgets → HydroBar": {
-      "comment": "Widget install instructions"
+    "Reset today's intake?": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Heutige Trinkmenge zurücksetzen?"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "¿Reiniciar el consumo de hoy?"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Réinitialiser la consommation du jour ?"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azzerare il consumo di oggi?"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "今日の摂取量をリセットしますか？"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Inname van vandaag resetten?"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Zerar o consumo de hoje?"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "重置今天的饮水量？"
+          }
+        }
+      }
     },
     "Settings": {
       "extractionState": "manual",
@@ -2243,6 +4319,58 @@
           "stringUnit": {
             "state": "translated",
             "value": "设置"
+          }
+        }
+      }
+    },
+    "Several units provided at once.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mehrere Einheiten gleichzeitig angegeben."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Se indicaron varias unidades a la vez."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Plusieurs unités fournies à la fois."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Più unità indicate contemporaneamente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "複数の単位が同時に指定されています。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meerdere eenheden tegelijk opgegeven."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Várias unidades informadas ao mesmo tempo."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "同时提供了多个单位。"
           }
         }
       }
@@ -2432,31 +4560,9 @@
             "state": "translated",
             "value": "Test Notification"
           }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tester la notification"
-          }
         }
-      }
-    },
-    "Test notification - Time to hydrate!": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Test notification - Time to hydrate!"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notification de test - Il est temps de s'hydrater !"
-          }
-        }
-      }
+      },
+      "shouldTranslate": false
     },
     "Test Notification Sent": {
       "extractionState": "manual",
@@ -2466,73 +4572,21 @@
             "state": "translated",
             "value": "Test Notification Sent"
           }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Notification de test envoyée"
-          }
         }
-      }
+      },
+      "shouldTranslate": false
     },
-    "The app will restart to apply the new language.": {
+    "Test notification - Time to hydrate!": {
       "extractionState": "manual",
       "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Die App wird neu gestartet, um die neue Sprache anzuwenden."
-          }
-        },
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The app will restart to apply the new language."
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "La aplicación se reiniciará para aplicar el nuevo idioma."
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'application va redémarrer pour appliquer la nouvelle langue."
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "L'app si riavvierà per applicare la nuova lingua."
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アプリは新しい言語を適用するために再起動します。"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "De app wordt opnieuw gestart om de nieuwe taal toe te passen."
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "O aplicativo será reiniciado para aplicar o novo idioma."
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "应用将重新启动以应用新语言。"
+            "value": "Test notification - Time to hydrate!"
           }
         }
-      }
+      },
+      "shouldTranslate": false
     },
     "This Week": {
       "extractionState": "manual",
@@ -2593,13 +4647,273 @@
         }
       }
     },
+    "This action requires confirm=1.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Aktion erfordert confirm=1."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta acción requiere confirm=1."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette action nécessite confirm=1."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa azione richiede confirm=1."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "この操作には confirm=1 が必要です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze actie vereist confirm=1."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta ação requer confirm=1."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此操作需要 confirm=1。"
+          }
+        }
+      }
+    },
+    "This key can't be used as a shortcut.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Taste kann nicht als Tastenkürzel verwendet werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta tecla no se puede usar como atajo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Cette touche ne peut pas servir de raccourci."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo tasto non può essere usato come scorciatoia."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このキーはショートカットに使用できません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze toets kan niet als sneltoets worden gebruikt."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta tecla não pode ser usada como atalho."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此按键无法用作快捷键。"
+          }
+        }
+      }
+    },
+    "This preset does not exist.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Diese Voreinstellung existiert nicht."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este preajuste no existe."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce preset n'existe pas."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questo preset non esiste."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このプリセットは存在しません。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze voorinstelling bestaat niet."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Esta predefinição não existe."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此预设不存在。"
+          }
+        }
+      }
+    },
+    "This shortcut couldn't be registered.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Tastenkürzel konnte nicht registriert werden."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "No se pudo registrar este atajo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce raccourci n'a pas pu être enregistré."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Impossibile registrare questa scorciatoia."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このショートカットを登録できませんでした。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze sneltoets kon niet worden geregistreerd."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Não foi possível registrar este atalho."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "无法注册此快捷键。"
+          }
+        }
+      }
+    },
+    "This shortcut is reserved by macOS.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Dieses Tastenkürzel ist von macOS reserviert."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "macOS reserva este atajo."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ce raccourci est réservé par macOS."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Questa scorciatoia è riservata da macOS."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "このショートカットは macOS で予約されています。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deze sneltoets is gereserveerd door macOS."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Este atalho é reservado pelo macOS."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "此快捷键已被 macOS 保留。"
+          }
+        }
+      }
+    },
     "Time to hydrate!": {
       "extractionState": "manual",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Zeit zu hydrieren!"
+            "value": "Zeit, etwas zu trinken!"
           }
         },
         "en": {
@@ -2617,7 +4931,7 @@
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Temps de s'hydrater !"
+            "value": "C'est l'heure de boire !"
           }
         },
         "it": {
@@ -2635,7 +4949,7 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Tijd om te hydrateren!"
+            "value": "Tijd om wat te drinken!"
           }
         },
         "pt": {
@@ -2711,61 +5025,54 @@
         }
       }
     },
-    "Undo": {
-      "extractionState": "manual",
+    "Too many requests, slow down.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Rückgängig"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Undo"
+            "value": "Zu viele Anfragen, bitte langsamer."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Deshacer"
+            "value": "Demasiadas solicitudes, ve más despacio."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annuler"
+            "value": "Trop de requêtes, ralentissez."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Annulla"
+            "value": "Troppe richieste, rallenta."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "元に戻す"
+            "value": "リクエストが多すぎます。少し間隔を空けてください。"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ongedaan maken"
+            "value": "Te veel verzoeken, doe het rustiger aan."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Desfazer"
+            "value": "Muitas solicitações, vá mais devagar."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "撤销"
+            "value": "请求过多，请放慢速度。"
           }
         }
       }
@@ -2830,13 +5137,326 @@
       }
     },
     "UPDATES": {
-      "comment": "Settings section title for updates"
+      "comment": "Settings section title for updates",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UPDATES"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ACTUALIZACIONES"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "MISES À JOUR"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "AGGIORNAMENTI"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "アップデート"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "UPDATES"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ATUALIZAÇÕES"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "更新"
+          }
+        }
+      }
+    },
+    "Undo": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Rückgängig"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Undo"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Deshacer"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annuler"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Annulla"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "元に戻す"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ongedaan maken"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Desfazer"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "撤销"
+          }
+        }
+      }
+    },
+    "Unknown HydroBar action.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Unbekannte HydroBar-Aktion."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Acción de HydroBar desconocida."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Action HydroBar inconnue."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Azione HydroBar sconosciuta."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "不明な HydroBar アクションです。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Onbekende HydroBar-actie."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ação do HydroBar desconhecida."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "未知的 HydroBar 操作。"
+          }
+        }
+      }
+    },
+    "Used by the pace marker on the ring: it shows where you should be at this time of day.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Wird von der Tempomarkierung am Ring verwendet: Sie zeigt, wo du um diese Tageszeit stehen solltest."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Lo usa el marcador de ritmo del anillo: indica dónde deberías estar a esta hora del día."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Utilisée par le repère d'allure sur l'anneau : il indique où vous devriez en être à cette heure de la journée."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usato dall'indicatore di ritmo sull'anello: mostra dove dovresti essere a quest'ora del giorno."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リングのペースマーカーで使用されます。この時間帯に達しているべき位置を示します。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Gebruikt door de tempomarkering op de ring: die toont waar je op dit moment van de dag zou moeten zijn."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Usado pelo marcador de ritmo no anel: mostra onde você deveria estar a esta hora do dia."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "用于圆环上的进度标记：显示你在一天中此时应达到的位置。"
+          }
+        }
+      }
     },
     "Version": {
-      "comment": "Context menu label for app version\nLabel for current app version"
+      "comment": "Context menu label for app version\nLabel for current app version",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versión"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versione"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versie"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versão"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本"
+          }
+        }
+      }
     },
     "Version %@ is available.": {
-      "comment": "Message when update is available"
+      "comment": "Message when update is available",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Version %@ ist verfügbar."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La versión %@ está disponible."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "La version %@ est disponible."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "È disponibile la versione %@."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "バージョン %@ が利用可能です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Versie %@ is beschikbaar."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "A versão %@ está disponível."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "版本 %@ 可用。"
+          }
+        }
+      }
     },
     "View Repository": {
       "extractionState": "manual",
@@ -2851,6 +5471,48 @@
           "stringUnit": {
             "state": "translated",
             "value": "Voir le dépôt"
+          }
+        },
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository ansehen"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver repositorio"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Visualizza repository"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "リポジトリを表示"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Repository bekijken"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ver repositório"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "查看代码仓库"
           }
         }
       }
@@ -2914,9 +5576,6 @@
         }
       }
     },
-    "Widget available": {
-      "comment": "Widget promo banner title"
-    },
     "You're unstoppable!": {
       "extractionState": "manual",
       "localizations": {
@@ -2977,7 +5636,168 @@
       }
     },
     "You're up to date.": {
-      "comment": "Message when no update is available"
+      "comment": "Message when no update is available",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Du bist auf dem neuesten Stand."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Tienes la última versión."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vous êtes à jour."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Hai la versione più recente."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "最新の状態です。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Je bent helemaal bij."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Você está atualizado."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "已是最新版本。"
+          }
+        }
+      }
+    },
+    "minutes": {
+      "extractionState": "manual",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Minuten"
+          }
+        },
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minutes"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minutos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minutes"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minuti"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minuten"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "minutos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "分钟"
+          }
+        }
+      }
+    },
+    "to": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "bis"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "à"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "a"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "〜"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "tot"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "até"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "至"
+          }
+        }
+      }
     }
   },
   "version": "1.0"

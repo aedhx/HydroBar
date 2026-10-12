@@ -32,8 +32,17 @@ struct HistoryEntry: Codable, Identifiable {
 
 // MARK: - MenuBarIconStyle Enum
 enum MenuBarIconStyle: String, CaseIterable, Codable {
+    // Valeurs brutes stockées dans les préférences : ne pas les traduire ni
+    // les renommer. L'affichage passe par `localizedName`.
     case pieRing = "Pie Ring"
     case percentage = "Percentage"
+
+    var localizedName: String {
+        switch self {
+        case .pieRing:    return String(localized: "Pie Ring", comment: "Menu bar icon style: progress ring")
+        case .percentage: return String(localized: "Percentage", comment: "Menu bar icon style: percentage text")
+        }
+    }
 }
 
 // `AppUnit` est défini dans AppGroupStore.swift, partagé avec le widget.
@@ -166,6 +175,18 @@ class HydrationManager: ObservableObject {
     /// au démarrage. Voir le sélecteur de langue dans les réglages.
     @AppStorage("appLanguage") var appLanguage: String = "system" {
         willSet { objectWillChange.send() }
+        didSet { Self.applyLanguagePreference(appLanguage) }
+    }
+
+    /// Écrit la préférence que le système lit au lancement. Revenir à « Système »
+    /// doit effacer la surcharge : l'ancien code ne l'effaçait jamais, et l'app
+    /// restait dans la dernière langue choisie.
+    static func applyLanguagePreference(_ language: String) {
+        if language == "system" {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.set([language], forKey: "AppleLanguages")
+        }
     }
 
     @AppStorage("debugModeEnabled") var debugModeEnabled: Bool = false {
@@ -1026,7 +1047,9 @@ class HydrationManager: ObservableObject {
 
     // MARK: - Debug Functions
 
-    /// Génère de fausses données d'historique pour les tests
+    #if DEBUG
+    /// Génère de fausses données d'historique pour les tests. Remplace tout
+    /// l'historique : jamais compilé dans une version publiée.
     func generateFakeHistoryData() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
@@ -1064,7 +1087,8 @@ class HydrationManager: ObservableObject {
         // Notifier le changement
         objectWillChange.send()
     }
-    
+    #endif
+
     /// Teste l'envoi d'une notification immédiatement
     func testNotification() {
         let center = UNUserNotificationCenter.current()

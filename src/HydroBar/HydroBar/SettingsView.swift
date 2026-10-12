@@ -144,7 +144,7 @@ struct SettingsView: View {
                     set: { manager.menuBarIconStyle = $0 }
                 )) {
                     ForEach(MenuBarIconStyle.allCases, id: \.self) { style in
-                        Text(style.rawValue).tag(style)
+                        Text(verbatim: style.localizedName).tag(style)
                     }
                 }
                 .pickerStyle(.segmented)
@@ -361,6 +361,10 @@ struct SettingsView: View {
 
                     
                     VStack(alignment: .leading, spacing: 8) {
+                        // Réservé aux builds Debug : le panneau s'ouvre aussi en
+                        // version publiée (5 clics sur la version), et ce bouton
+                        // remplace tout l'historique réel, sans confirmation.
+                        #if DEBUG
                         // Bouton pour générer de fausses données
                         Button(action: {
                             manager.generateFakeHistoryData()
@@ -386,7 +390,8 @@ struct SettingsView: View {
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
-                        
+                        #endif
+
                         // Bouton pour tester les notifications
                         Button(action: {
                             manager.testNotification()
@@ -610,19 +615,11 @@ struct SettingsView: View {
                 Picker("", selection: Binding(
                     get: { manager.appLanguage },
                     set: { newValue in
+                        guard newValue != manager.appLanguage else { return }
                         manager.appLanguage = newValue
-                        // Afficher un message informatif
-                        let alert = NSAlert()
-                        alert.messageText = String(localized: "Language Changed", comment: "Language change alert title")
-                        alert.informativeText = String(localized: "The app will restart to apply the new language.", comment: "Language change alert message")
-                        alert.alertStyle = .informational
-                        alert.addButton(withTitle: String(localized: "OK", comment: "OK button"))
-                        alert.runModal()
-                        
-                        // Redémarrer l'app pour appliquer la nouvelle langue
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            NSApplication.shared.terminate(nil)
-                        }
+                        // Hors de la mise à jour de la vue : une alerte modale
+                        // ouverte depuis le setter d'un Binding bloquait le rendu.
+                        DispatchQueue.main.async { promptToApplyLanguage() }
                     }
                 )) {
                     ForEach(AppLanguage.allCases, id: \.self) { language in
@@ -632,23 +629,6 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
             }
-            
-            // Toggle pour activer le mode debug (caché pour la distribution)
-            // Divider()
-            //     .padding(.vertical, 2)
-            // 
-            // VStack(alignment: .leading, spacing: 8) {
-            //     Toggle(isOn: $manager.debugModeEnabled) {
-            //         HStack {
-            //             Image(systemName: "ladybug.fill")
-            //                 .font(.system(size: 12))
-            //                 .foregroundColor(.orange)
-            //             Text("Debug Mode", comment: "Debug mode toggle label")
-            //                 .font(.system(size: 13, weight: .regular))
-            //         }
-            //     }
-            //     .toggleStyle(.switch)
-            // }
         }
         .padding(20)
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -862,6 +842,25 @@ struct SettingsView: View {
             return String(format: "%02d:00", normalized)
         }
         return date.formatted(.dateTime.hour().minute())
+    }
+
+    // MARK: - Langue
+
+    /// L'ancienne alerte annonçait un redémarrage, mais l'app se contentait de
+    /// quitter, sans laisser le choix. Relancer soi-même une app sandboxée
+    /// impose un processus auxiliaire ; on laisse plutôt l'utilisateur quitter
+    /// maintenant ou plus tard.
+    private func promptToApplyLanguage() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Language Changed", comment: "Language change alert title")
+        alert.informativeText = String(localized: "HydroBar will use the new language the next time it opens.",
+                                       comment: "Language change alert message")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: String(localized: "Quit Now", comment: "Quit to apply the new language"))
+        alert.addButton(withTitle: String(localized: "Later", comment: "Apply the new language at next launch"))
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSApplication.shared.terminate(nil)
+        }
     }
 
     // MARK: - Saisie des quantités
