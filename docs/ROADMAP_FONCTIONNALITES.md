@@ -15,23 +15,23 @@
 | # | Fonctionnalité | Valeur | Effort | Prérequis |
 |---|---|---|---|---|
 | **F1** | **Deep links `hydrobar://`** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
-| **F2** | **App Intents / Shortcuts** | ⭐⭐⭐⭐⭐ | 2 j | F1 (validation partagée) |
+| **F2** | **App Intents / Shortcuts** ✅ v2.0 | ⭐⭐⭐⭐⭐ | — | F1 (validation partagée) |
 | **F3** | **Lancement au démarrage** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
 | **F18** | **Repère d'allure sur l'anneau** ✅ livré | ⭐⭐⭐⭐ | — | — |
-| **F4** | Export des données (CSV / JSON) | ⭐⭐⭐⭐ | 1 j | F5 |
-| **F5** | Journal d'événements + historique illimité | ⭐⭐⭐⭐ | 2 j | P1-2 |
-| **F17** | Journal du jour + suppression à l'unité | ⭐⭐⭐⭐ | 1 j | F5 |
+| **F4** | **Export des données (CSV / JSON)** ✅ v2.0 | ⭐⭐⭐⭐ | — | F5 |
+| **F5** | **Journal d'événements + historique illimité** ✅ v2.0 | ⭐⭐⭐⭐ | — | P1-2 |
+| **F17** | **Journal du jour + suppression à l'unité** ✅ v2.0 | ⭐⭐⭐⭐ | — | F5 |
 | **F6** | Rappels intelligents | ⭐⭐⭐⭐ | 2 j | P0-3, F5 |
 | **F7** | Accessibilité (VoiceOver, contrastes) | ⭐⭐⭐⭐ | 1,5 j | — |
-| **F8** | Onboarding au premier lancement | ⭐⭐⭐ | 1,5 j | — |
-| **F19** | Snooze des rappels | ⭐⭐⭐ | 3 h | — (plage horaire déjà faite) |
-| **F20** | Raccourcis globaux au-delà des presets | ⭐⭐⭐ | 4 h | — |
+| **F8** | **Onboarding au premier lancement** ✅ v2.0 | ⭐⭐⭐ | — | — |
+| **F19** | **Snooze des rappels** ✅ v2.0 | ⭐⭐⭐ | — | — (plage horaire déjà faite) |
+| **F20** | **Raccourcis globaux au-delà des presets** ✅ v2.0 | ⭐⭐⭐ | — | — |
 | **F9** | Types de boissons | ⭐⭐⭐ | 2 j | F5 |
 | **F10** | Widget + contrôles Control Center | ⭐⭐⭐ | 1 j | P0-6 |
 | **F11** | Synchronisation iCloud | ⭐⭐⭐ | 3 j | F5 |
 | **F12** | Mises à jour automatiques (Sparkle) | ⭐⭐⭐ | 1,5 j | P3-6 |
 | **F13** | Distribution Homebrew | ⭐⭐ | 3 h | P3-6 |
-| **F21** | Suggestion d'objectif | ⭐⭐ | 3 h | F8 (idéalement) |
+| **F21** | **Suggestion d'objectif** ✅ v2.0 | ⭐⭐ | — | F8 (idéalement) |
 | **F14** | Interactions barre de menu (molette, alt-clic) | ⭐⭐ | 1 j | P2-1 |
 | **F15** | Plugin Stream Deck | ⭐⭐ | 1 j | F1 |
 | **F16** | Fenêtre tableau de bord | ⭐⭐ | 2 j | — |
@@ -119,7 +119,9 @@ Raycast bascule sur `?preset=N` pour suivre les presets réels de l'utilisateur.
 
 ---
 
-## F2 — App Intents / Shortcuts ⭐⭐⭐⭐⭐
+## F2 — App Intents / Shortcuts ⭐⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Cinq intents (Log Water, Log a Preset, Get Hydration Status, Undo Last Drink, Set Daily Goal) et trois raccourcis proposés d'office, dans le processus de l'app et validés par `HydrationLimits`. Reste : les Focus Filters, et la traduction des phrases Siri (`AppShortcuts.xcstrings`).
 
 **Le complément indispensable de F1.** Un schéma d'URL est unidirectionnel : il ne
 peut rien **renvoyer** (c'est volontaire — voir
@@ -245,7 +247,9 @@ heures actives), qui passe de 4 h à ~3 h.
 
 ---
 
-## F4 — Export des données ⭐⭐⭐⭐
+## F4 — Export des données ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Export CSV quotidien, sauvegarde JSON du journal, restauration par fusion idempotente (identifiants). Un historique de la v1 se restaure aussi.
 
 Présent dans la roadmap du README, et c'est aussi une question de confiance : des
 données qu'on ne peut pas sortir sont des données prises en otage.
@@ -261,7 +265,9 @@ Exporter avant d'avoir corrigé ça, c'est exporter un mois maximum, à vie.
 
 ---
 
-## F5 — Journal d'événements + historique illimité ⭐⭐⭐⭐
+## F5 — Journal d'événements + historique illimité ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Journal `IntakeLog` (pur) + `IntakeLogStore` (dossier injecté), migration depuis historyEntries.json en événements agrégés datés à midi. Format JSON plutôt que SwiftData : quelques centaines de Ko par an, testable sans framework, et réversible si F11 (iCloud) impose SwiftData plus tard.
 
 **C'est le prérequis que je sous-estimais en écrivant cette roadmap.** Un seul
 changement de modèle débloque quatre fonctionnalités d'un coup.
@@ -317,7 +323,9 @@ seconde migration.
 
 ---
 
-## F17 — Journal du jour + suppression à l'unité ⭐⭐⭐⭐
+## F17 — Journal du jour + suppression à l'unité ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Liste repliable dans le popover, suppression annulable par ⌘Z. « Reset my day » est lui aussi annulable.
 
 **Une lacune de base pour un tracker**, et la donnée existe déjà.
 
@@ -392,7 +400,9 @@ C'est peu coûteux, rarement fait, et ça élargit réellement le public.
 
 ---
 
-## F8 — Onboarding au premier lancement ⭐⭐⭐
+## F8 — Onboarding au premier lancement ⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Trois écrans (objectif, presets, rappels). L'autorisation des notifications n'est plus demandée au lancement mais à l'activation des rappels, et un refus s'affiche.
 
 Au premier lancement, l'app apparaît dans la barre de menu avec un objectif de 2 000 ml
 et des presets arbitraires, sans explication, et demande l'autorisation de
@@ -410,7 +420,9 @@ silencieux comme aujourd'hui.
 
 ---
 
-## F19 — Snooze des rappels ⭐⭐⭐
+## F19 — Snooze des rappels ⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** 1 heure, jusqu'à ce soir, jusqu'à demain — alignés sur la plage active. Depuis la notification, le menu contextuel et les réglages.
 
 Le mode Ne pas déranger est **binaire** : activé ou non. Il manque le cas le plus
 courant — « pas maintenant ». Sans snooze, l'utilisateur en réunion désactive les
@@ -431,7 +443,9 @@ actuel.
 
 ---
 
-## F20 — Raccourcis globaux au-delà des presets ⭐⭐⭐
+## F20 — Raccourcis globaux au-delà des presets ⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** `HotkeyAction` (preset, annuler, ouvrir le popover) ; clés de sauvegarde des presets inchangées, donc aucune migration.
 
 `GlobalHotkeyManager.registerShortcut(for presetIndex:)` ne sait binder **que** des
 presets, et `triggerPreset` n'appelle qu'`addWater`
@@ -542,7 +556,9 @@ globaux et extension Raycast. Un cask ne demande qu'un fichier Ruby et une PR su
 
 ---
 
-## F21 — Suggestion d'objectif ⭐⭐
+## F21 — Suggestion d'objectif ⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** ~30 ml/kg, arrondi aux 50 ml, borné, livres selon la locale ; le poids n'est pas stocké.
 
 Rien n'aide à choisir 2 000 ml plutôt que 3 000. L'objectif par défaut est posé une
 fois et, faute de repère, il reste souvent en place à vie — y compris s'il est
@@ -610,6 +626,12 @@ journée passée est figée.
 P3-3, ~~P3-8~~, code mort).
 → L'intégration Raycast fonctionne, l'app démarre toute seule, l'anneau cesse de
 mentir le matin. **Reste** : P0-5, P0-6, P3-3 (écritures atomiques) et le code mort.
+
+> **Mise à jour (v2.0).** Les versions intermédiaires ont été regroupées en une
+> v2.0, qui livre F2, F4, F5, F8, F17, F19, F20 et F21 en plus de l'audit soldé.
+> Reste au programme : F6 (rappels adaptatifs, désormais possibles grâce au
+> journal), F7, F9, F10 (Control Center), F11, F12-F13 (dès la notarisation),
+> F14-F16.
 
 **v1.4 — « Automatisable »** (~1 semaine)
 `F2` + `F20` + lots 3 et 4 de l'audit (tests, CI, refactor `@Observable`).
