@@ -48,11 +48,18 @@ touche à la donnée bute sur le même prérequis — et ce constat est partagé
 indépendamment, par le backlog produit de la branche
 `docs/product-backlog`.
 
+> **Mise à jour (revue n°3).** La passe de corrections a soldé l'audit : l'unité
+> ml, R2-7, R2-8 et la dette du widget sont livrés, et le widget fonctionne enfin
+> (son App Group était vide, voir audit R3-3). Le prérequis de F5 se réduit à
+> l'injection de dépendances de `HydrationManager`. **iOS est hors périmètre
+> pour l'instant** : les pistes qui passaient par un iPhone (Santé via
+> Raccourcis, app compagnon) sont mises de côté.
+
 ### Intégrable maintenant, sans prérequis
 
 | Feature | Effort | Pourquoi c'est prêt |
 |---|---|---|
-| **Unité ml** (R2-6) | ~2 h | Tout est déjà stocké en ml. Ajouter un cas à `AppUnit` et l'aligner dans le formateur du widget. Rétrocompatible : les valeurs persistées (`cl`, `L`, `oz`) restent valides. |
+| ~~**Unité ml** (R2-6)~~ | ✅ | Livrée, avec l'once britannique. |
 | **F19** — Snooze | ~3 h | La plage horaire de F18 existe ; les catégories de notification aussi (`setupNotificationCategories`). |
 | **F20** — Raccourcis globaux étendus | ~4 h | `DeepLinkAction` définit déjà le vocabulaire (`undo`, `open`). **À faire avec R2-9** : ajouter des raccourcis multiplie les collisions, et elles échouent aujourd'hui en silence. |
 | **F8 + F21** — Onboarding et suggestion d'objectif | ~1,5 j | Aucune dépendance. F3 (lancement au démarrage) est déjà là pour y être proposé. |
@@ -67,7 +74,7 @@ indépendamment, par le backlog produit de la branche
 | Notarisation (P3-6) | Le certificat Developer ID. Le script est prêt. |
 | **F12** — Sparkle | La notarisation. |
 | **F13** — Homebrew | La notarisation. |
-| **F10** — Widget | Le Team ID à vérifier (les App Groups en dépendent), puis un re-test. R2-3 et P0-6 sont corrigés ; restent les presets codés en dur et la timeline `.never`. |
+| **F10** — Widget | Le Team ID à vérifier (les App Groups en dépendent), puis un test sur un Mac. Le code est prêt : App Group de l'extension, presets réels, timeline jusqu'à minuit, synchro par notification Darwin. Reste le `ControlWidget`. |
 
 ### Bloqué par la dette structurelle — c'est là que se joue la suite
 
@@ -84,8 +91,9 @@ comptage d'`AddWaterIntent` (audit, P4).
 
 ### L'ordre que je recommande
 
-1. **Les rapides** : unité ml, R2-7, R2-8 — trois bugs visibles, environ une demi-journée.
-2. **F5** — journal d'événements, avec une migration non destructive et testée.
+1. ~~**Les rapides** : unité ml, R2-7, R2-8~~ — ✅ livrés.
+2. **F5** — journal d'événements, avec une migration non destructive et testée,
+   en commençant par injecter les dépendances de `HydrationManager` (audit P3-1).
 3. **F2** sur cette fondation, puis tout ce que F5 débloque.
 
 En parallèle, dès que le certificat est là : notarisation → Sparkle → Homebrew.
@@ -136,12 +144,10 @@ cantonnée au target widget et écrit dans l'App Group au lieu de parler à l'ap
 
 - **Automatisations Raccourcis** : « à 9 h, si mon Mac est déverrouillé, ajouter un
   verre », « quand je lance Zoom, rappeler de boire ».
-- **Health sur iOS** : macOS n'a **pas** HealthKit (framework indisponible hors
-  Mac Catalyst, et l'app Santé n'existe pas sur Mac) — l'item « Health app
-  integration » de la roadmap du README n'est donc pas réalisable en direct. En
-  revanche, un raccourci peut chaîner `GetHydrationStatusIntent` → « Enregistrer un
-  échantillon de santé » sur un iPhone synchronisé. C'est le seul chemin viable, et
-  il ne coûte qu'un intent.
+- ~~**Health sur iOS**~~ — *hors périmètre (décision d'octobre 2026 : pas d'iOS
+  pour l'instant).* macOS n'a pas HealthKit ; le seul chemin passait par un
+  raccourci qui enregistre un échantillon de santé sur un iPhone synchronisé.
+  L'item a été retiré de la roadmap du README.
 - **Focus Filters** (`SetFocusFilterIntent`) : suspendre automatiquement les rappels
   pendant un mode de concentration — une alternative **fiable** à
   `INFocusStatusCenter`, qui demande une autorisation dédiée et échoue aujourd'hui en
@@ -259,6 +265,10 @@ Exporter avant d'avoir corrigé ça, c'est exporter un mois maximum, à vie.
 
 **C'est le prérequis que je sous-estimais en écrivant cette roadmap.** Un seul
 changement de modèle débloque quatre fonctionnalités d'un coup.
+
+> **Avancement (revue n°3).** La moitié « historique illimité » est livrée : la
+> troncature à 30 jours et le double store ont disparu (audit P1-2). Reste le
+> journal d'événements lui-même.
 
 ### Le constat
 
@@ -460,6 +470,12 @@ clic : l'ajout d'une friction pour chaque verre tuerait l'usage principal.
 
 ## F10 — Widget et contrôles Control Center ⭐⭐⭐
 
+> **Avancement (revue n°3).** Cause du retrait identifiée et corrigée :
+> l'entitlement App Group de l'extension était vide, le widget ne voyait donc
+> jamais les données de l'app (audit R3-3). Presets réels, timeline jusqu'à minuit
+> et synchronisation par notification Darwin sont livrés (`ba9c754`). Reste le
+> `ControlWidget`, et un test sur un Mac signé avec le Team ID.
+
 Le widget est **déjà écrit** (`HydroBarWidget/`, 285 lignes, familles small et medium,
 boutons interactifs via App Intents) mais retiré de la v1.2 (commit `c84b203`).
 Avant de le réactiver, traiter
@@ -629,9 +645,10 @@ Par symétrie, quelques idées séduisantes qui coûteraient plus qu'elles ne ra
 - **Objectif adaptatif selon la météo ou l'activité.** Séduisant sur le papier,
   mais cela suppose une API externe, une géolocalisation et des permissions — pour un
   gain d'exactitude marginal face à un objectif fixe bien choisi.
-- **App iOS compagnon.** Effort considérable (nouveau target, nouvelle UI, App Store,
-  synchronisation) alors que F2 permet déjà de logger depuis un iPhone via Raccourcis.
-- **Traduction dans davantage de langues.** 9 langues sont déjà annoncées mais ~35 des
-  81 clés ne sont pas traduites (voir
-  [P3-5](AUDIT_TECHNIQUE.md#p3-5--localisation-incomplète-et-changement-de-langue-par-redémarrage)).
-  Finir l'existant avant d'en ajouter.
+- **App iOS compagnon.** *Décision d'octobre 2026 : hors périmètre pour
+  l'instant.* Effort considérable (nouveau target, nouvelle UI, App Store,
+  synchronisation) pour une app dont la valeur tient à la barre de menu.
+- **Traduction dans davantage de langues.** Les 9 langues annoncées sont
+  désormais complètes (voir
+  [P3-5](AUDIT_TECHNIQUE.md#p3-5--localisation-incomplète-et-changement-de-langue-par-redémarrage)) ;
+  chaque nouvelle langue alourdit chaque future chaîne. À n'ajouter qu'à la demande.

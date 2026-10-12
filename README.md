@@ -30,7 +30,7 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 
 ### 💧 Daily Hydration Tracking
 - **Real-time progress ring** with animated visual feedback and gradient colors
-- **Customizable daily goal** (ml, cl, oz, fl oz)
+- **Customizable daily goal** (ml, cl, L, US fl oz, UK fl oz)
 - **Quick preset buttons** for common water amounts
 - **Hold-to-Add mode** for continuous water intake with haptic feedback
 - **Automatic daily reset** at midnight
@@ -227,7 +227,7 @@ Smart reminders with customizable intervals. Notifications integrate seamlessly 
 ### Getting Started
 
 1. **Set your daily goal**: Open HydroBar from the menu bar and adjust your target in Settings
-2. **Choose your unit**: Select ml, cl, L, oz, or fl oz
+2. **Choose your unit**: Select ml, cl, L, US oz or UK oz
 3. **Add water**: Click preset buttons or use the Hold-to-Add feature
 4. **Enable reminders**: Configure notification intervals in Settings
 5. **Set shortcuts** (optional): Record global keyboard shortcuts for quick water intake
@@ -400,12 +400,16 @@ Future improvements planned:
 - [x] Deep links / URL scheme *(v1.3)*
 - [x] Launch at login *(v1.3)*
 - [x] Pace marker on the progress ring *(v1.3)*
+- [x] Desktop widgets (small and medium), in sync with the app *(v1.3)*
+- [x] Custom preset amounts
 - [ ] Data export functionality
 - [ ] iCloud sync (optional)
-- [ ] Widget support *(planned v1.3)*
-- [ ] Health app integration
-- [ ] Custom preset amounts
 - [ ] Advanced statistics filters
+
+HydroBar is a **macOS-only** app, and an iOS version is not planned for now.
+Apple Health integration is not on the roadmap either: HealthKit is not available
+to native macOS apps. See [`docs/ROADMAP_FONCTIONNALITES.md`](docs/ROADMAP_FONCTIONNALITES.md)
+for the detailed roadmap.
 
 ---
 
