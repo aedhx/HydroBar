@@ -47,19 +47,22 @@
     --track: rgba(142, 142, 147, .3);
     --action: #0068d6;        /* bleu des boutons portant du texte : contraste AA */
     /* Le bureau et ses matières, comme le popover de l'app. */
-    --wallpaper: linear-gradient(150deg, #7db79b 0%, #4f93ae 38%, #3a6fc4 64%, #2c48bf 100%);
-    --mat-dark: rgba(24, 26, 33, .76);
-    --mat-deep: rgba(14, 16, 22, .86);
-    --mat-light: rgba(250, 250, 252, .8);
-    --glass: blur(30px) saturate(180%);
+    --wallpaper: url(assets/wallpaper.jpg) center / cover no-repeat, linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e);
+    --mat-dark: rgba(24, 26, 33, .62);
+    --mat-deep: rgba(14, 16, 22, .72);
+    --mat-light: rgba(250, 250, 252, .72);
+    --glass: blur(28px) saturate(170%);
+    /* Le liseré du verre de l'app : un reflet en haut, un filet tout autour. */
+    --rim-dark: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22);
+    --rim-light: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .55), 0 24px 60px rgba(0, 0, 0, .14);
     --label-on-dark: #ffffff;
-    --label-on-dark-2: rgba(235, 235, 245, .74);
+    --label-on-dark-2: #c9d6ee;   /* secondaire teinté du bleu des fenêtres */
     --ink: #1d1d1f;
     --ink-2: #48484d;
     --ink-3: #6e6e73;
     --fill: rgba(120, 120, 128, .14);   /* systemFill */
     --line: rgba(60, 60, 67, .16);
-    --bar-light: rgba(250, 250, 252, .94);
+    --bar-light: rgba(250, 250, 252, .97);
     --blue: var(--water);
     --green: var(--goal);
     --navy: #1c1d22;
@@ -71,9 +74,10 @@
   }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
-      --mat-light: rgba(36, 38, 46, .8);
-      --bar-light: rgba(36, 38, 46, .94);
-      --ink: #f5f5f7; --ink-2: #c7c7cc; --ink-3: #a1a1a6;
+      --mat-light: rgba(36, 38, 46, .7);
+      --rim-light: var(--rim-dark);
+      --bar-light: rgba(36, 38, 46, .97);
+      --ink: #f5f5f7; --ink-2: #c9d6ee; --ink-3: #a9b8d6;
       --fill: rgba(120, 120, 128, .32); --line: rgba(255, 255, 255, .12);
       color-scheme: dark;
     }
@@ -81,8 +85,10 @@
 
   /* ---------- Base ---------- */
   *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--water) transparent; background: #3a6fc4; }
-  body { margin: 0; background: var(--wallpaper) fixed; color: var(--ink); font: 400 18px/1.6 var(--text); -webkit-font-smoothing: antialiased; caret-color: var(--water); }
+  html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--water) transparent; background: #3060c0; }
+  /* Le bureau : une image fixe derrière toutes les fenêtres de verre. */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); }
+  body { margin: 0; color: var(--ink); font: 400 18px/1.6 var(--text); -webkit-font-smoothing: antialiased; caret-color: var(--water); }
   ::selection { background: var(--water); color: #fff; }
   h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.02; letter-spacing: -.025em; text-wrap: balance; font-weight: 760; }
   h2 { font-size: clamp(38px, 5.4vw, 80px); }
@@ -95,6 +101,8 @@
   section:not(.story), footer { padding-inline: clamp(20px, 4vw, 56px); }
   /* Chaque section est une fenêtre de verre posée sur le bureau. */
   main > section:not(.story), footer { margin: 14px; border-radius: 30px; }
+  main > section:not(.story):not(.light-section), footer, .stage { box-shadow: var(--rim-dark); }
+  .light-section { box-shadow: var(--rim-light); }
   footer { margin-top: 0; }
   @media (max-width: 760px) { main > section:not(.story), footer { margin: 8px; border-radius: 24px; } }
   .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
@@ -134,14 +142,18 @@
 
   /* ---------- L'histoire : l'anneau et la journée ---------- */
   .story { color: var(--label-on-dark); }
-  .stage { background: var(--mat-dark); transition: background-color .6s; }
-  .story.goal .stage { background: rgba(18, 34, 28, .78); }
+  .stage { background: var(--mat-dark); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); transition: background-color .6s; }
+  .story.goal .stage { background: rgba(14, 40, 30, .66); }
   .js .story { height: 940vh; }
-  .stage { position: relative; min-height: 100vh; overflow: hidden; }
-  .js .stage { position: sticky; top: 0; height: 100vh; }
+  .stage { position: relative; min-height: calc(100vh - 72px); margin: 58px 14px 14px; border-radius: 30px; overflow: hidden; }
+  .js .stage { position: sticky; top: 58px; height: calc(100vh - 72px); }
+  @media (max-width: 760px) {
+    .stage { margin: 52px 8px 8px; border-radius: 24px; min-height: calc(100svh - 60px); }
+    .js .stage { top: 52px; height: calc(100svh - 60px); }
+  }
 
   .ring-wrap {
-    --d: max(108vh, 860px);
+    --d: max(calc((100vh - 72px) * 1.08), 760px);
     position: absolute; width: var(--d); height: var(--d);
     right: calc(var(--d) * -.21); top: calc(var(--d) * -.02);
   }
@@ -173,34 +185,38 @@
   .js .event.on { opacity: 1; visibility: visible; transform: translateY(-50%); transition: opacity .45s, transform .6s var(--ease-out); }
   .js .event-panel { top: 0; bottom: 0; }
   .event time { display: block; font: 700 clamp(56px, 6vw, 92px)/.9 var(--rounded); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .event time small { font-size: clamp(21px, 2.3vw, 35px); letter-spacing: 0; margin-left: .2em; color: var(--label-on-dark-2); }
   .event .what { margin-top: 18px; font-size: clamp(18px, 1.5vw, 21px); color: var(--label-on-dark-2); max-width: 28em; }
   .event .what strong { color: #fff; font-weight: 600; }
   .event .plate { margin-top: 26px; }
-  .day-intro { font: 600 15px var(--text); color: var(--label-on-dark-2); margin-bottom: 14px; }
 
   /* Plaques macOS : recréations fidèles de l'interface de l'app. */
-  .note { width: min(400px, 100%); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(246, 246, 248, .82); backdrop-filter: var(--glass); color: #1d1d1f; box-shadow: 0 18px 40px rgba(0, 0, 0, .22), inset 0 0 0 1px rgba(255, 255, 255, .5); font-family: -apple-system, BlinkMacSystemFont, var(--text); }
+  .note { width: min(400px, 100%); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); color: #f5f5f7; box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); font-family: -apple-system, BlinkMacSystemFont, var(--text); }
   .note img { width: 38px; height: 38px; border-radius: 9px; }
   .note b { font-size: 14px; font-weight: 650; }
   .note .body { font-size: 14px; line-height: 1.38; margin-top: 1px; }
-  .note .when { font-size: 12px; color: #6e6e73; }
+  .note .when { font-size: 12px; color: rgba(235, 235, 245, .66); }
   .note .actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
-  .note .actions span { font-size: 13px; font-weight: 550; padding: 5px 11px; border-radius: 8px; background: rgba(120, 120, 128, .16); }
-  .note .actions .typed { background: #fff; box-shadow: inset 0 0 0 1px rgba(60, 60, 67, .2); min-width: 110px; display: flex; justify-content: space-between; gap: 18px; }
-  .note .actions .typed em { font-style: normal; color: #0066d6; font-weight: 650; }
-  .presets-plate { display: inline-flex; gap: 8px; padding: 12px; border-radius: 16px; background: rgba(40, 42, 50, .8); backdrop-filter: var(--glass); box-shadow: 0 18px 40px rgba(0, 0, 0, .22), inset 0 0 0 1px rgba(255, 255, 255, .1); }
+  .note .actions span { font-size: 13px; font-weight: 550; padding: 5px 11px; border-radius: 8px; background: rgba(255, 255, 255, .12); }
+  .note .actions .typed { background: rgba(0, 0, 0, .28); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); min-width: 110px; display: flex; justify-content: space-between; gap: 18px; }
+  .note .actions .typed em { font-style: normal; color: #64d2ff; font-weight: 650; }
+  .presets-plate { display: inline-flex; gap: 8px; padding: 12px; border-radius: 16px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); }
   .presets-plate span { font: 550 14px -apple-system, var(--text); color: #f5f5f7; padding: 10px 18px; border-radius: 9px; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
   .presets-plate span.hit { background: var(--action); }
   .held { display: inline-flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); font-weight: 600; }
   .held svg { width: 22px; height: 22px; }
 
   @media (max-width: 760px) {
-    .ring-wrap { --d: 128vw; right: -38vw; top: auto; bottom: -34vw; }
-    .js .ring-wrap { bottom: -40vw; }
-    .hero-copy, .js .event-panel { left: 24px; right: 24px; width: auto; }
-    .hero-copy { top: 96px; transform: none; }
+    .ring-wrap { --d: 124vw; right: -26vw; top: auto; bottom: -38vw; }
+    .pct { font-size: calc(var(--d) * .15); }
+    .hero-copy, .js .event-panel { left: 20px; right: 20px; width: auto; }
+    .hero-copy { top: 32px; transform: none; }
+    .hero-copy h1 { font-size: 40px; }
+    .hero-copy p { margin-top: 16px; font-size: 17px; }
+    .hero-copy .ctas { margin-top: 24px; gap: 18px; }
+    .hero-copy .meta { display: none; }
     .story.past-hero .hero-copy { transform: translateY(-8%); }
-    .js .event { top: 92px; transform: translateY(8px); }
+    .js .event { top: 28px; transform: translateY(8px); }
     .js .event.on { transform: none; }
     .tick-label { display: none; }
     .pct-sub { font-size: 15px; }
@@ -341,7 +357,7 @@
 <main id="top">
 
 <!-- L'anneau, puis la journée qui le remplit -->
-<section class="story js-story" aria-label="HydroBar, and a day with it" data-ground="story">
+<section class="story js-story" aria-label="HydroBar, and an example day with it" data-ground="story">
   <div class="stage">
     <div class="ring-wrap" aria-hidden="true">
       <svg viewBox="0 0 1000 1000">
@@ -359,7 +375,7 @@
 
     <div class="hero-copy">
       <h1>Drink enough water, right from your menu bar.</h1>
-      <p>That little ring next to your clock, up close. One click logs a glass, the ring fills, and the dark tick shows where your day should be by now.</p>
+      <p>That little ring next to your clock, up close. One click logs a glass, the ring fills, and the light tick shows where your day should be by now.</p>
       <div class="ctas">
         <a class="btn btn-light js-primary" href="#download">Get HydroBar free</a>
         <a class="link-arrow" href="#day">See how a day fills it <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4v12M4.5 10.5 10 16l5.5-5.5"/></svg></a>
@@ -370,47 +386,46 @@
     <div class="event-panel" id="day">
       <ol class="events" aria-label="A day with HydroBar">
         <li class="event" data-at="480">
-          <p class="day-intro">Here's how today got to 68%.</p>
-          <time class="num">8:00</time>
+          <time class="num">8:00<small>AM</small></time>
           <p class="what"><strong>The day starts at zero.</strong> Your active hours begin, and the tick starts walking around the ring.</p>
         </li>
         <li class="event" data-at="520">
-          <time class="num">8:40</time>
+          <time class="num">8:40<small>AM</small></time>
           <div class="plate presets-plate" aria-hidden="true"><span class="hit">250 ml</span><span>330 ml</span><span>500 ml</span></div>
           <p class="what"><strong>One click, one glass.</strong> Your presets sit in the menu bar. A keyboard shortcut works too, from any app.</p>
         </li>
         <li class="event" data-at="605">
-          <time class="num">10:05</time>
+          <time class="num">10:05<small>AM</small></time>
           <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">250 ml of 2 L · 1.75 L to go by 10:00 PM.</div></div><span class="when">now</span><div class="actions"><span>+250 ml</span><span>+330 ml</span><span>+500 ml</span><span>Other Amount…</span><span>Snooze 1 Hour</span></div></div>
           <p class="what"><strong>A reminder that says where you are.</strong> It's planned from your last glass, and its buttons are your own presets.</p>
         </li>
         <li class="event" data-at="690">
-          <time class="num">11:30</time>
+          <time class="num">11:30<small>AM</small></time>
           <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Other Amount</div></div><span class="when">now</span><div class="actions"><span class="typed">330 <em>Log</em></span></div></div>
           <p class="what"><strong>Your bottle holds 33 cl?</strong> Type 330 right in the notification. Done, without opening anything.</p>
         </li>
         <li class="event" data-at="840">
-          <time class="num">14:00</time>
+          <time class="num">2:00<small>PM</small></time>
           <div class="plate held"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m2 2 20 20"/></svg>Video call. Reminders wait.</div>
           <p class="what"><strong>Nothing pops up during your call.</strong> HydroBar only checks that your microphone or camera is in use, and holds the reminder until you hang up.</p>
         </li>
         <li class="event" data-at="905">
-          <time class="num">15:05</time>
+          <time class="num">3:05<small>PM</small></time>
           <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Call's over. Time for a glass?</div></div><span class="when">now</span></div>
           <p class="what"><strong>A minute after you hang up,</strong> the reminder you missed arrives. And you're back on track.</p>
         </li>
-        <li class="event" data-at="1050">
-          <time class="num">17:30</time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">You're at 1.61 L of 2 L. By now, you'd ideally be at 1.71 L.</div></div><span class="when">now</span></div>
+        <li class="event" data-at="1110">
+          <time class="num">6:30<small>PM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">You're at 1.36 L of 2 L. By now, you'd ideally be at 1.5 L.</div></div><span class="when">now</span></div>
           <p class="what"><strong>Fall behind and it says so,</strong> with a sound this time. Reminders come a little sooner, never more than every 15 minutes.</p>
         </li>
         <li class="event" data-at="1260">
-          <time class="num">21:00</time>
+          <time class="num">9:00<small>PM</small></time>
           <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>Last Call</b><div class="body">300 ml left to reach your goal today.</div></div><span class="when">now</span></div>
           <p class="what"><strong>One hour before your day ends,</strong> a single last call. Only if your goal isn't reached yet.</p>
         </li>
         <li class="event" data-at="1280">
-          <time class="num">21:20</time>
+          <time class="num">9:20<small>PM</small></time>
           <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>Goal reached!</b><div class="body">9 days in a row. Well done!</div></div><span class="when">now</span></div>
           <p class="what"><strong>The ring closes.</strong> No more reminders today. Tomorrow starts at zero, and on Saturday, it starts later.</p>
         </li>
@@ -437,11 +452,11 @@
     </div>
     <div class="dial js-dial" role="img" aria-label="24-hour dial: active hours from 8 AM to 10 PM, reminders every 45 minutes">
       <svg viewBox="0 0 560 560" aria-hidden="true">
-        <circle cx="280" cy="280" r="210" fill="none" style="stroke: var(--fill)" stroke-width="58"/>
-        <circle class="active js-active" cx="280" cy="280" r="210" fill="none" stroke="url(#g-water)" stroke-width="58" transform="rotate(-90 280 280)"/>
+        <circle cx="280" cy="280" r="192" fill="none" style="stroke: var(--fill)" stroke-width="52"/>
+        <circle class="active js-active" cx="280" cy="280" r="192" fill="none" stroke="url(#g-water)" stroke-width="52" transform="rotate(-90 280 280)"/>
         <g class="js-dots"></g>
-        <g font-family="Instrument Sans, system-ui" font-size="17" font-weight="600" fill="var(--ink-3)" text-anchor="middle">
-          <text x="280" y="34">0:00</text><text x="534" y="286">6:00</text><text x="280" y="540">12:00</text><text x="26" y="286">18:00</text>
+        <g font-family="Instrument Sans, system-ui" font-size="17" font-weight="600" fill="var(--ink-2)">
+          <text x="280" y="40" text-anchor="middle">12 AM</text><text x="506" y="286">6 AM</text><text x="280" y="534" text-anchor="middle">12 PM</text><text x="54" y="286" text-anchor="end">6 PM</text>
         </g>
       </svg>
       <div class="dial-center"><strong class="num js-dial-hours">8 AM–10 PM</strong><span class="js-dial-pace">every 45 min · goal 2 L</span></div>
@@ -479,9 +494,9 @@
   <div class="wrap">
     <div class="progress-head">
       <h2>Twelve rings make a year.</h2>
-      <p class="lede">Each month's daily average, against your goal. The green ones went all the way around.</p>
+      <p class="lede">Each month's daily average against the goal, here for an example year. The green ones went all the way around.</p>
     </div>
-    <div class="months js-months" role="img" aria-label="Average daily intake for the last 12 months: two months above the goal"></div>
+    <div class="months js-months" role="img" aria-label="An example year: average daily intake for each month, two months above the goal"></div>
     <div class="progress-foot">
       <div class="recap">
         <div class="top"><span>HydroBar</span><span>October 2026</span></div>
@@ -490,7 +505,7 @@
         <ul><li>Goal reached 9 of 12 days</li><li>Best day: Oct 7, 2.5 L</li><li>Current streak: 9 days</li></ul>
       </div>
       <ul class="stat-list">
-        <li><strong>A monthly recap card</strong> you can share or copy as an image, like this one.</li>
+        <li><strong>A monthly recap card</strong> you can share or copy as an image, like this example.</li>
         <li><strong>Your streak</strong> of days on goal, and a summary every week.</li>
         <li><strong>When you drink</strong> during the day, and your longest dry spell.</li>
         <li><strong>A goal for each day of the week</strong>, higher on sports days.</li>
@@ -611,6 +626,8 @@
     const arc = document.querySelector('.js-arc');
     const tick = document.querySelector('.js-tick');
     const tickLabel = document.querySelector('.js-tick-label');
+    const ringWrap = document.querySelector('.ring-wrap');
+    const stage = story.querySelector('.stage');
     const pct = document.querySelector('.js-pct');
     const pctSub = document.querySelector('.js-pct-sub');
     const mini = document.querySelector('.js-mini');
@@ -620,7 +637,7 @@
     const START = 480, END = 1320; // 8:00 → 22:00, la plage active
 
     // Prises de la journée de démonstration (minutes, ml cumulés).
-    const DRINKS = [[0, 0], [520, 250], [606, 580], [691, 910], [790, 1160], [906, 1360], [1051, 1610], [1150, 1700], [1280, 2000]];
+    const DRINKS = [[0, 0], [520, 250], [606, 580], [691, 910], [790, 1160], [906, 1360], [1111, 1610], [1150, 1700], [1280, 2000]];
     const intakeAt = (m) => DRINKS.filter(([t]) => t <= m).pop()[1];
     const fmtL = (ml) => ml >= 1000 ? `${(ml / 1000).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')} L` : `${ml} ml`;
     const fmtTime = (m) => {
@@ -649,12 +666,19 @@
       clock.textContent = `Tue ${fmtTime(minutes)}`;
       // L'étiquette du repère, à l'intérieur de l'anneau, face au repère.
       const a = pace * 2 * Math.PI - Math.PI / 2;
-      tickLabel.style.left = `${50 + 30 * Math.cos(a)}%`;
-      tickLabel.style.top = `${50 + 30 * Math.sin(a)}%`;
+      // Plus près du centre quand le repère est couché, pour ne pas le chevaucher.
+      const rr = 30 - 7 * Math.abs(Math.cos(a));
+      const fx = 50 + rr * Math.cos(a), fy = 50 + rr * Math.sin(a);
+      tickLabel.style.left = `${fx}%`;
+      tickLabel.style.top = `${fy}%`;
       tickLabel.firstChild.textContent = fmtTime(minutes);
-      // Masquée hors de l'écran, avant la journée et une fois l'objectif atteint.
-      const r = tickLabel.getBoundingClientRect();
-      const inView = r.right < innerWidth - 12 && r.bottom < innerHeight - 12 && r.top > 56;
+      // Masquée si sa place d'arrivée sort de la fenêtre, avant la journée et à l'objectif.
+      const w = ringWrap.getBoundingClientRect(), box = stage.getBoundingClientRect();
+      const x = w.left + w.width * fx / 100, y = w.top + w.height * fy / 100;
+      const hw = tickLabel.offsetWidth / 2 + 16, hh = tickLabel.offsetHeight / 2 + 16;
+      const n = pct.getBoundingClientRect();
+      const clearOfNumeral = x + hw - 16 < n.left || x - hw + 16 > n.right || y + hh - 16 < n.top || y - hh + 16 > n.bottom;
+      const inView = clearOfNumeral && x + hw < box.right && x - hw > box.left && y + hh < box.bottom && y - hh > box.top;
       tickLabel.style.opacity = !done && (hero || pace > 0) && inView ? 1 : 0;
     }
 
@@ -669,11 +693,13 @@
         events.forEach((e) => e.classList.remove('on'));
         return;
       }
+      // Le défilement choisit le moment ; l'anneau, l'horloge et le repère en prennent l'heure.
       const q = Math.min((p - .06) / .9, 1);
-      const minutes = Math.round(START + Math.max(q, 0) * (END - START));
-      render(minutes, intakeAt(minutes));
+      const scrub = START + Math.max(q, 0) * (END - START);
       let current = events[0];
-      for (const e of events) if (Number(e.dataset.at) <= minutes) current = e;
+      for (const e of events) if (Number(e.dataset.at) <= scrub) current = e;
+      const minutes = Number(current.dataset.at);
+      render(minutes, intakeAt(minutes));
       events.forEach((e) => e.classList.toggle('on', e === current));
     }
 
@@ -684,7 +710,6 @@
       const over = grounds.find((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; });
       const ground = over ? over.dataset.ground : 'story';
       menubar.classList.toggle('light', ground === 'light');
-      menubar.classList.toggle('green', ground === 'green' || (ground === 'story' && story.classList.contains('goal')));
     }
     const onScrollMenubar = paintMenubar;
 
@@ -713,7 +738,7 @@
       work: { start: 8, end: 22, every: 45, hours: '8 AM–10 PM', pace: 'every 45 min · goal 2 L' },
       off: { start: 10, end: 23, every: 120, hours: '10 AM–11 PM', pace: 'every 2 hours · goal 1.5 L' },
     };
-    const R = 210, C = 2 * Math.PI * R, CX = 280;
+    const R = 192, C = 2 * Math.PI * R, CX = 280;
     const active = document.querySelector('.js-active');
     const dots = document.querySelector('.js-dots');
     const dial = document.querySelector('.js-dial');
