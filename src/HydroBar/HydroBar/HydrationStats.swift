@@ -120,6 +120,43 @@ enum HydrationStats {
         return best
     }
 
+    // MARK: - Bilan de la semaine
+
+    struct WeekSummary: Equatable {
+        /// Jours où l'objectif a été atteint, sur les 7 derniers.
+        let goalDays: Int
+        /// Moyenne quotidienne sur 7 jours, jours sans prise inclus.
+        let averageMl: Double
+    }
+
+    static func weekSummary(history: [HistoryEntry], today: Today, calendar: Calendar = .current) -> WeekSummary {
+        let start = calendar.startOfDay(for: today.date)
+        var goalDays = (today.targetMl > 0 && today.amountMl >= today.targetMl) ? 1 : 0
+        for offset in 1..<7 {
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: start),
+                  let entry = entry(on: day, in: history, calendar: calendar)
+            else { continue }
+            if entry.targetMl > 0, entry.amountMl >= entry.targetMl { goalDays += 1 }
+        }
+        let total = self.total(lastDays: 7, history: history, today: today, calendar: calendar)
+        return WeekSummary(goalDays: goalDays, averageMl: total / 7)
+    }
+
+    /// Le bilan part le dernier jour de la semaine **de la locale** (dimanche en
+    /// France, samedi aux États-Unis), à partir de `hour`, une fois par semaine.
+    ///
+    /// - Returns: la clé de la semaine si le bilan est dû, sinon `nil`.
+    static func weeklySummaryKeyIfDue(now: Date, hour: Int, lastSentKey: String,
+                                      calendar: Calendar = .current) -> String? {
+        let lastWeekday = (calendar.firstWeekday + 5) % 7 + 1
+        guard calendar.component(.weekday, from: now) == lastWeekday,
+              calendar.component(.hour, from: now) >= hour
+        else { return nil }
+        let parts = calendar.dateComponents([.yearForWeekOfYear, .weekOfYear], from: now)
+        let key = String(format: "%04d-W%02d", parts.yearForWeekOfYear ?? 0, parts.weekOfYear ?? 0)
+        return key == lastSentKey ? nil : key
+    }
+
     private static func entry(on day: Date, in history: [HistoryEntry], calendar: Calendar) -> HistoryEntry? {
         history.first { calendar.isDate($0.date, inSameDayAs: day) }
     }

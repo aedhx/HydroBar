@@ -127,7 +127,21 @@ class HydrationManager: ObservableObject {
     /// Les rappels prennent la forme d'une pastille plutôt que d'une
     /// notification système. Le mode DnD ne désactive pas les rappels.
     var isQuietMode: Bool {
-        doNotDisturb || (focusModeAutoSync && focusIsActive)
+        doNotDisturb || (focusModeAutoSync && focusIsActive) || focusFilterQuiet
+    }
+
+    /// Posé par le filtre de Concentration (`HydroBarFocusFilter`) : vrai tant
+    /// qu'une Concentration configurée pour cela est active. Persisté, pour
+    /// survivre à un redémarrage de l'app pendant la Concentration.
+    @AppStorage("focusFilterQuiet") private(set) var focusFilterQuiet: Bool = false {
+        willSet { objectWillChange.send() }
+    }
+
+    func setFocusFilterQuiet(_ quiet: Bool) {
+        guard focusFilterQuiet != quiet else { return }
+        let wasQuiet = isQuietMode
+        focusFilterQuiet = quiet
+        if isQuietMode != wasQuiet { quietModeDidChange() }
     }
 
     /// Jusqu'ici la synchro Concentration écrivait `doNotDisturb`, et
@@ -584,6 +598,7 @@ class HydrationManager: ObservableObject {
             self?.rollOverIfNewDay()
             self?.resumeRemindersIfSnoozeEnded()
             self?.replanRemindersIfNeeded()
+            self?.sendWeeklySummaryIfDue()
             // Filet de sécurité si une notification Darwin du widget s'est perdue.
             self?.applyPendingWidgetDelta()
             self?.checkReminderStatus()
@@ -705,6 +720,41 @@ class HydrationManager: ObservableObject {
     private func replanRemindersIfNeeded() {
         guard let next = nextPlannedReminder, next <= Date() else { return }
         scheduleNotifications()
+    }
+
+    // MARK: - Bilan de la semaine (F6)
+
+    @AppStorage("weeklySummaryEnabled") var weeklySummaryEnabled: Bool = true {
+        willSet { objectWillChange.send() }
+    }
+    @AppStorage("lastWeeklySummaryWeek") private var lastWeeklySummaryWeek: String = ""
+
+    /// Appelée par le minuteur : le dernier jour de la semaine, une heure avant
+    /// la fin de la plage active, une notification résume la semaine.
+    private func sendWeeklySummaryIfDue() {
+        guard notificationsEnabled, weeklySummaryEnabled, !isQuietMode else { return }
+        let now = Date()
+        let hour = max(activeHoursEnd - 1, activeHoursStart)
+        guard let key = HydrationStats.weeklySummaryKeyIfDue(now: now, hour: hour,
+                                                            lastSentKey: lastWeeklySummaryWeek)
+        else { return }
+        lastWeeklySummaryWeek = key
+
+        let summary = HydrationStats.weekSummary(history: historyEntries, today: todayForStats)
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Your week", comment: "Weekly summary notification title")
+        var body = String(format: String(localized: "Goal reached %lld days out of 7, %@ a day on average.",
+                                         comment: "Weekly summary; %lld is a day count, %@ an amount"),
+                          summary.goalDays, displayValue(for: summary.averageMl))
+        if currentStreak > 1 {
+            body += " " + String(format: String(localized: "Current streak: %lld days.",
+                                                comment: "Weekly summary streak; %lld is the streak length"),
+                                 currentStreak)
+        }
+        content.body = body
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "WEEKLY_SUMMARY", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
     }
 
     // MARK: - Objectif atteint
