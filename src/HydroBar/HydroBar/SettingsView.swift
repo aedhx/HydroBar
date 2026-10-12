@@ -546,6 +546,10 @@ struct SettingsView: View {
             
             Divider()
 
+            DataSettingsSection(manager: manager)
+
+            Divider()
+
             // Section Raycast Extension
             VStack(alignment: .leading, spacing: 6) {
                 Text("INTEGRATIONS", comment: "Settings section title for integrations")
