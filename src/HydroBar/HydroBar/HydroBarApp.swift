@@ -181,6 +181,19 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         togglePopover(for: button)
     }
 
+    private let intakeToast = IntakeToastController()
+    private var intakeSubscription: AnyCancellable?
+
+    /// Une prise ajoutée popover fermé (raccourci, ⌥-clic, intent, widget,
+    /// deep link) : l'icône clignote comme un élément de menu, et « +20 cl »
+    /// s'affiche dessous. Popover ouvert, l'anneau suffit.
+    private func confirmIntakeOutsidePopover(_ ml: Double) {
+        guard popover?.isShown != true, let button = statusItem?.button else { return }
+        button.highlight(true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { button.highlight(false) }
+        intakeToast.show("+" + HydrationManager.shared.displayValue(for: ml), below: button)
+    }
+
     func presentPopover(showing view: ViewType) {
         AppNavigation.shared.requestView(view)
         guard let button = statusItem?.button, let popover = popover else { return }
@@ -251,6 +264,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         iconSubscription = HydrationManager.shared.objectWillChange
             .receive(on: RunLoop.main)
             .sink { [weak self] _ in self?.updateStatusBarIcon() }
+
+        intakeSubscription = HydrationManager.shared.intakeAdded
+            .receive(on: RunLoop.main)
+            .sink { [weak self] ml in self?.confirmIntakeOutsidePopover(ml) }
     }
     
     func updateStatusBarIcon() {
