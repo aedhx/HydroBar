@@ -5,21 +5,59 @@ La landing page de HydroBar : une seule page statique, sans build ni dépendance
 ```
 website/
 ├── index.html        la page (HTML, CSS et JS dans le même fichier)
-├── CNAME             domaine pour GitHub Pages
-└── assets/           icônes, favicon, image Open Graph (1200 × 630)
+└── assets/           icônes, polices, fond d'écran, image Open Graph (1200 × 630)
 ```
 
-## Héberger
+## Héberger sur hydrobar.adx.cool
 
-N'importe quel hébergement statique convient : GitHub Pages, Netlify, Cloudflare Pages, ou
-un simple serveur. Le dossier `website/` se publie tel quel.
+Le sous-domaine pointe sur le serveur nginx d'adx.cool (enregistrement A vers
+185.97.144.4). Trois étapes sur le serveur, une seule fois.
 
-- **GitHub Pages** : le mode « Deploy from a branch » ne publie que la racine ou `/docs`.
-  Pour publier `website/`, choisis « GitHub Actions » comme source, avec une action qui
-  envoie ce dossier (`actions/upload-pages-artifact` puis `actions/deploy-pages`).
-  Le fichier `CNAME` règle le domaine.
-- **DNS** : un enregistrement `CNAME` de `hydrobar` vers l'hôte choisi
-  (par exemple `aedhx.github.io`).
+**1. Copier la page.** Depuis la racine du dépôt :
+
+```sh
+rsync -av --delete --exclude README.md website/ <utilisateur>@185.97.144.4:/var/www/hydrobar.adx.cool/
+```
+
+**2. Déclarer le site dans nginx**, dans `/etc/nginx/sites-available/hydrobar.adx.cool` :
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name hydrobar.adx.cool;
+    root /var/www/hydrobar.adx.cool;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    # Images, polices : versionnées par leur nom, cache long.
+    location /assets/ {
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    gzip on;
+    gzip_types text/css application/javascript image/svg+xml;
+}
+```
+
+puis :
+
+```sh
+sudo ln -s /etc/nginx/sites-available/hydrobar.adx.cool /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**3. Le certificat HTTPS.** Tant qu'il manque, le navigateur reçoit celui d'adx.cool
+et affiche une erreur. Certbot l'ajoute et règle la redirection HTTP → HTTPS :
+
+```sh
+sudo certbot --nginx -d hydrobar.adx.cool
+```
+
+Pour les mises à jour suivantes, seule l'étape 1 est à refaire.
 
 ## À mettre à jour
 
@@ -32,9 +70,5 @@ un simple serveur. Le dossier `website/` se publie tel quel.
 
 ## Choix de design
 
-- Clair par défaut, sombre selon le réglage du système, contrastes AA.
-- Un seul accent, le bleu de la mascotte ; le vert ne sert qu'à « objectif atteint ».
-- Bricolage Grotesque pour les titres, Instrument Sans pour le texte (Google Fonts).
-- Les démos sont de vraies interactions, pas des captures : le popover (presets, appui
-  long), la journée type, l'interrupteur jour de travail / jour off, la gourde.
-- Les animations respectent « Réduire les animations ».
+Le système de design (couleurs et verre de l'app, typographie, règles) est décrit dans
+[`DESIGN.md`](../DESIGN.md), à la racine du dépôt.
