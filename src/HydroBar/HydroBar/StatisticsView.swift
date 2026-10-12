@@ -32,6 +32,16 @@ struct StatisticsView: View {
                 WeeklyChartView(manager: manager)
             }
             
+            // Section Quand je bois (par heure, 30 jours)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("When You Drink (30 days)", comment: "Title for the hourly intake pattern chart")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+
+                HourlyPatternView(manager: manager)
+            }
+
             // Section Activité Mensuelle
             VStack(alignment: .leading, spacing: 10) {
                 Text("Consistency (30 days)", comment: "Title for 30-day consistency heatmap")
