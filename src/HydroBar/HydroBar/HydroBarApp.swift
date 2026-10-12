@@ -194,7 +194,20 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         intakeToast.show("+" + HydrationManager.shared.displayValue(for: ml), below: button)
     }
 
+    func closePopover() {
+        if popover?.isShown == true { popover?.performClose(nil) }
+    }
+
+    @objc func openSettingsWindow() {
+        SettingsWindowController.shared.show()
+    }
+
     func presentPopover(showing view: ViewType) {
+        // hydrobar://open/settings : la fenêtre de réglages, plus le popover.
+        if view == .settings {
+            SettingsWindowController.shared.show()
+            return
+        }
         AppNavigation.shared.requestView(view)
         guard let button = statusItem?.button, let popover = popover else { return }
         NSApp.activate()
@@ -549,6 +562,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         shortcutsItem.submenu = shortcutsSubmenu
         menu.addItem(shortcutsItem)
         
+        let settingsItem = NSMenuItem(title: String(localized: "Settings…", comment: "Context menu item opening the settings window"),
+                                      action: #selector(openSettingsWindow), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         // À propos
         let aboutItem = NSMenuItem(title: String(localized: "About", comment: "Menu item for about"), action: #selector(showAbout), keyEquivalent: "")
         aboutItem.target = self
