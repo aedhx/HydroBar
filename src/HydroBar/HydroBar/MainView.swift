@@ -14,6 +14,8 @@ import AppKit
 struct HoldButton: NSViewRepresentable {
     var label: String
     var isHolding: Bool
+    /// Niveau d'eau dans le bouton pendant l'appui, de 0 à 1.
+    var fillFraction: CGFloat = 0
     var onPress: () -> Void
     var onRelease: () -> Void
 
@@ -30,6 +32,7 @@ struct HoldButton: NSViewRepresentable {
         nsView.onPress = onPress
         nsView.onRelease = onRelease
         nsView.isHolding = isHolding
+        nsView.fillFraction = fillFraction
         nsView.needsDisplay = true
     }
 }
@@ -39,6 +42,7 @@ class HoldButtonNSView: NSView {
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
     var isHolding: Bool = false
+    var fillFraction: CGFloat = 0
 
     override var acceptsFirstResponder: Bool { true }
     override func acceptsFirstMouse(for event: NSEvent?) -> Bool { true }
@@ -69,10 +73,20 @@ class HoldButtonNSView: NSView {
     }
 
     override func draw(_ dirtyRect: NSRect) {
-        let color = isHolding ? Theme.NS.water.withAlphaComponent(0.75) : Theme.NS.water
-        let path = NSBezierPath(roundedRect: bounds, xRadius: 8, yRadius: 8)
-        color.setFill()
+        let path = NSBezierPath(roundedRect: bounds, xRadius: Theme.Radius.control, yRadius: Theme.Radius.control)
+        Theme.NS.water.setFill()
         path.fill()
+
+        // Pendant l'appui, le bouton se remplit comme un verre (v2.2) : on voit
+        // combien on a versé, et quand relâcher.
+        if isHolding, fillFraction > 0 {
+            NSGraphicsContext.saveGraphicsState()
+            path.addClip()
+            let level = NSRect(x: 0, y: 0, width: bounds.width, height: bounds.height * min(fillFraction, 1))
+            NSColor.systemCyan.withAlphaComponent(0.85).setFill()
+            NSBezierPath(rect: level).fill()
+            NSGraphicsContext.restoreGraphicsState()
+        }
 
         let attrs: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 14, weight: .medium),
@@ -280,6 +294,8 @@ struct MainContentView: View {
             HoldButton(
                 label: holdButtonLabel,
                 isHolding: isHolding,
+                // Plein à 750 ml : la taille d'une grande bouteille.
+                fillFraction: CGFloat(min(manager.holdTotalMl / 750, 1)),
                 onPress: { if !isHolding { startHolding() } },
                 onRelease: { stopHolding() }
             )

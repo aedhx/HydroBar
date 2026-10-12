@@ -15,6 +15,7 @@ struct TodayLogView: View {
 
     /// Replié par défaut : le popover reste centré sur l'anneau et les presets.
     @AppStorage("todayLogExpanded") private var isExpanded = false
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var isAddingPastDrink = false
 
     var body: some View {
@@ -50,10 +51,15 @@ struct TodayLogView: View {
                 } else {
                     ScrollView {
                         VStack(spacing: 2) {
+                            // Une prise ajoutée glisse en tête, une prise
+                            // supprimée se replie (v2.2).
                             ForEach(events) { event in
                                 row(for: event)
+                                    .transition(.move(edge: .top).combined(with: .opacity))
                             }
                         }
+                        .animation(Theme.motion(Theme.Motion.snappy, reduceMotion: reduceMotion),
+                                   value: events.map(\.id))
                     }
                     .frame(maxHeight: 150)
                 }

@@ -3,6 +3,7 @@ import SwiftUI
 import AppKit
 import UserNotifications
 import WidgetKit
+import Combine
 import os
 
 // MARK: - Formatage de dates
@@ -314,6 +315,11 @@ class HydrationManager: ObservableObject {
     /// bascule de jour, et c'est ce mécanisme qui a effacé l'historique au
     /// lancement et attribué des verres à la veille (cf. AUDIT § R3-1, R3-5).
     @Published private(set) var currentMl: Double = 0.0
+
+    /// Émet la quantité de chaque prise ajoutée, quelle que soit sa source
+    /// (popover, raccourci, intent, widget, deep link). L'AppDelegate s'en sert
+    /// pour confirmer visuellement un ajout fait sans ouvrir le popover.
+    let intakeAdded = PassthroughSubject<Double, Never>()
 
     /// Prises du jour, de la plus récente à la plus ancienne.
     var todayEvents: [IntakeEvent] {
@@ -756,6 +762,7 @@ class HydrationManager: ObservableObject {
         scheduleNotifications()
         celebrateIfGoalJustReached(previousTotal: previousTotal)
         syncToAppGroup()
+        intakeAdded.send(amount)
     }
 
     /// Ajoute une prise oubliée, à une date passée (« j'ai oublié de noter
