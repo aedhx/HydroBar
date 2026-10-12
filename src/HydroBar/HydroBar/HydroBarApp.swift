@@ -400,7 +400,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         // Charger les raccourcis pour chaque preset
         for index in 0..<hydrationManager.presetsMl.count {
-            let key = "shortcut_preset_\(index)"
+            let key = shortcutDefaultsKey(forPreset: index)
             if let data = UserDefaults.standard.data(forKey: key),
                let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data) {
                 // Réenregistrer le raccourci
@@ -442,7 +442,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         let shortcutsSubmenu = NSMenu()
         let presetCount = HydrationManager.shared.presetsMl.count
         for index in 0..<presetCount {
-            let key = "shortcut_preset_\(index)"
+            let key = shortcutDefaultsKey(forPreset: index)
             let presetLabel = String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1)
             let displayText: String
             if let data = UserDefaults.standard.data(forKey: key),

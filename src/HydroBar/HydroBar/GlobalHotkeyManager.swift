@@ -8,10 +8,10 @@
 import Foundation
 import AppKit
 import Carbon
+import os
 
 // Constantes d'erreur Carbon
 private let eventHotKeyExistsErr: OSStatus = OSStatus(-9878)
-private let eventParameterNotFoundErr: OSStatus = OSStatus(-9868)
 
 // MARK: - Shortcut Structure
 struct Shortcut: Codable, Equatable {
@@ -100,11 +100,48 @@ struct Shortcut: Codable, Equatable {
     }
 }
 
+// MARK: - Erreurs d'enregistrement
+
+/// Pourquoi un raccourci n'a pas pu être enregistré. Auparavant l'échec n'était
+/// que journalisé : le raccourci restait affiché comme actif dans les réglages
+/// alors qu'il ne faisait rien (cf. AUDIT_TECHNIQUE.md § R2-9).
+enum HotkeyRegistrationError: Error, Equatable {
+    case invalidKey
+    case reservedBySystem
+    /// Déjà affecté à un autre preset de HydroBar (index 0-based).
+    case usedByPreset(Int)
+    /// Déjà pris par une autre application.
+    case alreadyInUse
+    case failed(OSStatus)
+
+    var localizedMessage: String {
+        switch self {
+        case .invalidKey:
+            return String(localized: "This key can't be used as a shortcut.", comment: "Hotkey registration error")
+        case .reservedBySystem:
+            return String(localized: "This shortcut is reserved by macOS.", comment: "Hotkey registration error")
+        case .usedByPreset(let index):
+            return String(format: String(localized: "Already used by Preset %lld.", comment: "Hotkey registration error, %lld is a preset number"),
+                          index + 1)
+        case .alreadyInUse:
+            return String(localized: "Already used by another app.", comment: "Hotkey registration error")
+        case .failed:
+            return String(localized: "This shortcut couldn't be registered.", comment: "Hotkey registration error")
+        }
+    }
+}
+
 // MARK: - GlobalHotkeyManager
 class GlobalHotkeyManager {
     static let shared = GlobalHotkeyManager()
-    
+
+    private static let logger = Logger(subsystem: "com.adxcool.HydroBar", category: "hotkeys")
+
     private var registeredHotkeys: [UInt32: (presetIndex: Int, hotKeyRef: EventHotKeyRef?)] = [:]
+
+    /// Raccourci actif de chaque preset, pour détecter les doublons et savoir
+    /// si un raccourci sauvegardé est réellement enregistré auprès du système.
+    private var activeShortcuts: [Int: Shortcut] = [:]
     private var nextHotKeyID: UInt32 = 1
     private var eventHandler: EventHandlerRef?
     
@@ -142,7 +179,7 @@ class GlobalHotkeyManager {
         )
         
         if status != noErr {
-            print("Erreur lors de l'installation du gestionnaire d'événements: \(status)")
+            Self.logger.error("Échec d'installation du gestionnaire de raccourcis: \(status)")
         }
     }
     
@@ -161,62 +198,62 @@ class GlobalHotkeyManager {
     ///   - keyCode: Code de la touche (voir VirtualKeyCodes)
     ///   - modifiers: Modificateurs (cmdKey, shiftKey, optionKey, controlKey)
     /// - Returns: true si l'enregistrement a réussi, false sinon
+    /// Enregistre un raccourci global pour un preset.
+    /// - Returns: `.failure` avec la raison, pour que l'interface puisse l'afficher.
     @discardableResult
-    func registerShortcut(for presetIndex: Int, keyCode: Int, modifiers: Int) -> Bool {
-        // Désenregistrer l'ancien raccourci s'il existe
+    func registerShortcut(for presetIndex: Int, keyCode: Int, modifiers: Int) -> Result<Void, HotkeyRegistrationError> {
         unregisterShortcut(for: presetIndex)
-        
-        // Vérifier que les paramètres sont valides
-        guard keyCode >= 0 && keyCode <= 127 else {
-            print("Code de touche invalide: \(keyCode)")
-            return false
+
+        guard (0...127).contains(keyCode) else {
+            return fail(.invalidKey, keyCode: keyCode, modifiers: modifiers)
         }
-        
-        // Vérifier que ce n'est pas un raccourci système réservé
         if isSystemReservedShortcut(keyCode: keyCode, modifiers: modifiers) {
-            print("Ce raccourci est réservé par le système macOS")
-            return false
+            return fail(.reservedBySystem, keyCode: keyCode, modifiers: modifiers)
         }
-        
+        // Deux presets sur la même combinaison : RegisterEventHotKey refuserait le
+        // second, mais en le disant on peut nommer le preset en conflit.
+        let candidate = Shortcut(keyCode: keyCode, modifiers: modifiers)
+        if let owner = activeShortcuts.first(where: { $0.key != presetIndex && $0.value == candidate })?.key {
+            return fail(.usedByPreset(owner), keyCode: keyCode, modifiers: modifiers)
+        }
+
         let hotKeyID = nextHotKeyID
         nextHotKeyID += 1
-        
+
         var hotKeyRef: EventHotKeyRef?
-        let hotKeyID_ = EventHotKeyID(signature: FourCharCode(fromString: "HYDR"), id: hotKeyID)
-        
-        // Convertir les modificateurs NSEvent vers Carbon
-        let carbonModifiers = convertToCarbonModifiers(modifiers)
-        
-        // Vérifier que l'EventTarget est valide
-        let eventTarget = GetApplicationEventTarget()
-        guard eventTarget != nil else {
-            print("Erreur: EventTarget invalide")
-            return false
-        }
-        
+        let eventHotKeyID = EventHotKeyID(signature: FourCharCode(fromString: "HYDR"), id: hotKeyID)
+
         let status = RegisterEventHotKey(
             UInt32(keyCode),
-            carbonModifiers,
-            hotKeyID_,
-            eventTarget,
+            convertToCarbonModifiers(modifiers),
+            eventHotKeyID,
+            GetApplicationEventTarget(),
             0,
             &hotKeyRef
         )
-        
-        if status == noErr, let ref = hotKeyRef {
-            registeredHotkeys[hotKeyID] = (presetIndex: presetIndex, hotKeyRef: ref)
-            return true
-        } else {
-            // Gérer les erreurs spécifiques
-            let errorMessage = errorMessageForStatus(status)
-            print("Erreur lors de l'enregistrement du raccourci (\(keyCode), mod: \(modifiers)): \(status) - \(errorMessage)")
-            
-            // Ne pas réessayer automatiquement pour éviter les boucles infinies
-            // L'utilisateur devra réessayer manuellement si le raccourci est déjà utilisé
-            return false
+
+        guard status == noErr, let ref = hotKeyRef else {
+            let error: HotkeyRegistrationError = status == eventHotKeyExistsErr ? .alreadyInUse : .failed(status)
+            return fail(error, keyCode: keyCode, modifiers: modifiers)
         }
+
+        registeredHotkeys[hotKeyID] = (presetIndex: presetIndex, hotKeyRef: ref)
+        activeShortcuts[presetIndex] = candidate
+        return .success(())
     }
-    
+
+    /// Indique si le raccourci sauvegardé de ce preset est réellement actif.
+    /// Un enregistrement peut échouer au lancement — une autre app a pris la
+    /// combinaison entre-temps — sans que les réglages ne le sachent.
+    func isRegistered(presetIndex: Int) -> Bool {
+        activeShortcuts[presetIndex] != nil
+    }
+
+    private func fail(_ error: HotkeyRegistrationError, keyCode: Int, modifiers: Int) -> Result<Void, HotkeyRegistrationError> {
+        Self.logger.notice("Raccourci refusé (touche \(keyCode), modificateurs \(modifiers)): \(String(describing: error), privacy: .public)")
+        return .failure(error)
+    }
+
     /// Convertit les modificateurs NSEvent vers les modificateurs Carbon
     private func convertToCarbonModifiers(_ nsModifiers: Int) -> UInt32 {
         var carbonModifiers: UInt32 = 0
@@ -270,21 +307,6 @@ class GlobalHotkeyManager {
         return false
     }
     
-    /// Retourne un message d'erreur lisible pour un code d'erreur Carbon
-    private func errorMessageForStatus(_ status: OSStatus) -> String {
-        if status == noErr {
-            return "Succès"
-        } else if status == eventHotKeyExistsErr {
-            return "Le raccourci est déjà utilisé par une autre application"
-        } else if status == eventParameterNotFoundErr {
-            return "Paramètre non trouvé - le raccourci est peut-être réservé par le système"
-        } else if status == OSStatus(eventNotHandledErr) {
-            return "Événement non géré"
-        } else {
-            return "Erreur inconnue (\(status))"
-        }
-    }
-    
     /// Désenregistre un raccourci pour un preset
     func unregisterShortcut(for presetIndex: Int) {
         // Trouver toutes les entrées pour ce presetIndex
@@ -293,19 +315,12 @@ class GlobalHotkeyManager {
             if let ref = hotKeyRef {
                 let status = UnregisterEventHotKey(ref)
                 if status != noErr {
-                    print("Erreur lors du désenregistrement du raccourci: \(status)")
+                    Self.logger.error("Échec du désenregistrement d'un raccourci: \(status)")
                 }
             }
             registeredHotkeys.removeValue(forKey: hotKeyID)
         }
-    }
-    
-    /// Désenregistre un raccourci par son ID interne (pour usage interne)
-    private func unregisterShortcutByID(_ hotKeyID: UInt32) {
-        if let (_, hotKeyRef) = registeredHotkeys[hotKeyID], let ref = hotKeyRef {
-            UnregisterEventHotKey(ref)
-            registeredHotkeys.removeValue(forKey: hotKeyID)
-        }
+        activeShortcuts.removeValue(forKey: presetIndex)
     }
     
     /// Désenregistre tous les raccourcis
@@ -365,14 +380,10 @@ class GlobalHotkeyManager {
         playFeedbackSound()
     }
     
+    /// Retour sonore d'un ajout réussi. L'ancien `NSSound.beep()` jouait le son
+    /// d'alerte du système — celui d'une erreur — à chaque succès.
     private func playFeedbackSound() {
-        // Utiliser le son système par défaut
-        NSSound.beep()
-        
-        // Alternative : utiliser un son personnalisé
-        // if let sound = NSSound(named: "Glass") {
-        //     sound.play()
-        // }
+        NSSound(named: "Pop")?.play()
     }
 }
 
@@ -447,25 +458,4 @@ struct VirtualKeyCodes {
     static let x: Int = 0x07
     static let y: Int = 0x10
     static let z: Int = 0x06
-}
-
-// MARK: - Modifier Flags
-struct ModifierFlags {
-    static let command: Int = Int(cmdKey)
-    static let shift: Int = Int(shiftKey)
-    static let option: Int = Int(optionKey)
-    static let control: Int = Int(controlKey)
-    
-    // Combinaisons courantes
-    static func commandShift() -> Int {
-        return Int(cmdKey | shiftKey)
-    }
-    
-    static func commandOption() -> Int {
-        return Int(cmdKey | optionKey)
-    }
-    
-    static func commandControl() -> Int {
-        return Int(cmdKey | controlKey)
-    }
 }
