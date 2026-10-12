@@ -312,6 +312,8 @@ class HydrationManager: ObservableObject {
         set {
             objectWillChange.send()
             storedPresetsMlRaw = PresetStorage.encode(newValue)
+            // Le widget affiche les presets de l'utilisateur.
+            syncToAppGroup()
         }
     }
     
@@ -424,6 +426,8 @@ class HydrationManager: ObservableObject {
         // macOS regrouper ce réveil avec d'autres — l'ancien code n'en avait pas.
         let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
             self?.rollOverIfNewDay()
+            // Filet de sécurité si une notification Darwin du widget s'est perdue.
+            self?.applyPendingWidgetDelta()
             self?.checkReminderStatus()
         }
         timer.tolerance = 10
@@ -980,15 +984,22 @@ class HydrationManager: ObservableObject {
     
     // MARK: - Widget → App Sync
 
-    /// Observes the shared App Group UserDefaults for widget button taps.
+    /// Écoute la notification Darwin que le widget poste après un ajout (cf.
+    /// `AppGroupStore.widgetDidAddWaterNotification`). Le rappel C ne peut rien
+    /// capturer : il passe par le singleton, qui vit autant que l'app.
     private func setupAppGroupObserver() {
-        NotificationCenter.default.addObserver(
-            forName: UserDefaults.didChangeNotification,
-            object: UserDefaults(suiteName: AppGroupStore.suiteName),
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyPendingWidgetDelta()
-        }
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            nil,
+            { _, _, _, _, _ in
+                DispatchQueue.main.async {
+                    HydrationManager.shared.applyPendingWidgetDelta()
+                }
+            },
+            AppGroupStore.widgetDidAddWaterNotification as CFString,
+            nil,
+            .deliverImmediately
+        )
     }
 
     /// Consumes ml queued by widget `AddWaterIntent` and applies it to HydrationManager.
@@ -1038,7 +1049,8 @@ class HydrationManager: ObservableObject {
             targetMl: targetMl,
             unit: selectedUnit.rawValue,
             lastUpdated: Date(),
-            weekHistory: getLast7DaysSnapshotsForWidget()
+            weekHistory: getLast7DaysSnapshotsForWidget(),
+            presetsMl: presetsMl
         ))
         WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
     }
