@@ -394,6 +394,20 @@ struct SettingsView: View {
                     
                     adaptiveRemindersRow
 
+                    HStack(alignment: .center, spacing: 8) {
+                        Image(systemName: "calendar.badge.checkmark")
+                            .font(Theme.Font.body)
+                            .foregroundColor(.secondary)
+                            .frame(width: 20, alignment: .leading)
+                        Text("Weekly summary", comment: "Toggle: weekly summary notification")
+                            .font(Theme.Font.body)
+                        Spacer()
+                        Toggle("", isOn: Binding(get: { manager.weeklySummaryEnabled },
+                                                 set: { manager.weeklySummaryEnabled = $0 }))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                    }
+
                     snoozeRow
 
                     focusModeSection
@@ -799,6 +813,32 @@ struct SettingsView: View {
     /// affiché — voir l'en-tête de FocusModeMonitor.swift.
     private var focusModeSection: some View {
         VStack(alignment: .leading, spacing: 6) {
+            // Alternative sans autorisation ni capability : le filtre de
+            // Concentration, réglé mode par mode dans Réglages Système.
+            Button(action: openFocusSettings) {
+                HStack(spacing: 8) {
+                    Image(systemName: "moon.circle")
+                        .font(Theme.Font.body)
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, alignment: .leading)
+                    Text("Choose per Focus in System Settings › Focus › Focus Filters",
+                         comment: "Link to configure the HydroBar Focus filter")
+                        .font(Theme.Font.caption)
+                        .underline()
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+
+            if manager.focusFilterQuiet {
+                Text("A Focus filter is showing reminders as a badge.",
+                     comment: "Shown while the HydroBar Focus filter is active")
+                    .font(Theme.Font.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.leading, 28)
+            }
+
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "moon.stars.fill")
                     .font(Theme.Font.body)
@@ -935,6 +975,12 @@ struct SettingsView: View {
             ShortcutRecorderView(action: action)
 
             Spacer(minLength: 0)
+        }
+    }
+
+    private func openFocusSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Focus-Settings.extension") {
+            NSWorkspace.shared.open(url)
         }
     }
 

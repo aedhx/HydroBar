@@ -190,6 +190,36 @@ struct SetDailyGoalIntent: AppIntent {
     }
 }
 
+// MARK: - Filtre de Concentration
+
+/// Filtre de Concentration : dans Réglages Système › Concentration, chaque mode
+/// peut passer les rappels de HydroBar en pastille dans la barre de menu.
+///
+/// Plus fiable que la synchronisation par `INFocusStatusCenter`, qui demande la
+/// capability Communication Notifications et une autorisation dédiée : ici,
+/// c'est le système qui appelle l'app à l'activation et à la désactivation.
+/// À la désactivation, les paramètres arrivent vides (`nil`) — d'où le
+/// paramètre optionnel.
+struct HydroBarFocusFilter: SetFocusFilterIntent {
+    static let title: LocalizedStringResource = "HydroBar Reminders"
+    static let description: IntentDescription? = IntentDescription("Show HydroBar reminders as a menu bar badge instead of notifications during this Focus.")
+
+    @Parameter(title: "Reminders as a Badge")
+    var remindersAsBadge: Bool?
+
+    var displayRepresentation: DisplayRepresentation {
+        remindersAsBadge == true
+            ? DisplayRepresentation(title: "Reminders as a badge")
+            : DisplayRepresentation(title: "Reminders unchanged")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult {
+        HydrationManager.shared.setFocusFilterQuiet(remindersAsBadge ?? false)
+        return .result()
+    }
+}
+
 // MARK: - Raccourcis proposés
 
 struct HydroBarShortcuts: AppShortcutsProvider {

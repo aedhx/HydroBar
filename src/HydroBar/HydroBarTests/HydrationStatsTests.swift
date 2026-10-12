@@ -135,3 +135,38 @@ private func drink(day: Int, _ hour: Int, _ ml: Double, aggregate: Bool = false)
     let averages = Array(repeating: 150.0, count: 24)
     #expect(HydrationStats.quietestStretch(averages: averages, activeStartHour: 8, activeEndHour: 22) == nil)
 }
+
+// MARK: - Bilan de la semaine
+
+@Test func summarizesTheLastSevenDays() {
+    let history = [entry(1, 2000), entry(2, 1000), entry(3, 2500), entry(8, 3000)]
+    let summary = HydrationStats.weekSummary(history: history, today: today(2000), calendar: utc)
+    #expect(summary.goalDays == 3)                     // aujourd'hui, J-1, J-3 ; J-8 hors fenêtre
+    #expect(summary.averageMl == 7500.0 / 7)
+}
+
+private func calendar(firstWeekday: Int) -> Calendar {
+    var calendar = utc
+    calendar.firstWeekday = firstWeekday
+    return calendar
+}
+
+/// 13 septembre 2026 : un dimanche.
+private func sunday(_ hour: Int) -> Date {
+    utc.date(from: DateComponents(year: 2026, month: 9, day: 13, hour: hour))!
+}
+
+@Test func sendsTheWeeklySummaryOnTheLastDayOfTheLocalWeek() {
+    let monday = calendar(firstWeekday: 2)   // semaine du lundi au dimanche
+    #expect(HydrationStats.weeklySummaryKeyIfDue(now: sunday(21), hour: 21, lastSentKey: "", calendar: monday) != nil)
+    #expect(HydrationStats.weeklySummaryKeyIfDue(now: sunday(20), hour: 21, lastSentKey: "", calendar: monday) == nil)
+
+    let sundayFirst = calendar(firstWeekday: 1)   // semaine du dimanche au samedi
+    #expect(HydrationStats.weeklySummaryKeyIfDue(now: sunday(21), hour: 21, lastSentKey: "", calendar: sundayFirst) == nil)
+}
+
+@Test func sendsTheWeeklySummaryOnlyOncePerWeek() throws {
+    let monday = calendar(firstWeekday: 2)
+    let key = try #require(HydrationStats.weeklySummaryKeyIfDue(now: sunday(21), hour: 21, lastSentKey: "", calendar: monday))
+    #expect(HydrationStats.weeklySummaryKeyIfDue(now: sunday(22), hour: 21, lastSentKey: key, calendar: monday) == nil)
+}
