@@ -714,8 +714,16 @@ réduisent à un fondu avec « Réduire les animations ».
 > **Livré en v2.0 également** : presets appris, mode gourde, objectif par jour
 > de la semaine, vue sur l'année, bilan du mois partageable, filtre de
 > Concentration, bouton du Centre de contrôle (F10), bilan hebdomadaire (F6.5),
-> popover qui se dimensionne seul. Restent : rappels qui évitent les réunions,
-> captures de référence en CI.
+> popover qui se dimensionne seul.
+>
+> **Puis** : jours travaillés et jours off (plage, cadence, objectif propres ;
+> jour off ponctuel, congés, type de journée fixé par une Concentration ou un
+> raccourci) ; notifications actionnables (presets, quantité libre, niveaux de
+> la gourde) et informatives (progression, retard, dernier appel du soir), un
+> seul rappel visible à la fois ; rappels suspendus pendant un appel (micro ou
+> caméra utilisés, sans autorisation). Plutôt que le calendrier, qui demandait
+> un accès à EventKit, c'est l'appel lui-même qui est détecté. Reste : captures
+> de référence en CI.
 
 **Produit** : presets appris des quantités les plus bues, mode gourde
 (un quart, la moitié, finie), objectif par jour de la semaine, heatmap sur un an,
