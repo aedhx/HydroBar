@@ -17,7 +17,7 @@ enum DateFormat {
 }
 
 // MARK: - HistoryEntry
-struct HistoryEntry: Codable, Identifiable {
+struct HistoryEntry: Codable, Identifiable, Equatable {
     let id: String
     let date: Date
     let amountMl: Double
