@@ -10,8 +10,18 @@ website/
 
 ## Héberger sur hydrobar.adx.cool
 
-Le sous-domaine pointe sur le serveur nginx d'adx.cool (enregistrement A vers
-185.97.144.4). Trois étapes sur le serveur, une seule fois.
+Le sous-domaine pointe sur le VPS (enregistrement A vers 185.97.144.4), servi par nginx.
+Le script `deploy-website.sh`, à la racine du dépôt, fait tout depuis ton Mac :
+
+```sh
+./deploy-website.sh --setup   # une seule fois : dossier, site nginx, certificat HTTPS
+./deploy-website.sh           # ensuite, à chaque mise à jour de la page
+```
+
+Le compte SSH se règle avec `DEPLOY_HOST=utilisateur@185.97.144.4`. Il faut nginx et
+certbot sur le VPS (`sudo apt install nginx certbot python3-certbot-nginx`).
+
+Ce que fait le script, si tu préfères le faire à la main :
 
 **1. Copier la page.** Depuis la racine du dépôt :
 
