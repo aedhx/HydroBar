@@ -1300,7 +1300,7 @@ class HydrationManager: ObservableObject {
         
         // Créer le contenu de la notification de test
         let content = UNMutableNotificationContent()
-        content.title = String(localized: "Hydrobar", comment: "Notification title")
+        content.title = "HydroBar"
         content.body = String(localized: "Test notification - Time to hydrate!", comment: "Test notification body")
         content.sound = .default
         content.categoryIdentifier = "HYDRATION_REMINDER"

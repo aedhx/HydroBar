@@ -1,0 +1,437 @@
+<!doctype html>
+<html>
+<head>
+<meta charset="utf-8">
+<title>HydroBar visuals</title>
+<style>
+  /* Toile : 1440 × 900 points, rendus en 2880 × 1800 pixels (Retina). */
+  :root {
+    --water: #0a84ff; --water-light: #64d2ff; --goal: #30d158; --goal-light: #66d4cf;
+    --ink: #f5f5f7; --ink-2: rgba(235, 235, 245, .62); --ink-3: rgba(235, 235, 245, .35);
+    --hair: rgba(255, 255, 255, .1); --surface: rgba(38, 40, 48, .78);
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1440px; height: 900px; overflow: hidden; background: #07080c; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", Inter, "IPAPGothic", "WenQuanYi Zen Hei", sans-serif;
+    color: var(--ink); -webkit-font-smoothing: antialiased;
+  }
+  :lang(ja) body, body:lang(ja) { font-family: -apple-system, "Hiragino Sans", "IPAPGothic", Inter, sans-serif; }
+  :lang(zh-Hans) body, body:lang(zh-Hans) { font-family: -apple-system, "PingFang SC", "WenQuanYi Zen Hei", Inter, sans-serif; }
+
+  /* ---------- Mise en page App Store ---------- */
+  .stage {
+    position: absolute; inset: 0;
+    background:
+      radial-gradient(900px 700px at 78% 55%, rgba(10, 132, 255, .28), transparent 70%),
+      radial-gradient(700px 500px at 10% 10%, rgba(100, 210, 255, .10), transparent 70%),
+      linear-gradient(160deg, #0d1018 0%, #07080c 60%);
+  }
+  .copy { position: absolute; left: 88px; top: 0; bottom: 0; width: 470px; display: flex; flex-direction: column; justify-content: center; }
+  .copy .icon { width: 84px; height: 84px; border-radius: 19px; margin-bottom: 34px; box-shadow: 0 12px 40px rgba(10, 132, 255, .35); }
+  .copy h1 { text-wrap: balance; font-size: 54px; line-height: 1.08; font-weight: 750; letter-spacing: -.02em; }
+  .copy p { text-wrap: pretty; margin-top: 22px; font-size: 23px; line-height: 1.42; color: var(--ink-2); font-weight: 450; }
+  :lang(ja) .copy h1, :lang(zh-Hans) .copy h1 { font-size: 46px; line-height: 1.25; letter-spacing: 0; }
+  :lang(ja) .copy p, :lang(zh-Hans) .copy p { font-size: 21px; line-height: 1.6; }
+  /* Coupures entre groupes de mots, pas au milieu d'un mot japonais. */
+  :lang(ja) .copy h1, :lang(ja) .copy p { word-break: auto-phrase; }
+
+  /* ---------- Bannière (README, aperçu social) ---------- */
+  body.hero .copy { left: 72px; width: 560px; }
+  body.hero .copy .icon { width: 120px; height: 120px; border-radius: 27px; margin-bottom: 30px; }
+  body.hero .copy h1 { font-size: 64px; letter-spacing: -.03em; }
+  body.hero .copy p { font-size: 25px; margin-top: 14px; }
+  body.hero .badges { display: flex; gap: 10px; margin-top: 28px; flex-wrap: wrap; }
+  body.hero .badges span { font-size: 14px; font-weight: 600; padding: 7px 13px; border-radius: 999px; background: rgba(255,255,255,.08); border: 1px solid rgba(255,255,255,.1); color: var(--ink-2); }
+
+  .desk {
+    position: absolute; right: 64px; top: 72px; width: 800px; height: 756px; border-radius: 26px; overflow: hidden;
+    background:
+      radial-gradient(120% 90% at 0% 100%, #9cc58d 0%, transparent 55%),
+      radial-gradient(90% 70% at 30% 20%, #5aa08f 0%, transparent 60%),
+      radial-gradient(80% 80% at 100% 90%, #2a3fd6 0%, transparent 65%),
+      linear-gradient(135deg, #6fae8d 0%, #3c7fa8 45%, #2b3fc4 100%);
+    box-shadow: 0 40px 120px rgba(0, 0, 0, .55), 0 0 0 1px rgba(255, 255, 255, .08);
+  }
+  .desk::after { /* grain doux, comme un fond d'écran photographique */
+    content: ""; position: absolute; inset: 0; pointer-events: none;
+    background: linear-gradient(120deg, rgba(255,255,255,.10), transparent 40%, rgba(0,0,0,.12));
+  }
+  .menubar {
+    position: absolute; left: 0; right: 0; top: 0; height: 30px; z-index: 5;
+    background: rgba(20, 24, 40, .35); backdrop-filter: blur(30px) saturate(1.6);
+    display: flex; align-items: center; justify-content: flex-end; gap: 18px; padding: 0 16px;
+    font-size: 13px; font-weight: 500; color: rgba(255, 255, 255, .92);
+  }
+  .menubar .mb-icon { width: 18px; height: 18px; opacity: .9; }
+  .menubar .hb { position: relative; width: 26px; height: 22px; display: grid; place-items: center; border-radius: 5px; }
+  .menubar .hb.active { background: rgba(255, 255, 255, .22); }
+
+  /* ---------- Popover ---------- */
+  .popover {
+    position: absolute; z-index: 4; width: 320px; border-radius: 16px; overflow: hidden;
+    background: var(--surface); backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid var(--hair); box-shadow: 0 24px 70px rgba(0, 0, 0, .45);
+  }
+  .popover::before { /* flèche vers l'icône */
+    content: ""; position: absolute; top: -7px; right: var(--arrow, 40px); width: 14px; height: 14px;
+    background: rgba(48, 50, 60, .9); transform: rotate(45deg); border-left: 1px solid var(--hair); border-top: 1px solid var(--hair);
+  }
+  .pop-head { display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(255, 255, 255, .04); border-bottom: 1px solid var(--hair); }
+  .pop-head .title { font-size: 15px; font-weight: 600; }
+  .pop-head svg { width: 15px; height: 15px; color: var(--ink-2); }
+  .pop-body { padding: 16px 0; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .pad { padding: 0 20px; width: 100%; }
+
+  .ring { position: relative; width: 180px; height: 180px; margin-top: 20px; }
+  .ring svg { position: absolute; inset: 0; }
+  .ring .center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .ring .value { font: 700 32px/1 ui-rounded, "SF Pro Rounded", -apple-system, Inter, sans-serif; letter-spacing: -.01em; }
+  .ring .amounts { font-size: 11px; font-weight: 500; color: var(--ink-2); }
+  .ring .pace { font-size: 10px; font-weight: 600; color: var(--goal); }
+
+  .chip { margin-top: -12px; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--ink-2); }
+  .chip svg { width: 12px; height: 12px; }
+
+  .presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .preset { text-align: center; padding: 10px 0; border-radius: 8px; background: rgba(10, 132, 255, .16); font-size: 13px; font-weight: 500; }
+  .hold { height: 40px; border-radius: 8px; background: var(--water); display: grid; place-items: center; font-size: 14px; font-weight: 600; color: #fff; }
+  .log { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--ink-2); }
+  .log svg { width: 9px; height: 9px; }
+  .reset { display: inline-flex; gap: 5px; align-items: center; font-size: 11px; color: #8e8e93; margin: 0 0 4px; }
+  .reset svg { width: 11px; height: 11px; }
+
+  /* Gourde */
+  .bottle-row { display: flex; align-items: center; gap: 14px; padding: 10px; border-radius: 8px; background: rgba(10, 132, 255, .1); }
+  .bottle-row .status { font-size: 12px; font-weight: 500; color: var(--ink-2); margin-bottom: 8px; }
+  .marks { display: flex; gap: 6px; }
+  .mark { min-width: 28px; padding: 4px 6px; border-radius: 6px; text-align: center; font-size: 12px; font-weight: 600; background: rgba(255, 255, 255, .06); }
+  .mark.reached { background: rgba(10, 132, 255, .25); color: var(--ink-2); }
+
+  /* Statistiques */
+  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .kpi { border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, .06); }
+  .kpi .k { font-size: 11px; color: var(--ink-2); }
+  .kpi .v { font: 700 22px/1.2 ui-rounded, -apple-system, Inter, sans-serif; margin-top: 4px; }
+  .section { font-size: 13px; font-weight: 600; align-self: flex-start; padding: 0 20px; margin-bottom: -14px; }
+  .recap { border-radius: 12px; padding: 16px; color: #fff; background: linear-gradient(135deg, var(--water), var(--water-light)); display: flex; flex-direction: column; gap: 10px; }
+  .recap .top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; opacity: .92; }
+  .recap .big { font: 700 24px/1.1 ui-rounded, -apple-system, Inter, sans-serif; }
+  .recap .small { font-size: 11px; opacity: .88; }
+  .recap .lines { font-size: 12px; line-height: 1.55; }
+  .share { display: flex; gap: 8px; margin-top: 8px; }
+  .btn { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .08); }
+  .year { height: 110px; display: flex; align-items: flex-end; gap: 7px; position: relative; padding-bottom: 16px; }
+  .year .bar { flex: 1; border-radius: 3px 3px 0 0; position: relative; }
+  .year .bar span { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--ink-2); }
+  .year .goal { position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(235, 235, 245, .45); }
+  .streak { text-align: center; }
+  .streak b { display: block; font: 700 15px/1.3 ui-rounded, -apple-system, Inter, sans-serif; }
+  .streak span { font-size: 11px; font-weight: 500; color: var(--goal); }
+
+  /* ---------- Notification ---------- */
+  .notif {
+    position: absolute; z-index: 4; right: 14px; top: 42px; width: 360px; border-radius: 18px; padding: 12px 14px;
+    background: rgba(50, 52, 62, .72); backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 20px 60px rgba(0, 0, 0, .4);
+    display: grid; grid-template-columns: 40px 1fr auto; gap: 10px; align-items: start;
+  }
+  .notif img { width: 40px; height: 40px; border-radius: 9px; }
+  .notif .t { font-size: 13px; font-weight: 700; }
+  .notif .b { font-size: 13px; line-height: 1.32; margin-top: 2px; }
+  .notif .when { font-size: 11px; color: var(--ink-2); white-space: nowrap; }
+  .notif .options { grid-column: 3; justify-self: end; margin-top: 6px; font-size: 12px; font-weight: 500; padding: 4px 10px; border-radius: 7px; background: rgba(255, 255, 255, .14); display: inline-flex; gap: 4px; align-items: center; }
+  .menu {
+    position: absolute; z-index: 6; min-width: 220px; padding: 5px; border-radius: 10px;
+    background: rgba(44, 46, 56, .82); backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 18px 50px rgba(0, 0, 0, .45);
+    font-size: 13px;
+  }
+  .menu .item { padding: 4px 12px; border-radius: 5px; display: flex; justify-content: space-between; gap: 24px; }
+  .menu .item.hl { background: var(--water); color: #fff; }
+  .menu .item.dim { color: var(--ink-3); }
+  .menu .sep { height: 1px; margin: 5px 10px; background: rgba(255, 255, 255, .12); }
+  .menu .key { color: var(--ink-2); }
+  .menu .item.hl .key { color: #fff; }
+
+  /* ---------- Fenêtre de réglages ---------- */
+  .window {
+    position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); top: 64px; width: 620px; border-radius: 14px; overflow: hidden;
+    background: rgba(36, 38, 46, .92); backdrop-filter: blur(40px);
+    border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
+  }
+  .titlebar { height: 86px; background: rgba(255, 255, 255, .04); border-bottom: 1px solid var(--hair); position: relative; }
+  .lights { position: absolute; left: 14px; top: 13px; display: flex; gap: 8px; }
+  .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
+  .tabs { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: center; gap: 2px; }
+  .tab { width: 82px; padding: 5px 0 4px; border-radius: 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; color: var(--ink-2); text-align: center; line-height: 1.1; }
+  .tab svg { width: 20px; height: 20px; }
+  .tab.sel { background: rgba(255, 255, 255, .1); color: var(--water); }
+  .wbody { padding: 22px 26px; display: flex; flex-direction: column; gap: 18px; }
+  .st { font-size: 11px; font-weight: 600; color: var(--ink-2); letter-spacing: .02em; margin-bottom: 6px; }
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
+  .help { font-size: 11px; color: var(--ink-2); line-height: 1.4; margin-top: 4px; }
+  .switch { width: 32px; height: 19px; border-radius: 10px; background: var(--water); position: relative; flex: none; }
+  .switch::after { content: ""; position: absolute; right: 2px; top: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; }
+  .seg { display: inline-flex; padding: 2px; border-radius: 7px; background: rgba(255, 255, 255, .08); font-size: 12px; }
+  .seg span { padding: 3px 18px; border-radius: 5px; }
+  .seg .on { background: rgba(255, 255, 255, .2); }
+  .chips { display: flex; gap: 6px; }
+  .chips span { width: 46px; height: 26px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 500; background: rgba(255, 255, 255, .06); }
+  .chips .off { background: rgba(10, 132, 255, .3); }
+  .popup { padding: 3px 22px 3px 9px; border-radius: 6px; background: rgba(255, 255, 255, .1); font-size: 12px; position: relative; }
+  .popup::after { content: "⌃⌄"; position: absolute; right: 6px; top: 1px; font-size: 8px; line-height: 9px; width: 6px; white-space: pre-wrap; color: var(--ink-2); }
+  .field { padding: 3px 8px; width: 70px; border-radius: 5px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 255, 255, .12); font-size: 12px; }
+  .check { width: 14px; height: 14px; border-radius: 4px; background: var(--water); display: grid; place-items: center; }
+  .label { width: 150px; flex: none; }
+
+  /* Widget */
+  .widget {
+    position: absolute; z-index: 3; width: 176px; height: 176px; border-radius: 22px; padding: 14px;
+    background: rgba(28, 30, 38, .72); backdrop-filter: blur(40px) saturate(1.8);
+    border: 1px solid rgba(255, 255, 255, .1); box-shadow: 0 16px 50px rgba(0, 0, 0, .35);
+    display: flex; flex-direction: column; align-items: center; gap: 10px;
+  }
+  .widget .wr { position: relative; width: 100px; height: 100px; }
+  .widget .wr b { position: absolute; inset: 0; display: grid; place-items: center; font: 700 22px ui-rounded, -apple-system, Inter, sans-serif; }
+  .widget .wbtn { width: 100%; }
+  .widget .wb { display: flex; flex-direction: column; gap: 10px; }
+  .widget .wt { font-size: 13px; font-weight: 600; color: var(--ink-2); }
+  .widget .wbtn { padding: 8px 0; text-align: center; border-radius: 10px; background: rgba(10, 132, 255, .25); font-size: 13px; font-weight: 600; }
+
+  /* ---------- Variantes sans légende (README) ---------- */
+  body.bare .copy { display: none; }
+  body.bare .stage { background: transparent; }
+  body.bare .desk { left: 0; right: auto; top: 0; }
+</style>
+</head>
+<body>
+<div class="stage"></div>
+<div class="copy">
+  <img class="icon" src="../Resources/HydroBar-icon.png" alt="">
+  <h1 id="headline"></h1>
+  <p id="subhead"></p>
+  <div class="badges" id="badges"></div>
+</div>
+<div class="desk" id="desk">
+  <div class="menubar" id="menubar"></div>
+</div>
+
+<script>
+const D = window.__DATA;
+document.documentElement.lang = D.lang;
+if (D.bare) document.body.classList.add('bare');
+if (D.hero) {
+  document.body.classList.add('hero');
+  document.documentElement.style.cssText = document.body.style.cssText = `width:${D.hero.width}px; height:${D.hero.height}px`;
+  document.getElementById('badges').innerHTML = D.hero.badges.map((b) => `<span>${b}</span>`).join('');
+}
+document.getElementById('headline').textContent = D.caption[0];
+document.getElementById('subhead').textContent = D.caption[1];
+
+const h = (html) => { const t = document.createElement('template'); t.innerHTML = html.trim(); return t.content.firstElementChild; };
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const desk = document.getElementById('desk');
+
+// Icônes : formes simples, à la manière des SF Symbols.
+const ICON = {
+  chart: '<svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="8" width="3.5" height="7" rx="1"/><rect x="6.25" y="4" width="3.5" height="11" rx="1"/><rect x="11.5" y="1" width="3.5" height="14" rx="1"/></svg>',
+  gear: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg>',
+  drop: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5s-7 7.6-7 12.3A7 7 0 0 0 19 14.8C19 10.1 12 2.5 12 2.5z"/></svg>',
+  bell: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 22a2.5 2.5 0 0 0 2.4-2h-4.8A2.5 2.5 0 0 0 12 22zm7-6V11a7 7 0 0 0-5.5-6.8V3.5a1.5 1.5 0 0 0-3 0v.7A7 7 0 0 0 5 11v5l-2 2v1h18v-1z"/></svg>',
+  calendar: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 4h-1V2h-2v2H8V2H6v2H5a2 2 0 0 0-2 2v13a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2zm0 15H5V9h14z"/><rect x="7" y="11" width="3" height="3" rx=".5"/><rect x="14" y="15" width="3" height="3" rx=".5"/></svg>',
+  keyboard: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 5H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2zM11 8h2v2h-2zm0 3h2v2h-2zM8 8h2v2H8zm0 3h2v2H8zm-1 2H5v-2h2zm0-3H5V8h2zm9 7H8v-2h8zm0-4h-2v-2h2zm0-3h-2V8h2zm3 3h-2v-2h2zm0-3h-2V8h2z"/></svg>',
+  drive: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 13H4a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-3a2 2 0 0 0-2-2zm-3 5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3zM18.6 4.6A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.8 1.1L2.4 11.7A3.9 3.9 0 0 1 4 11.4h16c.6 0 1.1.1 1.6.3z"/></svg>',
+  puzzle: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 11H19V7a2 2 0 0 0-2-2h-4V3.5a2.5 2.5 0 0 0-5 0V5H4a2 2 0 0 0-2 2v3.8h1.5a2.7 2.7 0 0 1 0 5.4H2V20a2 2 0 0 0 2 2h3.8v-1.5a2.7 2.7 0 0 1 5.4 0V22H17a2 2 0 0 0 2-2v-4h1.5a2.5 2.5 0 0 0 0-5z"/></svg>',
+  briefcase: '<svg viewBox="0 0 24 24" fill="currentColor"><path d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM10 5h4v2h-4z"/></svg>',
+  chevron: '<svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M3.5 1.5 7 5l-3.5 3.5"/></svg>',
+  down: '<svg viewBox="0 0 10 10" width="9" height="9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M2 3.5 5 6.5 8 3.5"/></svg>',
+  reset: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"><path d="M3 8a5 5 0 1 0 1.5-3.6"/><path d="M3 2v3h3"/></svg>',
+  wifi: '<svg class="mb-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 18.5a1.8 1.8 0 1 0 0 3.6 1.8 1.8 0 0 0 0-3.6zM6.3 14.6l1.6 1.6a5.8 5.8 0 0 1 8.2 0l1.6-1.6a8 8 0 0 0-11.4 0zM2.7 11l1.6 1.6a10.9 10.9 0 0 1 15.4 0l1.6-1.6a13.2 13.2 0 0 0-18.6 0z"/></svg>',
+  battery: '<svg class="mb-icon" style="width:26px" viewBox="0 0 30 14" fill="none"><rect x=".75" y=".75" width="25" height="12.5" rx="3.5" stroke="currentColor" stroke-width="1.2" opacity=".55"/><rect x="2.5" y="2.5" width="18" height="9" rx="2" fill="currentColor"/><path d="M27.5 5v4a2 2 0 0 0 0-4z" fill="currentColor" opacity=".55"/></svg>',
+  search: '<svg class="mb-icon" style="width:15px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round"><circle cx="10" cy="10" r="6.5"/><path d="m15 15 6 6"/></svg>',
+  check: '<svg viewBox="0 0 12 12" width="10" height="10" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round"><path d="M2.5 6.3 5 8.8l4.5-5.3"/></svg>',
+  sun: '<svg viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="4.5"/><g stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M12 1.5v2.5M12 20v2.5M1.5 12H4M20 12h2.5M4.6 4.6l1.8 1.8M17.6 17.6l1.8 1.8M4.6 19.4l1.8-1.8M17.6 6.4l1.8-1.8"/></g></svg>',
+};
+
+// Icône de la barre de menus : anneau « template », rempli à la progression.
+function menuRing(progress) {
+  const r = 7, c = 2 * Math.PI * r;
+  return `<svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="${r}" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="2.4"/>
+    <circle cx="9" cy="9" r="${r}" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-dasharray="${c * progress} ${c}" transform="rotate(-90 9 9)"/></svg>`;
+}
+
+function menubar(active) {
+  document.getElementById('menubar').innerHTML =
+    `<div class="hb ${active ? 'active' : ''}">${menuRing(D.popover.progress)}</div>${ICON.search}${ICON.wifi}${ICON.battery}<span>${esc(D.clock)}</span>`;
+}
+
+function ring(progress, pace) {
+  const size = 180, lw = 12, r = (size - lw) / 2, c = 2 * Math.PI * r;
+  const angle = pace * 360 - 90, rad = angle * Math.PI / 180;
+  const px = size / 2 + r * Math.cos(rad), py = size / 2 + r * Math.sin(rad);
+  return `<div class="ring">
+    <svg width="${size}" height="${size}">
+      <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#64d2ff"/></linearGradient></defs>
+      <circle cx="90" cy="90" r="${r}" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="${lw}"/>
+      <circle cx="90" cy="90" r="${r}" fill="none" stroke="url(#g)" stroke-width="${lw}" stroke-linecap="round"
+        stroke-dasharray="${c * progress} ${c}" transform="rotate(-90 90 90)"/>
+      <rect x="${px - 1.5}" y="${py - 10}" width="3" height="20" rx="1.5" fill="rgba(245,245,247,.55)" transform="rotate(${angle + 90} ${px} ${py})"/>
+    </svg>
+    <div class="center">
+      <div class="value">${esc(D.popover.percent)}</div>
+      <div class="amounts">${esc(D.popover.amounts)}</div>
+      <div class="pace">${esc(D.popover.paceCaption)}</div>
+    </div></div>`;
+}
+
+function popover({ body, title = D.popover.title, statsOn = false, top = 38 }) {
+  const el = h(`<div class="popover" style="top:${top}px">
+    <div class="pop-head">
+      <span style="color:${statsOn ? 'var(--water)' : 'var(--ink-2)'}">${ICON.chart}</span>
+      <span class="title">${esc(title)}</span>
+      <span>${ICON.gear}</span>
+    </div>
+    <div class="pop-body">${body}</div></div>`);
+  desk.appendChild(el);
+  // Comme sous macOS : le popover est centré sous l'icône, sans sortir de l'écran.
+  const icon = document.querySelector('.menubar .hb');
+  const center = icon.offsetLeft + icon.offsetWidth / 2;
+  const left = Math.min(center - 160, desk.clientWidth - 320 - 10);
+  el.style.left = `${left}px`;
+  el.style.setProperty('--arrow', `${320 - (center - left) - 7}px`);
+  return el;
+}
+
+function mainBody({ bottle = false } = {}) {
+  const P = D.popover;
+  return `${ring(P.progress, P.pace)}
+    <div class="chip">${ICON.briefcase}<span>${esc(P.chip)}</span></div>
+    ${bottle ? `<div class="pad">${bottleRow()}</div>` : ''}
+    <div class="pad"><div class="presets">${P.presets.map((p) => `<div class="preset">${esc(p)}</div>`).join('')}</div></div>
+    <div class="pad"><div class="hold">${esc(P.hold)}</div></div>
+    <div class="pad"><div class="log">${ICON.chevron}<span>${esc(P.log)}</span></div></div>
+    <div class="reset">${ICON.reset}<span>${esc(P.reset)}</span></div>`;
+}
+
+function bottleRow() {
+  const B = D.bottle;
+  const water = 64 * .82 * (1 - B.fraction);
+  return `<div class="bottle-row">
+    <svg width="34" height="64" viewBox="0 0 34 64">
+      <defs>
+        <clipPath id="bc"><rect x="9.9" y="0" width="14.3" height="11.5" rx="3"/><rect x="0" y="9.5" width="34" height="54.5" rx="10"/></clipPath>
+        <linearGradient id="bw" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#0a84ff"/></linearGradient>
+      </defs>
+      <g clip-path="url(#bc)"><rect width="34" height="64" fill="rgba(255,255,255,.06)"/><rect y="${64 - water}" width="34" height="${water}" fill="url(#bw)"/></g>
+      <rect x="9.9" y=".75" width="14.3" height="11.5" rx="3" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+      <rect x=".75" y="9.5" width="32.5" height="53.75" rx="10" fill="none" stroke="rgba(255,255,255,.35)" stroke-width="1.5"/>
+    </svg>
+    <div><div class="status">${esc(B.status)}</div>
+      <div class="marks">${B.marks.map((m, i) => `<span class="mark ${i < B.reached ? 'reached' : ''}">${esc(m)}</span>`).join('')}</div></div></div>`;
+}
+
+const screens = {
+  today() {
+    menubar(true);
+    popover({ body: mainBody() });
+  },
+
+  bottle() {
+    menubar(true);
+    popover({ body: mainBody({ bottle: true }) });
+  },
+
+  notification() {
+    menubar(false);
+    const N = D.notification;
+    desk.appendChild(h(`<div class="notif">
+      <img src="../Resources/HydroBar-icon.png" alt="">
+      <div><div class="t">${esc(N.title)}</div><div class="b">${esc(N.body)}</div></div>
+      <div class="when">${esc(N.when)}</div>
+      <div></div><div></div>
+      <div class="options">${esc(N.options)} ${ICON.down}</div></div>`));
+    const items = N.actions.map((a, i) => `<div class="item ${i === 1 ? 'hl' : ''}">${esc(a)}</div>`).join('');
+    desk.appendChild(h(`<div class="menu" style="right:14px; top:${42 + 112}px">${items}</div>`));
+  },
+
+  days() {
+    menubar(false);
+    const S = D.settings;
+    const tabs = S.tabs.map((tb) => `<div class="tab ${tb.selected ? 'sel' : ''}">${ICON[tb.icon]}<span>${esc(tb.label)}</span></div>`).join('');
+    const chips = S.weekdays.map((d) => `<span class="${d.off ? 'off' : ''}">${esc(d.label)}</span>`).join('');
+    desk.appendChild(h(`<div class="window">
+      <div class="titlebar"><div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div><div class="tabs">${tabs}</div></div>
+      <div class="wbody">
+        <div><div class="st">${esc(S.daysOff)}</div>
+          <div class="row"><span class="switch"></span><span>${esc(S.enable)}</span></div>
+          <div class="help">${esc(S.enableHelp)}</div></div>
+        <div><div class="st">${esc(S.today)}</div>
+          <div class="seg"><span class="on">${esc(S.work)}</span><span>${esc(S.off)}</span></div>
+          <div class="help">${esc(S.todayHelp)}</div></div>
+        <div><div class="st">${esc(S.myDays)}</div><div class="chips">${chips}</div></div>
+        <div style="display:flex; flex-direction:column; gap:10px"><div class="st" style="margin:0">${esc(S.onDaysOff)}</div>
+          <div class="row"><span class="label">${esc(S.activeHours)}</span><span class="popup">${esc(S.from)}</span><span style="color:var(--ink-2)">${esc(S.to)}</span><span class="popup">${esc(S.until)}</span></div>
+          <div class="row"><span class="switch"></span><span>${esc(S.reminders)}</span></div>
+          <div class="row"><span class="label">${esc(S.remindMe)}</span><span class="popup">${esc(S.interval)}</span></div>
+          <div class="row"><span class="check">${ICON.check}</span><span style="width:126px">${esc(S.ownGoal)}</span><span class="field">${esc(S.goal)}</span><span style="color:var(--ink-2); font-size:11px">${esc(S.unit)}</span></div></div>
+        <div><div class="st">${esc(S.timeOff)}</div>
+          <div class="row"><span style="color:var(--ink-2)">${ICON.sun.replace('<svg', '<svg width="15" height="15"')}</span><span style="flex:1">${esc(S.leave)}</span><span class="btn">${esc(S.end)}</span></div></div>
+      </div></div>`));
+  },
+
+  stats() {
+    menubar(true);
+    const S = D.stats;
+    const max = Math.max(...S.months.map((m) => m.value)) * 1.08;
+    const bars = S.months.map((m) => `<div class="bar" style="height:${(m.value / max) * 94}px; background:${m.value >= 1 ? 'var(--goal)' : 'var(--water)'}"><span>${esc(m.label)}</span></div>`).join('');
+    const body = `
+      <div class="pad"><div class="kpis">${S.kpis.map(([k, v]) => `<div class="kpi"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('')}</div></div>
+      <div class="section">${esc(S.thisMonth)}</div>
+      <div class="pad"><div class="recap">
+        <div class="top"><span>● HydroBar</span><span>${esc(S.month)}</span></div>
+        <div><div class="big">${esc(S.average)}</div><div class="small">${esc(S.aDay)}</div></div>
+        <div class="lines">${esc(S.goalDays)}<br>${esc(S.bestDay)}<br>${esc(S.streak)}</div></div>
+        <div class="share"><span class="btn">${esc(S.share)}</span><span class="btn">${esc(S.copy)}</span></div></div>
+      <div class="section">${esc(S.year)}</div>
+      <div class="pad"><div class="year">${bars}<div class="goal" style="bottom:${16 + (1 / max) * 94}px"></div></div></div>
+      <div class="streak"><b>${esc(S.streakBig)}</b><span>${esc(S.unstoppable)}</span></div>`;
+    popover({ body, title: D.popover.statsTitle, statsOn: true });
+  },
+
+  everywhere() {
+    menubar(true);
+    const M = D.menu, W = D.widget;
+    const r = 43, c = 2 * Math.PI * r;
+    desk.appendChild(h(`<div class="widget" style="left:28px; bottom:28px">
+      <div class="wr"><svg width="100" height="100"><circle cx="50" cy="50" r="${r}" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="10"/>
+        <circle cx="50" cy="50" r="${r}" fill="none" stroke="#0a84ff" stroke-width="10" stroke-linecap="round" stroke-dasharray="${c * D.popover.progress} ${c}" transform="rotate(-90 50 50)"/></svg><b>${esc(D.popover.percent)}</b></div>
+      <div class="wbtn">${esc(W.presets[0])}</div></div>`));
+    const item = (label, key = '', cls = '') => `<div class="item ${cls}"><span>${esc(label)}</span><span class="key">${key}</span></div>`;
+    desk.appendChild(h(`<div class="menu" style="right:118px; top:36px">
+      ${item(M.version, '', 'dim')}<div class="sep"></div>
+      ${M.add.map((a) => item(a)).join('')}${item(M.undo, '⌘Z')}<div class="sep"></div>
+      ${item(M.dayOff, '', 'hl')}<div class="sep"></div>
+      ${item(M.pause, '›')}<div class="sep"></div>
+      ${item(M.shortcuts, '›')}${item(M.settings, '⌘,')}${item(M.about)}${item(M.repo)}<div class="sep"></div>
+      ${item(M.quit, '⌘Q')}</div>`));
+  },
+};
+
+// L'interface est agrandie pour rester lisible dans les miniatures de l'App
+// Store, sans changer la taille du bureau.
+const ZOOM = { today: 1.3, bottle: 1.12, notification: 1.4, stats: 1.12, days: 1.1, everywhere: 1.15 };
+const zoom = D.hero ? D.hero.zoom : (ZOOM[D.screen] || 1);
+const box = D.hero ? D.hero.desk : { width: 800, height: 756, top: 72, right: 64 };
+desk.style.zoom = zoom;
+desk.style.width = `${box.width / zoom}px`;
+desk.style.height = `${box.height / zoom}px`;
+desk.style.borderRadius = `${26 / zoom}px`;
+// La position aussi est multipliée par le zoom : on la ramène.
+if (D.bare) { desk.style.right = 'auto'; desk.style.left = '0px'; desk.style.top = '0px'; }
+else { desk.style.right = `${box.right / zoom}px`; desk.style.top = `${box.top / zoom}px`; }
+
+screens[D.screen]();
+</script>
+</body>
+</html>
