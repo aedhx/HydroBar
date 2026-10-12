@@ -234,7 +234,7 @@ struct SettingsView: View {
 
                 HStack(alignment: .firstTextBaseline, spacing: 8) {
                     ValidatedNumberField(
-                        value: manager.selectedUnit.fromMl(manager.targetMl),
+                        value: manager.selectedUnit.fromMl(manager.defaultTargetMl),
                         range: displayRange(HydrationLimits.goal),
                         format: formatForInput,
                         onCommit: { manager.targetMl = manager.mlValue(from: $0) }
@@ -247,6 +247,70 @@ struct SettingsView: View {
                         .frame(width: 35, alignment: .leading)
                 }
             }
+
+            weekdayGoalsSection
+    }
+
+    // MARK: - Objectif par jour de la semaine
+
+    /// Jours dans l'ordre de la locale (lundi d'abord en France).
+    private var orderedWeekdays: [Int] {
+        let first = Calendar.current.firstWeekday
+        return (0..<7).map { (first - 1 + $0) % 7 + 1 }
+    }
+
+    private var weekdayGoalsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("GOAL BY DAY OF THE WEEK", comment: "Settings section title for per-weekday goals")
+                .font(Theme.Font.sectionTitle)
+                .foregroundColor(.secondary)
+            Text("Higher on sports days, lower on weekends. Days without their own goal use the daily goal.",
+                 comment: "Explanation of per-weekday goals")
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            ForEach(orderedWeekdays, id: \.self) { weekday in
+                weekdayRow(weekday)
+            }
+        }
+    }
+
+    private func weekdayRow(_ weekday: Int) -> some View {
+        let override = manager.weekdayGoals.overrides[weekday]
+        return HStack(spacing: 10) {
+            Toggle(isOn: Binding(
+                get: { override != nil },
+                set: { enabled in
+                    var goals = manager.weekdayGoals
+                    goals.overrides[weekday] = enabled ? manager.defaultTargetMl : nil
+                    manager.weekdayGoals = goals
+                }
+            )) {
+                Text(verbatim: Calendar.current.weekdaySymbols[weekday - 1].capitalized)
+                    .font(Theme.Font.body)
+                    .frame(width: 100, alignment: .leading)
+            }
+            .toggleStyle(.checkbox)
+
+            if let override {
+                ValidatedNumberField(
+                    value: manager.selectedUnit.fromMl(override),
+                    range: displayRange(HydrationLimits.goal),
+                    format: formatForInput,
+                    onCommit: { value in
+                        var goals = manager.weekdayGoals
+                        goals.overrides[weekday] = manager.mlValue(from: value)
+                        manager.weekdayGoals = goals
+                    }
+                )
+                .frame(width: 90)
+                Text(verbatim: manager.selectedUnit.symbol)
+                    .font(Theme.Font.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
     }
 
     @ViewBuilder

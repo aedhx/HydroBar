@@ -114,7 +114,7 @@ struct OnboardingView: View {
 
             HStack(alignment: .firstTextBaseline, spacing: 8) {
                 ValidatedNumberField(
-                    value: manager.selectedUnit.fromMl(manager.targetMl),
+                    value: manager.selectedUnit.fromMl(manager.defaultTargetMl),
                     range: displayRange(HydrationLimits.goal),
                     format: formatForInput,
                     onCommit: { manager.targetMl = manager.mlValue(from: $0) }

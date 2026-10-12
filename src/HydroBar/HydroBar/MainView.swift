@@ -299,6 +299,9 @@ struct MainContentView: View {
             }
             .padding(.horizontal, 20)
             
+            PresetSuggestionBanner(manager: manager)
+                .padding(.horizontal, 20)
+
             // Bouton Hold-to-Add
             HoldButton(
                 label: holdButtonLabel,
