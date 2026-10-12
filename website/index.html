@@ -218,7 +218,7 @@
     .story.past-hero .hero-copy { transform: translateY(-8%); }
     .js .event { top: 28px; transform: translateY(8px); }
     .js .event.on { transform: none; }
-    .tick-label { display: none; }
+    .tick-label { font-size: 13px; }
     .pct-sub { font-size: 15px; }
   }
 
@@ -659,22 +659,26 @@
       story.classList.toggle('goal', done);
       arc.setAttribute('stroke', done ? 'url(#g-goal)' : 'url(#g-water)');
       paintMenubar();
-      pct.textContent = `${Math.floor(frac * 100)}%`;
+      pct.textContent = `${Math.floor(frac * 100 + 1e-9)}%`;
       const behind = !done && intake < pace * GOAL - 50;
       pctSub.textContent = done ? `${fmtL(GOAL)} · goal reached`
         : `${fmtL(intake)} of ${fmtL(GOAL)} · ${behind ? `${fmtL(Math.round((pace * GOAL - intake) / 10) * 10)} behind` : 'on track'}`;
       clock.textContent = `Tue ${fmtTime(minutes)}`;
       // L'étiquette du repère, à l'intérieur de l'anneau, face au repère.
       const a = pace * 2 * Math.PI - Math.PI / 2;
-      // Plus près du centre quand le repère est couché, pour ne pas le chevaucher.
-      const rr = 30 - 7 * Math.abs(Math.cos(a));
+      // Repère couché (vers 9 h ou 3 h sur le cadran) : l'étiquette passe au-dessus de
+      // lui, entre l'anneau et le pourcentage ; sinon, face à lui vers le centre.
+      const flat = Math.abs(Math.cos(a)) > .7;
+      const rr = flat ? 31 : 30 - 7 * Math.abs(Math.cos(a));
       const fx = 50 + rr * Math.cos(a), fy = 50 + rr * Math.sin(a);
+      const dy = flat ? -(tickLabel.offsetHeight / 2 + 14) : 0;
       tickLabel.style.left = `${fx}%`;
       tickLabel.style.top = `${fy}%`;
+      tickLabel.style.transform = `translate(-50%, calc(-50% + ${dy}px))`;
       tickLabel.firstChild.textContent = fmtTime(minutes);
       // Masquée si sa place d'arrivée sort de la fenêtre, avant la journée et à l'objectif.
       const w = ringWrap.getBoundingClientRect(), box = stage.getBoundingClientRect();
-      const x = w.left + w.width * fx / 100, y = w.top + w.height * fy / 100;
+      const x = w.left + w.width * fx / 100, y = w.top + w.height * fy / 100 + dy;
       const hw = tickLabel.offsetWidth / 2 + 16, hh = tickLabel.offsetHeight / 2 + 16;
       const n = pct.getBoundingClientRect();
       const clearOfNumeral = x + hw - 16 < n.left || x - hw + 16 > n.right || y + hh - 16 < n.top || y - hh + 16 > n.bottom;
