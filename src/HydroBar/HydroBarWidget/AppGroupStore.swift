@@ -128,7 +128,13 @@ struct AppGroupStore {
     static let suiteName = "group.com.adxcool.HydroBar"
 
     private static var defaults: UserDefaults {
-        UserDefaults(suiteName: suiteName) ?? .standard
+        // Retomber en silence sur .standard masquerait un App Group mal configuré :
+        // l'app et le widget écriraient chacun de leur côté sans jamais se voir.
+        guard let shared = UserDefaults(suiteName: suiteName) else {
+            assertionFailure("App Group \(suiteName) inaccessible — vérifier les entitlements")
+            return .standard
+        }
+        return shared
     }
 
     // MARK: - Keys

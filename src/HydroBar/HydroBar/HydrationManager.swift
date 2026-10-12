@@ -50,22 +50,28 @@ enum MenuBarIconStyle: String, CaseIterable, Codable {
 
 // `AppUnit` est défini dans AppGroupStore.swift, partagé avec le widget.
 
-// MARK: - Extension pour Array<Double> avec AppStorage
-extension Array: @retroactive RawRepresentable where Element == Double {
-    public init?(rawValue: String) {
-        guard let data = rawValue.data(using: .utf8),
-              let array = try? JSONDecoder().decode([Double].self, from: data) else {
-            return nil
-        }
-        self = array
+// MARK: - Presets
+
+/// Encodage des presets dans UserDefaults. Remplace une conformance rétroactive
+/// `Array: RawRepresentable` — qui changeait la sémantique de *tout* `[Double]`
+/// du projet et pouvait entrer en conflit avec une future conformance d'Apple
+/// (cf. AUDIT_TECHNIQUE.md § P1-6).
+enum PresetStorage {
+    static let defaults: [Double] = [200, 500, 750]
+
+    static func decode(_ raw: String) -> [Double] {
+        guard let data = raw.data(using: .utf8),
+              let values = try? JSONDecoder().decode([Double].self, from: data),
+              !values.isEmpty
+        else { return defaults }
+        return values
     }
-    
-    public var rawValue: String {
-        guard let data = try? JSONEncoder().encode(self),
-              let string = String(data: data, encoding: .utf8) else {
-            return "[]"
-        }
-        return string
+
+    static func encode(_ values: [Double]) -> String {
+        guard let data = try? JSONEncoder().encode(values),
+              let raw = String(data: data, encoding: .utf8)
+        else { return "[]" }
+        return raw
     }
 }
 
@@ -212,10 +218,10 @@ class HydrationManager: ObservableObject {
     
     var presetsMl: [Double] {
         get {
-            Array(rawValue: storedPresetsMlRaw) ?? [200.0, 500.0, 750.0]
+            PresetStorage.decode(storedPresetsMlRaw)
         }
         set {
-            storedPresetsMlRaw = newValue.rawValue
+            storedPresetsMlRaw = PresetStorage.encode(newValue)
         }
     }
     
@@ -714,7 +720,6 @@ class HydrationManager: ObservableObject {
     var weeklyTotal: Double {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        _ = calendar.date(byAdding: .day, value: -6, to: today)! // -6 pour avoir 7 jours au total (aujourd'hui + 6 jours passés)
         
         var total: Double = 0
         
