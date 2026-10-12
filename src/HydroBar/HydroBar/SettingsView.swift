@@ -128,6 +128,8 @@ struct SettingsView: View {
     @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
     @ObservedObject private var focusMonitor = FocusModeMonitor.shared
     @State private var debugTapCount: Int = 0
+    /// Le système a refusé les notifications à l'activation des rappels.
+    @State private var notificationsDenied = false
 
     var body: some View {
         ScrollView {
@@ -261,11 +263,10 @@ struct SettingsView: View {
                     Toggle("", isOn: Binding(
                         get: { manager.notificationsEnabled },
                         set: { newValue in
-                            manager.notificationsEnabled = newValue
-                            if newValue {
-                                manager.scheduleNotifications()
-                            } else {
-                                UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                            // Le didSet de notificationsEnabled programme ou
+                            // annule les rappels.
+                            manager.setRemindersEnabled(newValue) { granted in
+                                notificationsDenied = newValue && !granted
                             }
                         }
                     ))
@@ -273,6 +274,25 @@ struct SettingsView: View {
                     .labelsHidden()
                 }
                 
+                // Refus visible et rattrapable, au lieu d'un interrupteur qui
+                // revient en arrière sans explication.
+                if notificationsDenied {
+                    Button(action: { manager.openNotificationSettings() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.orange)
+                            Text("Notifications are turned off for HydroBar in System Settings.",
+                                 comment: "Shown when the user enables reminders but notifications are denied")
+                                .font(.system(size: 11))
+                                .underline()
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 28)
+                }
+
                 // Picker Intervalle (segmented)
                 if manager.notificationsEnabled {
                     Picker("", selection: Binding(

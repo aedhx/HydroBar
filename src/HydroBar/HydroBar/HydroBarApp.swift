@@ -191,26 +191,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Demander l'autorisation pour les notifications uniquement si le statut n'a pas encore été déterminé
+        // L'autorisation des notifications n'est plus demandée ici, au premier
+        // lancement, mais quand l'utilisateur active les rappels (onboarding ou
+        // réglages). On vérifie seulement qu'elle n'a pas été retirée depuis.
         UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-                    if !granted {
-                        DispatchQueue.main.async {
-                            HydrationManager.shared.notificationsEnabled = false
-                        }
-                    }
-                }
-            case .denied:
-                DispatchQueue.main.async {
-                    HydrationManager.shared.notificationsEnabled = false
-                }
-            default:
-                break
+            guard settings.authorizationStatus == .denied else { return }
+            DispatchQueue.main.async {
+                HydrationManager.shared.notificationsEnabled = false
             }
         }
-        
+
         // Initialiser le gestionnaire de raccourcis globaux
         _ = GlobalHotkeyManager.shared
         
@@ -223,6 +213,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // La barre de menu existe : les deep links reçus pendant le lancement
         // peuvent maintenant être traités.
         DeepLinkRouter.shared.markReady()
+
+        OnboardingWindowController.shared.showIfNeeded()
     }
     
     func setupStatusBar() {
