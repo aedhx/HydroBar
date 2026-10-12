@@ -129,6 +129,10 @@ History is no longer cut off after 30 days. v1 deleted older data; v2 keeps all 
 
 ## Installation
 
+**Mac App Store**: search for HydroBar, or follow the link on the [GitHub page](https://github.com/aedhx/HydroBar). Updates then come through the App Store.
+
+**Direct download**:
+
 1. Download **HydroBar-v2.0.dmg** from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
 2. Open the DMG and drag `HydroBar.app` into your Applications folder.
 3. Open HydroBar.

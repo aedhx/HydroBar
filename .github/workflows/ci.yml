@@ -145,6 +145,15 @@ jobs:
           if-no-files-found: ignore
           retention-days: 7
 
+  appstore-metadata:
+    name: Check the App Store listing
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      # Longueurs, champs obligatoires, mots-clés : App Store Connect ne le
+      # dirait qu'au moment de l'envoi.
+      - run: python3 fastlane/check_metadata.py
+
   raycast:
     name: Typecheck the Raycast extension
     runs-on: ubuntu-latest

@@ -143,19 +143,23 @@ In **Settings › Data**:
 - **Restore from Backup**: adds only the entries you don't already have, so restoring the same backup twice changes nothing
 
 ### 🔄 Additional Features
-- **Check for updates** in Settings: compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available
+- **Check for updates** in Settings (direct download version): compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available. The Mac App Store version is updated by the App Store
 - **Undo/Redo support** (Cmd+Z) to correct mistakes
 - **Complete history** saved locally on your Mac, one entry per drink, never cut off
 - **Data persistence** across app restarts and updates
-- **Privacy-first**: all data stays on your device, no cloud sync (only optional outbound request to GitHub API for update check)
+- **Privacy-first**: all data stays on your device, no cloud sync. The Mac App Store version has no network access at all; the direct download only contacts the GitHub API when you check for updates. See the [privacy policy](PRIVACY.md)
 
 ---
 
 ## 🚀 Installation
 
-### Method 1: Direct Download (Recommended)
+### Mac App Store
 
-1. Download `HydroBar-v1.2.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
+Search for **HydroBar** in the Mac App Store. Updates come through the App Store.
+
+### Method 1: Direct Download
+
+1. Download `HydroBar-v2.0.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
 2. Mount the DMG and drag `HydroBar.app` into your Applications folder
 3. **First launch** — macOS may block the app because it is not notarized. Use one of the methods below.
 

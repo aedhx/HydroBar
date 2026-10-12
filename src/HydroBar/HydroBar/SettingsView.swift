@@ -976,6 +976,10 @@ struct SettingsView: View {
                     .padding(.leading, 28)
             }
 
+            // La synchro par INFocusStatusCenter demande la capability
+            // Communication Notifications, absente de la build App Store : le
+            // filtre de Concentration ci-dessus fait mieux, sans autorisation.
+            #if !APP_STORE
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "moon.stars.fill")
                     .font(Theme.Font.body)
@@ -1036,6 +1040,7 @@ struct SettingsView: View {
                         .padding(.leading, 28)
                 }
             }
+            #endif
         }
     }
 

@@ -1,0 +1,23 @@
+HydroBar is a menu bar app: it has no Dock icon and no main window.
+
+GETTING STARTED
+- On first launch, a short welcome window sets the unit, daily goal, presets and reminders.
+- Then click the drop icon in the menu bar to open HydroBar. Click a preset to log a drink.
+- Right-click (or Control-click) the icon for the context menu: presets, Undo, Pause Reminders, Today Is a Day Off, Settings… (Command-comma) and Quit.
+
+REMINDERS
+- Turn reminders on in Settings > Reminders. HydroBar asks for notification permission at that moment, not at launch.
+- The shortest custom interval is 5 minutes, to see a reminder quickly.
+- Reminder buttons log a preset, take a typed amount (Other Amount…) or snooze for one hour.
+
+PERMISSIONS AND PRIVACY
+- HydroBar has no account, no network access and collects no data. Everything is stored in its sandbox container.
+- "Hold during calls" (Settings > Reminders) only reads whether any app is currently using the microphone or the camera, through the Core Audio and Core Media IO "is running" properties. HydroBar never opens the microphone or the camera, never receives audio or video, and shows no permission prompt.
+- The optional goal suggestion during setup uses the weight the user types (about 30 ml per kg). It is computed on the Mac and never stored. The screen says it is not medical advice.
+- Launch at login is off by default and uses SMAppService.
+
+INTEGRATIONS
+- Focus filter: System Settings > Focus > choose a Focus > Focus Filters > HydroBar.
+- Shortcuts app: six actions (Log Water, Log a Preset, Get Hydration Status, Undo Last Drink, Set Daily Goal, Set Today's Day Type).
+- Desktop widget, and on macOS 26 an "Add Water" control for Control Center.
+- URL scheme hydrobar:// (for example hydrobar://add?ml=250).
