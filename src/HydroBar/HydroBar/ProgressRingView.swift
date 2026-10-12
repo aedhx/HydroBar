@@ -14,7 +14,7 @@ struct ProgressRingView: View {
     @State private var animatedProgress: Double = 0
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
-    // Célébration de l'objectif (v2.2)
+    // Célébration de l'objectif (v2)
     @State private var celebrations = 0
     @State private var burstVisible = false
     @State private var burstExpanded = false

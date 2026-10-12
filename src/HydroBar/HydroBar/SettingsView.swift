@@ -120,7 +120,7 @@ enum NotificationInterval: String, CaseIterable {
     }
 }
 
-/// Onglets de la fenêtre de réglages (v2.2). Douze sections s'empilaient
+/// Onglets de la fenêtre de réglages (v2). Douze sections s'empilaient
 /// dans un popover de 320 px.
 enum SettingsTab: String {
     case general, hydration, reminders, shortcuts, data, integrations

@@ -297,7 +297,7 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         let target = manager.targetMl
         let progress = target > 0 ? manager.currentMl / target : 0
 
-        // Icône monochrome par défaut (v2.2) : une image template, teintée par
+        // Icône monochrome par défaut (v2) : une image template, teintée par
         // macOS. Redessinée à chaque changement, ce qui ne coûte presque rien.
         if !manager.coloredMenuBarIcon {
             if hostingController != nil {

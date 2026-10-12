@@ -2,7 +2,7 @@
 //  SettingsWindowController.swift
 //  HydroBar
 //
-//  Fenêtre de réglages (v2.2). Les réglages s'affichaient dans le popover de
+//  Fenêtre de réglages (v2). Les réglages s'affichaient dans le popover de
 //  320 px, douze sections empilées. Ils ont désormais une vraie fenêtre, à
 //  onglets.
 //

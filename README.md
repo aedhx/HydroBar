@@ -429,9 +429,9 @@ Future improvements planned:
 - [x] Desktop widgets (small and medium), in sync with the app *(v1.3)*
 - [x] Custom preset amounts
 - [x] Today's log, data export and backup *(v2.0)*
-- [x] Shortcuts app actions, reminder snooze, welcome screen *(v2.0)*
-- [x] Smart reminders, hourly pattern, logging earlier drinks, accessibility *(v2.1)*
-- [x] Monochrome menu bar icon, micro-animations, tabbed Settings window *(v2.2)*
+- [x] Shortcuts app actions, smart reminders and snooze, welcome screen *(v2.0)*
+- [x] Hourly pattern, logging earlier drinks, accessibility *(v2.0)*
+- [x] Monochrome menu bar icon, micro-animations, tabbed Settings window *(v2.0)*
 - [ ] iCloud sync (optional)
 - [ ] Advanced statistics filters
 
