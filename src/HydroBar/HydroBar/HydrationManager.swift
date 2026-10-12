@@ -15,19 +15,6 @@ enum DateFormat {
     static let iso8601 = ISO8601DateFormatter()
 }
 
-// MARK: - DailyEntry (legacy, pour compatibilité)
-struct DailyEntry: Codable, Identifiable {
-    let id: String
-    let date: Date
-    let amount: Double // en ml
-    
-    init(date: Date, amount: Double) {
-        self.id = DateFormat.iso8601.string(from: date)
-        self.date = date
-        self.amount = amount
-    }
-}
-
 // MARK: - HistoryEntry
 struct HistoryEntry: Codable, Identifiable {
     let id: String
@@ -182,7 +169,10 @@ class HydrationManager: ObservableObject {
     /// Mieux vaut un message visible qu'un historique disparu sans trace.
     @Published private(set) var lastDataIssue: String?
 
-    @Published var history: [DailyEntry] = []
+    /// Historique complet, une entrée par jour, avec l'objectif de ce jour-là.
+    /// Unique source de vérité : un second store (`DailyEntry`, history.json,
+    /// sans objectif, 7 jours) était écrit en parallèle à chaque mutation
+    /// (cf. AUDIT § P1-2).
     @Published var historyEntries: [HistoryEntry] = []
 
     /// Vrai une fois les fichiers d'historique lus. Écrire avant, c'est écraser
@@ -555,18 +545,6 @@ class HydrationManager: ObservableObject {
     
     // MARK: - History Management
     
-    /// Chemin vers le fichier d'historique dans Application Support
-    private var historyFileURL: URL {
-        let fileManager = FileManager.default
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appFolderURL = appSupportURL.appendingPathComponent("HydroBar", isDirectory: true)
-        
-        // Créer le dossier s'il n'existe pas
-        try? fileManager.createDirectory(at: appFolderURL, withIntermediateDirectories: true)
-        
-        return appFolderURL.appendingPathComponent("history.json")
-    }
-    
     /// Chemin vers le fichier d'historique complet (avec targetMl)
     private var historyEntriesFileURL: URL {
         let fileManager = FileManager.default
@@ -581,12 +559,10 @@ class HydrationManager: ObservableObject {
     
     /// Sauvegarde l'entrée du jour actuel
     private func saveTodayEntry() {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        saveEntry(date: today, amount: currentMl)
-        // saveHistoryEntry est appelé dans saveEntry, donc pas besoin de l'appeler ici
+        let today = Calendar.current.startOfDay(for: Date())
+        saveHistoryEntry(date: today, amountMl: currentMl, targetMl: targetMl)
     }
-    
+
     /// Défense en profondeur : aucune écriture ne part d'un historique non chargé.
     /// L'ordre d'`init` est corrigé, mais un futur réordonnancement ne doit pas
     /// pouvoir effacer à nouveau l'historique.
@@ -594,41 +570,6 @@ class HydrationManager: ObservableObject {
         if !isHistoryLoaded { loadHistory() }
     }
 
-    /// Sauvegarde une entrée pour une date donnée
-    private func saveEntry(date: Date, amount: Double) {
-        ensureHistoryLoaded()
-        let calendar = Calendar.current
-        let dateStart = calendar.startOfDay(for: date)
-        
-        // Mettre à jour ou créer l'entrée DailyEntry (legacy)
-        let entry = DailyEntry(date: dateStart, amount: amount)
-        
-        // Charger l'historique actuel
-        var entries = history
-        
-        // Retirer l'ancienne entrée pour cette date si elle existe
-        entries.removeAll { entry in
-            calendar.isDate(entry.date, inSameDayAs: dateStart)
-        }
-        
-        // Ajouter la nouvelle entrée
-        entries.append(entry)
-        
-        // Garder seulement les 7 derniers jours
-        let today = calendar.startOfDay(for: Date())
-        let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today)!
-        entries = entries.filter { $0.date >= sevenDaysAgo }
-        
-        // Trier par date (plus ancien en premier)
-        entries.sort { $0.date < $1.date }
-        
-        history = entries
-        saveHistory()
-        
-        // Sauvegarder aussi dans HistoryEntry avec targetMl
-        saveHistoryEntry(date: dateStart, amountMl: amount, targetMl: targetMl)
-    }
-    
     /// Sauvegarde une HistoryEntry avec targetMl historique
     private func saveHistoryEntry(date: Date, amountMl: Double, targetMl: Double) {
         ensureHistoryLoaded()
@@ -647,11 +588,6 @@ class HydrationManager: ObservableObject {
         let historyEntry = HistoryEntry(date: dateStart, amountMl: amountMl, targetMl: targetMl)
         entries.append(historyEntry)
         
-        // Garder seulement les 30 derniers jours
-        let today = calendar.startOfDay(for: Date())
-        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
-        entries = entries.filter { $0.date >= thirtyDaysAgo }
-        
         // Trier par date (plus ancien en premier)
         entries.sort { $0.date < $1.date }
         
@@ -659,38 +595,23 @@ class HydrationManager: ObservableObject {
         saveHistoryEntries()
     }
     
-    /// Sauvegarde l'historique dans le fichier JSON
-    private func saveHistory() {
-        writeJSON(history, to: historyFileURL, label: "history.json")
-    }
-    
-    /// Charge l'historique depuis les fichiers JSON.
+    /// Charge l'historique. Il est conservé **en entier** : l'ancienne version le
+    /// tronquait à 30 jours au chargement comme à l'écriture, si bien que les
+    /// données plus anciennes étaient détruites, pas archivées (cf. AUDIT § P1-2).
+    /// Une année d'historique pèse environ 30 Ko ; chaque vue filtre la période
+    /// qu'elle affiche.
+    ///
+    /// L'ancien fichier history.json n'est ni lu ni supprimé : son contenu est un
+    /// sous-ensemble strict d'historyEntries.json, et on ne détruit pas un fichier
+    /// utilisateur sans nécessité.
     private func loadHistory() {
         defer { isHistoryLoaded = true }
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-
-        // DailyEntry (legacy) — 7 derniers jours
-        if let entries: [DailyEntry] = readJSON([DailyEntry].self,
-                                                from: historyFileURL,
-                                                label: "history.json"),
-           let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today) {
-            history = entries.filter { $0.date >= sevenDaysAgo }.sorted { $0.date < $1.date }
-        } else {
-            history = []
-        }
-
-        // HistoryEntry (avec targetMl) — 30 derniers jours
-        if let entries: [HistoryEntry] = readJSON([HistoryEntry].self,
-                                                  from: historyEntriesFileURL,
-                                                  label: "historyEntries.json"),
-           let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today) {
-            historyEntries = entries.filter { $0.date >= thirtyDaysAgo }.sorted { $0.date < $1.date }
-        } else {
-            historyEntries = []
-        }
+        historyEntries = (readJSON([HistoryEntry].self,
+                                   from: historyEntriesFileURL,
+                                   label: "historyEntries.json") ?? [])
+            .sorted { $0.date < $1.date }
     }
-    
+
     /// Sauvegarde l'historique complet (HistoryEntry) dans le fichier JSON
     private func saveHistoryEntries() {
         writeJSON(historyEntries, to: historyEntriesFileURL, label: "historyEntries.json")
@@ -762,36 +683,6 @@ class HydrationManager: ObservableObject {
             guard let self, self.lastDataIssue != issue else { return }
             self.lastDataIssue = issue
         }
-    }
-    
-    /// Retourne les 7 derniers jours avec leurs pourcentages d'objectif
-    func getLast7DaysData() -> [(date: Date, percentage: Double)] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        var result: [(date: Date, percentage: Double)] = []
-        
-        // Générer les 7 derniers jours
-        for i in 0..<7 {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            
-            // Chercher l'entrée correspondante dans l'historique
-            if let entry = history.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                let percentage = targetMl > 0 ? min((entry.amount / targetMl) * 100, 100) : 0
-                result.append((date: date, percentage: percentage))
-            } else {
-                // Pas d'entrée pour ce jour, 0%
-                result.append((date: date, percentage: 0))
-            }
-        }
-        
-        // Inverser pour avoir du plus ancien au plus récent
-        return result.reversed()
-    }
-    
-    /// Calcule la série actuelle (streak) de jours consécutifs où l'objectif a été atteint
-    func calculateStreak() -> Int {
-        return currentStreak
     }
     
     // MARK: - Computed Properties for Statistics
@@ -895,21 +786,6 @@ class HydrationManager: ObservableObject {
                                 expectedFraction: expectedProgress)
     }
 
-    /// Pourcentage global de réussite sur les 30 derniers jours
-    var completionRate: Double {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
-        
-        let relevantEntries = historyEntries
-            .filter { $0.date >= thirtyDaysAgo && $0.date < today } // Exclure aujourd'hui
-        
-        guard !relevantEntries.isEmpty else { return 0 }
-        
-        let successfulDays = relevantEntries.filter { $0.amountMl >= $0.targetMl }.count
-        return (Double(successfulDays) / Double(relevantEntries.count)) * 100
-    }
-    
     /// Retourne un tableau complet de 30 jours avec HistoryEntry
     /// Génère des entrées avec amountMl: 0 pour les jours sans données
     func getLast30DaysData() -> [HistoryEntry] {
