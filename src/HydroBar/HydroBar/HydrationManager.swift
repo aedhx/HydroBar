@@ -251,6 +251,8 @@ class HydrationManager: ObservableObject {
     /// Privée : `MainContentView` y ajoutait directement ses entrées, avec sa
     /// propre copie de la limite de taille (cf. AUDIT § P1-3). Les vues passent
     /// désormais par `beginHoldSession()` / `endHoldSession()`.
+    /// `amount` est la quantité à retirer pour annuler : positive pour un ajout,
+    /// négative pour un reset (annuler un reset rend la quantité effacée).
     private var undoStack: [(amount: Double, timestamp: Date)] = []
     private let maxUndoStackSize = 50
 
@@ -434,7 +436,7 @@ class HydrationManager: ObservableObject {
 
         saveHistoryEntry(date: lastResetDay, amountMl: storedCurrentMl, targetMl: targetMl)
         currentMl = 0.0
-        clearUndoStack()
+        undoStack.removeAll()
         updateLastResetDate()
         syncToAppGroup()
         return true
@@ -570,7 +572,7 @@ class HydrationManager: ObservableObject {
         return date
     }
     
-    /// Annule la dernière action d'ajout d'eau
+    /// Annule la dernière action : un ajout, ou un reset de la journée.
     /// - Returns: true si une action a été annulée, false si le stack est vide
     @discardableResult
     func undo() -> Bool {
@@ -595,17 +597,15 @@ class HydrationManager: ObservableObject {
         return !undoStack.isEmpty
     }
     
-    /// Vide le stack undo (appelé lors du reset du jour)
-    private func clearUndoStack() {
-        undoStack.removeAll()
-    }
-    
-    /// Remet la consommation du jour à zéro
+    /// Remet la consommation du jour à zéro.
+    ///
+    /// Annulable : le bouton « Reset my day » agit sur un simple clic, et vidait
+    /// en plus la pile d'annulation — un clic malheureux effaçait la journée
+    /// sans retour possible. L'annulation rend la quantité effacée.
     func resetDay() {
-        // Sauvegarder l'entrée actuelle (qui sera 0) avant de reset
-        // Le didSet de currentMl sauvegardera automatiquement
+        let erased = currentMl
         currentMl = 0.0
-        clearUndoStack() // Vider le stack undo lors du reset
+        if erased > 0 { pushUndo(-erased) }
         updateLastResetDate()
         // Seul chemin de mutation qui oubliait de propager l'état : le widget
         // gardait l'ancienne valeur après un reset (bouton ou hydrobar://reset).

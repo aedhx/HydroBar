@@ -389,54 +389,54 @@
         }
       }
     },
-    "A deep link is asking to reset today's intake to zero. This cannot be undone.": {
+    "A deep link is asking to reset today's intake to zero.": {
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ein Deep Link möchte die heutige Trinkmenge auf null setzen. Dies kann nicht rückgängig gemacht werden."
+            "value": "Ein Deep Link möchte die heutige Trinkmenge auf null setzen."
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un enlace profundo quiere poner a cero el consumo de hoy. No se puede deshacer."
+            "value": "Un enlace profundo quiere poner a cero el consumo de hoy."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un lien profond demande de remettre à zéro la consommation du jour. Cette action est irréversible."
+            "value": "Un lien profond demande de remettre à zéro la consommation du jour."
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "Un deep link chiede di azzerare il consumo di oggi. L'operazione non può essere annullata."
+            "value": "Un deep link chiede di azzerare il consumo di oggi."
           }
         },
         "ja": {
           "stringUnit": {
             "state": "translated",
-            "value": "ディープリンクが今日の摂取量をゼロにリセットしようとしています。この操作は取り消せません。"
+            "value": "ディープリンクが今日の摂取量をゼロにリセットしようとしています。"
           }
         },
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "Een deeplink wil de inname van vandaag op nul zetten. Dit kan niet ongedaan worden gemaakt."
+            "value": "Een deeplink wil de inname van vandaag op nul zetten."
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "Um link direto quer zerar o consumo de hoje. Esta ação não pode ser desfeita."
+            "value": "Um link direto quer zerar o consumo de hoje."
           }
         },
         "zh-Hans": {
           "stringUnit": {
             "state": "translated",
-            "value": "一个深层链接请求将今天的饮水量清零。此操作无法撤销。"
+            "value": "一个深层链接请求将今天的饮水量清零。"
           }
         }
       }
