@@ -27,6 +27,26 @@ jobs:
           xcodebuild -version
           xcodebuild -showsdks | grep macosx || true
 
+      # SwiftLint : les erreurs bloquent, les avertissements sont résumés
+      # (cf. .swiftlint.yml). Lancé avant la compilation : c'est l'échec le
+      # moins coûteux à détecter.
+      - name: SwiftLint
+        run: |
+          command -v swiftlint >/dev/null || brew install swiftlint
+          swiftlint version
+          status=0
+          swiftlint lint --quiet --reporter xcode > swiftlint.log 2>&1 || status=$?
+          warnings=$(grep -c ": warning:" swiftlint.log || true)
+          errors=$(grep -c ": error:" swiftlint.log || true)
+          {
+            echo "### SwiftLint : ${errors} erreur(s), ${warnings} avertissement(s)"
+            echo
+            echo '```'
+            sed 's|.*/HydroBar/HydroBar/src/|src/|' swiftlint.log | head -60
+            echo '```'
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+          exit $status
+
       # Étape 1 : est-ce que ça compile ?
       # Signature désactivée : ce runner n'a aucun certificat, et on ne cherche
       # ici qu'à faire passer le compilateur Swift sur tout le projet.
@@ -93,6 +113,7 @@ jobs:
         with:
           name: xcodebuild-logs
           path: |
+            swiftlint.log
             compile.log
             test.log
           if-no-files-found: ignore
