@@ -752,6 +752,29 @@ class HydrationManager: ObservableObject {
         syncToAppGroup()
     }
 
+    /// Ajoute une prise oubliée, à une date passée (« j'ai oublié de noter
+    /// hier »). Annulable. Une journée passée n'était jusqu'ici plus modifiable.
+    func addPastDrink(amount: Double, at date: Date) {
+        rollOverIfNewDay()
+        let now = Date()
+        guard amount > 0, amount.isFinite, date <= now else { return }
+
+        let calendar = Calendar.current
+        let event = IntakeEvent(date: date, amountMl: amount)
+        log.add(event)
+        // Une journée sans objectif noté prend l'objectif actuel.
+        if log.goal(on: date, calendar: calendar) == nil {
+            log.setGoal(targetMl, on: date, calendar: calendar)
+        }
+        pushUndo(.added(event.id))
+        persistLog()
+        if let last = getLastWaterAddedDate(), date > last {
+            lastWaterAddedDateString = DateFormat.iso8601.string(from: date)
+        }
+        scheduleNotifications()
+        syncToAppGroup()
+    }
+
     /// Supprime une prise du jour (journal du jour, F17). Annulable.
     func removeEvent(id: UUID) {
         rollOverIfNewDay()

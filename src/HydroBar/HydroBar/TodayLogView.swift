@@ -15,6 +15,7 @@ struct TodayLogView: View {
 
     /// Replié par défaut : le popover reste centré sur l'anneau et les presets.
     @AppStorage("todayLogExpanded") private var isExpanded = false
+    @State private var isAddingPastDrink = false
 
     var body: some View {
         let events = manager.todayEvents
@@ -55,6 +56,20 @@ struct TodayLogView: View {
                         }
                     }
                     .frame(maxHeight: 150)
+                }
+
+                if isAddingPastDrink {
+                    PastDrinkForm(manager: manager) { isAddingPastDrink = false }
+                } else {
+                    Button {
+                        isAddingPastDrink = true
+                    } label: {
+                        Label(String(localized: "Add an Earlier Drink…", comment: "Button to log a drink at a past date or time"),
+                              systemImage: "clock.arrow.circlepath")
+                            .font(.system(size: 11))
+                    }
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
                 }
             }
         }
