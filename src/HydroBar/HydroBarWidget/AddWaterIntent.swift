@@ -15,16 +15,21 @@ struct AddWaterIntent: AppIntent {
     init(amountMl: Double) { self.amountMl = amountMl }
 
     func perform() async throws -> some IntentResult {
-        let current = AppGroupStore.read()
+        guard amountMl > 0 else { return .result() }
+        let now = Date()
+        // asOf : un verre ajouté après minuit ne s'additionne pas au total d'hier.
+        let current = AppGroupStore.read().asOf(now)
         let updated = HydrationSnapshot(
             currentMl: current.currentMl + amountMl,
             targetMl: current.targetMl,
             unit: current.unit,
-            lastUpdated: Date(),
-            weekHistory: current.weekHistory
+            lastUpdated: now,
+            weekHistory: current.weekHistory,
+            presetsMl: current.presetsMl
         )
         AppGroupStore.write(updated)
         AppGroupStore.addPendingDelta(amountMl)
+        AppGroupStore.postWidgetDidAddWater()
         return .result()
     }
 }
