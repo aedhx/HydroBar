@@ -103,6 +103,41 @@ struct Shortcut: Codable, Equatable {
     }
 }
 
+// MARK: - Actions
+
+/// Ce qu'un raccourci global déclenche (roadmap F20). Seuls les presets en
+/// avaient ; annuler et ouvrir l'app n'avaient aucun raccourci, alors que l'app
+/// est pensée pour le clavier.
+enum HotkeyAction: Hashable {
+    case preset(Int)
+    case undo
+    case togglePopover
+
+    /// Clé de sauvegarde. Celle des presets est inchangée : les raccourcis
+    /// déjà enregistrés restent valides sans migration.
+    var defaultsKey: String {
+        switch self {
+        case .preset(let index): return shortcutDefaultsKey(forPreset: index)
+        case .undo:              return "shortcut_action_undo"
+        case .togglePopover:     return "shortcut_action_togglePopover"
+        }
+    }
+
+    var localizedName: String {
+        switch self {
+        case .preset(let index):
+            return String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1)
+        case .undo:
+            return String(localized: "Undo", comment: "Undo menu item")
+        case .togglePopover:
+            return String(localized: "Open HydroBar", comment: "Shortcut action: show or hide the popover")
+        }
+    }
+
+    /// Actions hors presets, proposées dans les réglages.
+    static let general: [HotkeyAction] = [.togglePopover, .undo]
+}
+
 // MARK: - Erreurs d'enregistrement
 
 /// Pourquoi un raccourci n'a pas pu être enregistré. Auparavant l'échec n'était
@@ -111,8 +146,8 @@ struct Shortcut: Codable, Equatable {
 enum HotkeyRegistrationError: Error, Equatable {
     case invalidKey
     case reservedBySystem
-    /// Déjà affecté à un autre preset de HydroBar (index 0-based).
-    case usedByPreset(Int)
+    /// Déjà affecté à une autre action de HydroBar.
+    case usedBy(HotkeyAction)
     /// Déjà pris par une autre application.
     case alreadyInUse
     case failed(OSStatus)
@@ -123,9 +158,9 @@ enum HotkeyRegistrationError: Error, Equatable {
             return String(localized: "This key can't be used as a shortcut.", comment: "Hotkey registration error")
         case .reservedBySystem:
             return String(localized: "This shortcut is reserved by macOS.", comment: "Hotkey registration error")
-        case .usedByPreset(let index):
-            return String(format: String(localized: "Already used by Preset %lld.", comment: "Hotkey registration error, %lld is a preset number"),
-                          index + 1)
+        case .usedBy(let action):
+            return String(format: String(localized: "Already used by “%@”.", comment: "Hotkey registration error, %@ is another HydroBar action"),
+                          action.localizedName)
         case .alreadyInUse:
             return String(localized: "Already used by another app.", comment: "Hotkey registration error")
         case .failed:
@@ -140,11 +175,11 @@ class GlobalHotkeyManager {
 
     private static let logger = Logger(subsystem: "com.adxcool.HydroBar", category: "hotkeys")
 
-    private var registeredHotkeys: [UInt32: (presetIndex: Int, hotKeyRef: EventHotKeyRef?)] = [:]
+    private var registeredHotkeys: [UInt32: (action: HotkeyAction, hotKeyRef: EventHotKeyRef?)] = [:]
 
-    /// Raccourci actif de chaque preset, pour détecter les doublons et savoir
+    /// Raccourci actif de chaque action, pour détecter les doublons et savoir
     /// si un raccourci sauvegardé est réellement enregistré auprès du système.
-    private var activeShortcuts: [Int: Shortcut] = [:]
+    private var activeShortcuts: [HotkeyAction: Shortcut] = [:]
     private var nextHotKeyID: UInt32 = 1
     private var eventHandler: EventHandlerRef?
     
@@ -195,17 +230,11 @@ class GlobalHotkeyManager {
     
     // MARK: - Hotkey Registration
     
-    /// Enregistre un raccourci global pour un preset
-    /// - Parameters:
-    ///   - presetIndex: Index du preset (0, 1, ou 2)
-    ///   - keyCode: Code de la touche (voir VirtualKeyCodes)
-    ///   - modifiers: Modificateurs (cmdKey, shiftKey, optionKey, controlKey)
-    /// - Returns: true si l'enregistrement a réussi, false sinon
-    /// Enregistre un raccourci global pour un preset.
+    /// Enregistre un raccourci global.
     /// - Returns: `.failure` avec la raison, pour que l'interface puisse l'afficher.
     @discardableResult
-    func registerShortcut(for presetIndex: Int, keyCode: Int, modifiers: Int) -> Result<Void, HotkeyRegistrationError> {
-        unregisterShortcut(for: presetIndex)
+    func registerShortcut(for action: HotkeyAction, keyCode: Int, modifiers: Int) -> Result<Void, HotkeyRegistrationError> {
+        unregisterShortcut(for: action)
 
         guard (0...127).contains(keyCode) else {
             return fail(.invalidKey, keyCode: keyCode, modifiers: modifiers)
@@ -213,11 +242,11 @@ class GlobalHotkeyManager {
         if isSystemReservedShortcut(keyCode: keyCode, modifiers: modifiers) {
             return fail(.reservedBySystem, keyCode: keyCode, modifiers: modifiers)
         }
-        // Deux presets sur la même combinaison : RegisterEventHotKey refuserait le
-        // second, mais en le disant on peut nommer le preset en conflit.
+        // Deux actions sur la même combinaison : RegisterEventHotKey refuserait la
+        // seconde, mais en le disant on peut nommer l'action en conflit.
         let candidate = Shortcut(keyCode: keyCode, modifiers: modifiers)
-        if let owner = activeShortcuts.first(where: { $0.key != presetIndex && $0.value == candidate })?.key {
-            return fail(.usedByPreset(owner), keyCode: keyCode, modifiers: modifiers)
+        if let owner = activeShortcuts.first(where: { $0.key != action && $0.value == candidate })?.key {
+            return fail(.usedBy(owner), keyCode: keyCode, modifiers: modifiers)
         }
 
         let hotKeyID = nextHotKeyID
@@ -240,16 +269,24 @@ class GlobalHotkeyManager {
             return fail(error, keyCode: keyCode, modifiers: modifiers)
         }
 
-        registeredHotkeys[hotKeyID] = (presetIndex: presetIndex, hotKeyRef: ref)
-        activeShortcuts[presetIndex] = candidate
+        registeredHotkeys[hotKeyID] = (action: action, hotKeyRef: ref)
+        activeShortcuts[action] = candidate
         return .success(())
     }
 
-    /// Indique si le raccourci sauvegardé de ce preset est réellement actif.
+    /// Indique si le raccourci sauvegardé de cette action est réellement actif.
     /// Un enregistrement peut échouer au lancement — une autre app a pris la
     /// combinaison entre-temps — sans que les réglages ne le sachent.
-    func isRegistered(presetIndex: Int) -> Bool {
-        activeShortcuts[presetIndex] != nil
+    func isRegistered(_ action: HotkeyAction) -> Bool {
+        activeShortcuts[action] != nil
+    }
+
+    /// Enregistre le raccourci sauvegardé d'une action, s'il y en a un.
+    func registerSavedShortcut(for action: HotkeyAction) {
+        guard let data = UserDefaults.standard.data(forKey: action.defaultsKey),
+              let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data)
+        else { return }
+        registerShortcut(for: action, keyCode: shortcut.keyCode, modifiers: shortcut.modifiers)
     }
 
     private func fail(_ error: HotkeyRegistrationError, keyCode: Int, modifiers: Int) -> Result<Void, HotkeyRegistrationError> {
@@ -310,10 +347,9 @@ class GlobalHotkeyManager {
         return false
     }
     
-    /// Désenregistre un raccourci pour un preset
-    func unregisterShortcut(for presetIndex: Int) {
-        // Trouver toutes les entrées pour ce presetIndex
-        let keysToRemove = registeredHotkeys.filter { $0.value.presetIndex == presetIndex }
+    /// Désenregistre le raccourci d'une action
+    func unregisterShortcut(for action: HotkeyAction) {
+        let keysToRemove = registeredHotkeys.filter { $0.value.action == action }
         for (hotKeyID, (_, hotKeyRef)) in keysToRemove {
             if let ref = hotKeyRef {
                 let status = UnregisterEventHotKey(ref)
@@ -323,15 +359,13 @@ class GlobalHotkeyManager {
             }
             registeredHotkeys.removeValue(forKey: hotKeyID)
         }
-        activeShortcuts.removeValue(forKey: presetIndex)
+        activeShortcuts.removeValue(forKey: action)
     }
     
     /// Désenregistre tous les raccourcis
     func unregisterAllShortcuts() {
-        // Collecter tous les presetIndex uniques
-        let uniquePresetIndices = Set(registeredHotkeys.values.map { $0.presetIndex })
-        for presetIndex in uniquePresetIndices {
-            unregisterShortcut(for: presetIndex)
+        for action in Set(registeredHotkeys.values.map(\.action)) {
+            unregisterShortcut(for: action)
         }
     }
     
@@ -356,31 +390,25 @@ class GlobalHotkeyManager {
             return OSStatus(eventNotHandledErr)
         }
         
-        // Trouver le preset correspondant via le hotKeyID
-        if let (presetIndex, _) = registeredHotkeys[hotKeyID.id] {
-            if let presetMl = getPresetAmount(for: presetIndex) {
-                DispatchQueue.main.async {
-                    self.triggerPreset(presetIndex: presetIndex, amount: presetMl)
-                }
-                return noErr
-            }
+        guard let action = registeredHotkeys[hotKeyID.id]?.action else {
+            return OSStatus(eventNotHandledErr)
         }
-        
-        return OSStatus(eventNotHandledErr)
+        DispatchQueue.main.async { self.perform(action) }
+        return noErr
     }
-    
-    private func getPresetAmount(for index: Int) -> Double? {
+
+    private func perform(_ action: HotkeyAction) {
         let manager = HydrationManager.shared
-        guard index >= 0 && index < manager.presetsMl.count else { return nil }
-        return manager.presetsMl[index]
-    }
-    
-    private func triggerPreset(presetIndex: Int, amount: Double) {
-        // Ajouter l'eau
-        HydrationManager.shared.addWater(amount: amount)
-        
-        // Jouer un son de feedback
-        playFeedbackSound()
+        switch action {
+        case .preset(let index):
+            guard manager.presetsMl.indices.contains(index) else { return }
+            manager.addWater(amount: manager.presetsMl[index])
+            playFeedbackSound()
+        case .undo:
+            if manager.undo() { playFeedbackSound() }
+        case .togglePopover:
+            (NSApp.delegate as? AppDelegate)?.togglePopoverFromShortcut()
+        }
     }
     
     /// Retour sonore d'un ajout réussi. L'ancien `NSSound.beep()` jouait le son

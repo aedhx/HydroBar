@@ -227,17 +227,12 @@ struct SettingsView: View {
                     .textCase(.uppercase)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    ForEach(Array(manager.presetsMl.enumerated()), id: \.offset) { index, _ in
-                        HStack(alignment: .center, spacing: 12) {
-                            Text(String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1))
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundColor(.primary)
-                                .frame(width: 70, alignment: .leading)
-                            
-                            ShortcutRecorderView(presetIndex: index)
-                            
-                            Spacer(minLength: 0)
-                        }
+                    ForEach(Array(manager.presetsMl.indices), id: \.self) { index in
+                        shortcutRow(for: .preset(index))
+                    }
+                    // Au-delà des presets (F20).
+                    ForEach(HotkeyAction.general, id: \.self) { action in
+                        shortcutRow(for: action)
                     }
                 }
             }
@@ -848,6 +843,21 @@ struct SettingsView: View {
             return String(format: "%02d:00", normalized)
         }
         return date.formatted(.dateTime.hour().minute())
+    }
+
+    private func shortcutRow(for action: HotkeyAction) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text(verbatim: action.localizedName)
+                .font(.system(size: 13, weight: .regular))
+                .foregroundColor(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: 90, alignment: .leading)
+
+            ShortcutRecorderView(action: action)
+
+            Spacer(minLength: 0)
+        }
     }
 
     // MARK: - Pause des rappels (F19)
