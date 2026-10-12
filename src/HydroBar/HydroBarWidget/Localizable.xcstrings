@@ -160,6 +160,58 @@
     "HydroBar": {
       "shouldTranslate": false
     },
+    "Log your first HydroBar preset.": {
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Trägt deine erste HydroBar-Voreinstellung ein."
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra tu primer preajuste de HydroBar."
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Enregistre votre premier preset HydroBar."
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra il tuo primo preset di HydroBar."
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "HydroBar の最初のプリセットを記録します。"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registreert je eerste HydroBar-voorinstelling."
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Registra sua primeira predefinição do HydroBar."
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "记录你的第一个 HydroBar 预设。"
+          }
+        }
+      }
+    },
     "Track your daily hydration.": {
       "localizations": {
         "de": {
