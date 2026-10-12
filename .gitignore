@@ -161,3 +161,7 @@ Untitled
 # GSD planning directory
 .planning/
 marketing/node_modules/
+
+# Impeccable : captures de revue et esquisses, régénérables
+.impeccable/review/
+.impeccable/mocks/
