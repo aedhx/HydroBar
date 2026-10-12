@@ -515,6 +515,19 @@ struct SettingsView: View {
                             .labelsHidden()
                     }
 
+                    toggleRow(icon: "clock.badge.exclamationmark",
+                              title: Text("Last call", comment: "Toggle: last call notification"),
+                              detail: Text("One hour before your day ends, if your goal isn't reached yet.",
+                                           comment: "Explanation of the last call notification"),
+                              isOn: Binding(get: { manager.lastCallEnabled }, set: { manager.lastCallEnabled = $0 }))
+
+                    toggleRow(icon: "video.slash",
+                              title: Text("Hold during calls", comment: "Toggle: no reminders during calls"),
+                              detail: Text("While an app uses your microphone or camera, reminders wait for the call to end.",
+                                           comment: "Explanation of holding reminders during calls"),
+                              isOn: Binding(get: { manager.holdRemindersDuringCalls },
+                                            set: { manager.holdRemindersDuringCalls = $0 }))
+
                     snoozeRow
 
                     focusModeSection
@@ -1110,6 +1123,28 @@ struct SettingsView: View {
             }
             Text("Reminders follow your active hours, stop once your goal is reached, and come a bit more often when you're behind.",
                  comment: "Explanation of how reminders are scheduled")
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, 28)
+        }
+    }
+
+    private func toggleRow(icon: String, title: Text, detail: Text, isOn: Binding<Bool>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: icon)
+                    .font(Theme.Font.body)
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+                title
+                    .font(Theme.Font.body)
+                Spacer()
+                Toggle("", isOn: isOn)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+            }
+            detail
                 .font(Theme.Font.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)

@@ -676,19 +676,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        let manager = HydrationManager.shared
-        switch response.actionIdentifier {
-        case "DRINK_ACTION":
-            // Ajouter le premier preset
-            if let first = manager.presetsMl.first {
-                manager.addWater(amount: first)
-            }
-        case "SNOOZE_ACTION":
-            manager.snoozeReminders(.oneHour)
-        default:
-            break
-        }
-        
+        let typedText = (response as? UNTextInputNotificationResponse)?.userText
+        HydrationManager.shared.handleNotificationAction(response.actionIdentifier, typedText: typedText)
         completionHandler()
     }
     
