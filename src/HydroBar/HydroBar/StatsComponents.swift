@@ -88,25 +88,12 @@ struct StatsHeaderView: View {
         .animation(.easeOut(duration: 0.3).delay(0.15), value: manager.weeklyTotal)
     }
     
+    /// Toujours dans l'unité choisie. L'ancienne version basculait en litres
+    /// au-delà de 1 000 ml quelle que soit l'unité : un utilisateur en onces voyait
+    /// son total hebdomadaire — toujours supérieur à un litre — affiché en litres.
     private func formatValue(_ ml: Double) -> (value: String, unit: String) {
-        // Si la valeur en ml est >= 1000, afficher en litres
-        if ml >= 1000 {
-            let liters = ml / 1000.0
-            return (String(format: "%.1f", liters), "L")
-        } else {
-            // Convertir vers l'unité choisie
-            let convertedValue = manager.selectedUnit.fromMl(ml)
-            
-            // Formatage selon la valeur
-            let valueString: String
-            if convertedValue.truncatingRemainder(dividingBy: 1) == 0 {
-                valueString = String(format: "%.0f", convertedValue)
-            } else {
-                valueString = String(format: "%.1f", convertedValue)
-            }
-            
-            return (valueString, manager.selectedUnit.rawValue)
-        }
+        let unit = manager.selectedUnit
+        return (unit.formattedNumber(ml: ml), unit.symbol)
     }
 }
 
