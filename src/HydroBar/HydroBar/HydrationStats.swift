@@ -59,6 +59,67 @@ enum HydrationStats {
         return streak
     }
 
+    // MARK: - Par heure (rendu possible par le journal, F5)
+
+    /// Quantité moyenne bue à chaque heure (24 valeurs), sur les `days` jours
+    /// complets qui précèdent `today`.
+    ///
+    /// La moyenne se fait sur les jours où au moins une prise a été notée :
+    /// un jour sans l'app (vacances, Mac éteint) ne doit pas faire croire que
+    /// l'on boit moins à toutes les heures. Les totaux repris de la v1, sans
+    /// heure réelle, sont ignorés.
+    static func hourlyAverages(events: [IntakeEvent],
+                               days: Int,
+                               today: Date,
+                               calendar: Calendar = .current) -> (averages: [Double], dayCount: Int) {
+        let todayStart = calendar.startOfDay(for: today)
+        guard days > 0, let windowStart = calendar.date(byAdding: .day, value: -days, to: todayStart) else {
+            return (Array(repeating: 0, count: 24), 0)
+        }
+
+        var sums = Array(repeating: 0.0, count: 24)
+        var activeDays = Set<Date>()
+        for event in events where !event.isAggregate && event.date >= windowStart && event.date < todayStart {
+            sums[calendar.component(.hour, from: event.date)] += event.amountMl
+            activeDays.insert(calendar.startOfDay(for: event.date))
+        }
+        guard !activeDays.isEmpty else { return (sums, 0) }
+        let count = Double(activeDays.count)
+        return (sums.map { $0 / count }, activeDays.count)
+    }
+
+    /// Plus longue suite d'heures creuses dans la plage active, au moins deux
+    /// heures : celles où l'on boit moins d'un quart de la moyenne horaire de la
+    /// plage. `nil` sans données ou sans creux marqué.
+    ///
+    /// - Returns: heure de début et heure de fin (exclue).
+    static func quietestStretch(averages: [Double], activeStartHour: Int, activeEndHour: Int) -> (start: Int, end: Int)? {
+        guard averages.count == 24,
+              (0..<24).contains(activeStartHour), (1...24).contains(activeEndHour),
+              activeStartHour < activeEndHour
+        else { return nil }
+
+        let hours = Array(activeStartHour..<activeEndHour)
+        let mean = hours.map { averages[$0] }.reduce(0, +) / Double(hours.count)
+        guard mean > 0 else { return nil }
+        let threshold = mean / 4
+
+        var best: (start: Int, end: Int)?
+        var runStart: Int?
+        for hour in hours + [activeEndHour] {
+            let isQuiet = hour < activeEndHour && averages[hour] < threshold
+            if isQuiet {
+                if runStart == nil { runStart = hour }
+            } else if let start = runStart {
+                if hour - start >= 2, hour - start > (best.map { $0.end - $0.start } ?? 0) {
+                    best = (start, hour)
+                }
+                runStart = nil
+            }
+        }
+        return best
+    }
+
     private static func entry(on day: Date, in history: [HistoryEntry], calendar: Calendar) -> HistoryEntry? {
         history.first { calendar.isDate($0.date, inSameDayAs: day) }
     }

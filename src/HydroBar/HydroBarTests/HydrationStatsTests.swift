@@ -95,3 +95,43 @@ private func today(_ amount: Double, goal: Double = 2000) -> HydrationStats.Toda
 @Test func anEmptyWindowTotalsZero() {
     #expect(HydrationStats.total(lastDays: 0, history: [entry(1, 1000)], today: today(500), calendar: utc) == 0)
 }
+
+// MARK: - Par heure
+
+private func drink(day: Int, _ hour: Int, _ ml: Double, aggregate: Bool = false) -> IntakeEvent {
+    IntakeEvent(date: utc.date(from: DateComponents(year: 2026, month: 9, day: day, hour: hour))!,
+                amountMl: ml, isAggregate: aggregate)
+}
+
+@Test func averagesEachHourOverTheDaysWithData() {
+    let events = [drink(day: 13, 9, 300), drink(day: 14, 9, 500), drink(day: 14, 15, 200)]
+    let result = HydrationStats.hourlyAverages(events: events, days: 30, today: now, calendar: utc)
+    #expect(result.dayCount == 2)
+    #expect(result.averages[9] == 400)
+    #expect(result.averages[15] == 100)
+    #expect(result.averages[3] == 0)
+}
+
+@Test func leavesTodayAndImportedTotalsOut() {
+    let events = [drink(day: 15, 9, 500), drink(day: 14, 12, 1800, aggregate: true), drink(day: 14, 10, 250)]
+    let result = HydrationStats.hourlyAverages(events: events, days: 30, today: now, calendar: utc)
+    #expect(result.dayCount == 1)
+    #expect(result.averages[9] == 0)
+    #expect(result.averages[12] == 0)
+    #expect(result.averages[10] == 250)
+}
+
+@Test func findsTheLongestQuietStretchWithinActiveHours() throws {
+    var averages = Array(repeating: 200.0, count: 24)
+    for hour in 14..<17 { averages[hour] = 0 }      // creux de 3 h
+    averages[10] = 0                                  // creux d'1 h : ignoré
+    for hour in 0..<8 { averages[hour] = 0 }          // nuit : hors plage
+    let stretch = try #require(HydrationStats.quietestStretch(averages: averages, activeStartHour: 8, activeEndHour: 22))
+    #expect(stretch.start == 14)
+    #expect(stretch.end == 17)
+}
+
+@Test func reportsNoQuietStretchWhenIntakeIsEven() {
+    let averages = Array(repeating: 150.0, count: 24)
+    #expect(HydrationStats.quietestStretch(averages: averages, activeStartHour: 8, activeEndHour: 22) == nil)
+}
