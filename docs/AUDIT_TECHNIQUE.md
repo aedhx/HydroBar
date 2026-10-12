@@ -20,15 +20,21 @@ HydroBar fait ce qu'il promet et l'UI est soignée. Les problèmes se concentren
    de la moitié des points de performance ci-dessous.
 3. **Peu de filet de sécurité** : une division non gardée pouvait faire crasher
    l'app depuis les réglages (**corrigée**, P0-2) et une écriture disque non
-   atomique pouvait effacer un mois d'historique en silence (**corrigée**, P3-3). La CI existe désormais (P3-2) et fait tourner les
-   31 tests écrits depuis, mais le cœur métier — conversions, séries, reset
-   quotidien — reste non couvert (P3-1).
+   atomique pouvait effacer un mois d'historique en silence (**corrigée**, P3-3). La CI
+   (P3-2) fait désormais tourner SwiftLint et 68 tests ; seuls la bascule de jour
+   et la persistance restent sans test (P3-1).
 
 Rien n'est irrécupérable — le code est lisible, bien découpé en fichiers, et les
 correctifs P0 représentent environ une journée de travail.
 
-> **Suivi.** P0-1, P0-2, P0-3 (hors une étape manuelle), P0-6, P2-5, P3-2, P3-3,
-> P3-6 (outillage), P3-7 et P3-8 sont corrigés. P0-4 et P0-5 se sont révélés
+> **Suivi (revue n°3).** Tous les constats sont corrigés, à deux exceptions près :
+> la partie de P3-1 qui demande d'injecter les dépendances du manager, et les
+> étapes manuelles liées au compte Apple (capability Communication Notifications,
+> certificat Developer ID). La passe de corrections a trouvé 14 défauts
+> supplémentaires, dont deux pertes de données — voir
+> [Revue n°3](#revue-n3--passe-de-corrections). Historique : P0-1, P0-2, P0-3
+> (hors une étape manuelle), P0-6, P2-5, P3-2, P3-3, P3-6 (outillage), P3-7 et
+> P3-8 avaient été corrigés en premier. P0-4 et P0-5 se sont révélés
 > erronés ou sans impact à la vérification du `.pbxproj`. Les constats corrigés ou
 > invalidés sont conservés ci-dessous plutôt qu'effacés, pour que les corrections
 > restent traçables — y compris celles qui portent sur mon propre diagnostic
@@ -36,14 +42,63 @@ correctifs P0 représentent environ une journée de travail.
 
 ### Tableau de bord
 
-| Sévérité | Nb | Thème dominant |
-|---|---|---|
-| **P0 — Bloquant** | 6 (4 corrigés, 2 invalidés) | Fonctionnalités mortes, crash potentiel |
-| **P1 — Architecture** | 7 | Réactivité, source de vérité, encapsulation |
-| **P2 — Performance** | 5 (1 corrigé) | Timers, I/O disque, reconstruction de vues |
-| **P3 — Qualité / outillage** | 8 (5 corrigés) | Tests, CI, i18n, distribution |
-| **P4 — Cosmétique** | 6 | Code mort, duplication, conventions |
-| **Revue n°2** | 13 (5 corrigés, 8 ouverts) | Sécurité des deep links, unités, i18n des statistiques |
+| Sévérité | Nb | État | Thème dominant |
+|---|---|---|---|
+| **P0 — Bloquant** | 6 | 5 corrigés, 1 invalidé (P0-4) | Fonctionnalités mortes, crash potentiel |
+| **P1 — Architecture** | 7 | 7 corrigés | Réactivité, source de vérité, encapsulation |
+| **P2 — Performance** | 5 | 5 corrigés | Timers, I/O disque, reconstruction de vues |
+| **P3 — Qualité / outillage** | 8 | 7 corrigés, P3-1 en partie | Tests, CI, i18n, distribution |
+| **P4 — Cosmétique** | 6 + notes | corrigés | Code mort, duplication, conventions |
+| **Revue n°2** | 13 | 13 corrigés | Sécurité des deep links, unités, i18n des statistiques |
+| **Revue n°3** | 14 | 14 corrigés | Pertes de données, widget, saisie |
+
+---
+
+## Revue n°3 — passe de corrections
+
+> Octobre 2026, à la demande « fix et clean tout ; on oublie iOS pour le
+> moment ». Chaque lot a été compilé et testé par la CI avant le suivant.
+
+### Décision de périmètre : pas d'iOS
+
+L'app reste **macOS uniquement**. Conséquences : l'item « Health app
+integration » quitte la roadmap du README (R2-10) — HealthKit n'existe pas pour
+une app macOS native, et le seul chemin restant passait par un iPhone ; l'app iOS
+compagnon reste hors périmètre (voir la roadmap, « Ce que je ne recommande pas »).
+
+### Défauts trouvés pendant les corrections
+
+Aucun de ces défauts ne figurait dans les revues précédentes. Les deux premiers
+sont les plus graves de l'application : des **pertes de données silencieuses**.
+
+| # | Défaut | Gravité | Commit |
+|---|---|---|---|
+| **R3-1** | **Tout l'historique était effacé au lancement** un jour différent du dernier reset (Mac éteint la nuit, redémarrage). `init()` basculait de jour *avant* de charger l'historique, et l'archivage de la veille réécrivait le fichier avec cette seule journée. Le lancement au démarrage (F3) rendait le cas quotidien. | **Perte de données** | `b1178f2` |
+| **R3-2** | « Generate Fake History Data » était accessible **en version publiée** (5 clics sur le numéro de version) et remplaçait tout l'historique réel, sans confirmation. Désormais compilé en Debug seulement. | **Perte de données** | `16bbb0e` |
+| **R3-3** | **Le widget n'a jamais partagé de données avec l'app** : l'entitlement App Group de l'extension était vide. Voir P0-5, dont l'impact avait été mal évalué. | **Fonctionnalité morte** | `0a52e71` |
+| **R3-4** | Un intervalle de rappel personnalisé de 0 minute **faisait planter l'app** : `UNTimeIntervalNotificationTrigger` lève une exception sous 60 s quand il se répète. | **Crash** | `d572a1b` |
+| **R3-5** | Un verre bu après minuit était compté la veille : seul un minuteur de 60 s basculait de jour, et `addWater` sautait la vérification. | Élevée | `b1178f2` |
+| **R3-6** | Même avec l'app lancée, un ajout depuis le widget n'était appliqué qu'au lancement suivant : `UserDefaults.didChangeNotification` n'est jamais émise pour une écriture d'un autre processus. Remplacé par une notification Darwin. | Élevée | `ba9c754` |
+| **R3-7** | La série retombait à 0 dès le premier verre du matin : un jour commencé était compté comme un échec. | Élevée | `8173d98` |
+| **R3-8** | La fin d'une concentration éteignait un « Ne pas déranger » activé à la main (cas particulier de P1-7). | Moyenne | `d572a1b` |
+| **R3-9** | Revenir à la langue « Système » ne fonctionnait pas : `AppleLanguages` n'était jamais effacé. Et l'alerte annonçait un redémarrage alors que l'app se contentait de quitter. | Moyenne | `16bbb0e` |
+| **R3-10** | Passé minuit, le widget affichait le total de la veille (timeline `.never`). | Moyenne | `ba9c754` |
+| **R3-11** | « Reset my day » effaçait la journée sur un simple clic et vidait la pile d'annulation. Désormais annulable. | Moyenne | `6e11fe5` |
+| **R3-12** | L'historique était réécrit sur le disque toutes les minutes, 24 h/24. | Faible | `b1178f2` |
+| **R3-13** | Le champ des presets modifiait un `@State` depuis le getter d'un `Binding`, pendant le calcul de la vue. | Faible | `d572a1b` |
+| **R3-14** | `knownRegions` ne déclarait que 4 des 9 langues livrées ; le widget n'était pas localisé ; le style d'icône s'affichait par sa valeur brute. | Faible | `16bbb0e` |
+
+### Ce qui reste ouvert
+
+- **P3-1, seconde moitié** : tester la bascule de jour et la persistance — R3-1
+  et R3-5 n'ont pas de test de régression. Prérequis : injecter `UserDefaults`,
+  le système de fichiers et l'horloge dans `HydrationManager`. C'est aussi le
+  prérequis de F5 (journal d'événements) : à faire ensemble.
+- **Actions côté compte Apple** : capability Communication Notifications (P0-3),
+  certificat Developer ID et notarisation (P3-6), vérification de l'App Group
+  avec le Team ID (R3-3).
+- **Taille de `SettingsView` et `HydrationManager`** : sous les seuils d'erreur
+  SwiftLint, au-dessus des seuils d'avertissement. À découper au fil des features.
 
 ---
 
@@ -70,7 +125,10 @@ correctifs P0 représentent environ une journée de travail.
 `NSFocusStatusUsageDescription` lors de `requestAuthorization`. Les deux ont été
 ajoutés dans le **même** commit : le chemin introduit par P0-3 ne peut pas planter.
 
-### Nouveaux constats — ouverts
+### Nouveaux constats
+
+> **Statut (revue n°3).** Tous corrigés : R2-6, R2-7, R2-11 (`3672f3d`), R2-8,
+> R2-12 (`e9f8a8b`), R2-9, R2-13 (`38d797e`), R2-10 (README, revue n°3).
 
 | # | Constat | Emplacement | Gravité |
 |---|---|---|---|
@@ -243,8 +301,14 @@ donc sandboxés et partagent bien le même groupe.
 
 **Ce qui reste vrai.** Lire les entitlements uniquement dans les fichiers `.plist`
 donne une image fausse de ce que l'app demande réellement — il faut lire les deux
-sources. Et la cause du retrait du widget en v1.2 reste à identifier : ce n'est pas
-celle-ci.
+sources.
+
+> **Seconde correction (revue n°3).** La conclusion « les deux processus partagent
+> bien le même groupe » était **fausse elle aussi**. Le sandbox est bien injecté par
+> `ENABLE_APP_SANDBOX`, mais l'appartenance à un App Group, elle, ne se déclare
+> **que** dans l'entitlement `application-groups` ; `REGISTER_APP_GROUPS` se
+> contente d'enregistrer auprès du portail les groupes listés. Or le fichier du
+> widget déclarait une liste vide : voir P0-5, dont c'est la vraie conséquence.
 
 **Leçon.** Un constat de configuration doit être vérifié dans le `.pbxproj` autant
 que dans les fichiers d'entitlements.
@@ -252,6 +316,16 @@ que dans les fichiers d'entitlements.
 ### P0-5 — Fichier d'entitlements orphelin (rétrogradé en P4)
 
 > **Correction (post-audit).** Réel, mais sans impact fonctionnel — ce n'est pas un P0.
+>
+> **Seconde correction (revue n°3) : c'était bien un P0.** L'« impact réel : aucun »
+> ci-dessous est faux. `REGISTER_APP_GROUPS` n'injecte aucun groupe : il enregistre
+> ceux que liste l'entitlement. Avec une liste vide, l'extension sandboxée lisait
+> son conteneur privé : **le widget n'a jamais vu les données de l'app** (il
+> affichait l'instantané de démonstration) et ses ajouts n'atteignaient jamais
+> l'app. C'est très probablement la cause du retrait du widget en v1.2, restée
+> inexpliquée jusqu'ici. Le commit `577a838` a supprimé le fichier correct — sans
+> effet, puisqu'il n'était référencé nulle part —, et `0a52e71` remplit enfin celui
+> qui fait foi.
 
 **Constat.** `src/HydroBar/HydroBarWidgetExtension.entitlements`, référencé par
 `CODE_SIGN_ENTITLEMENTS` du target widget (`project.pbxproj:420`, `:467`), déclare un
@@ -304,6 +378,8 @@ cible dont le déploiement minimum dépasse son SDK.
 
 ### P1-1 — `@AppStorage` dans un `ObservableObject` ne publie rien (cause racine)
 
+> **Statut.** ✅ **Corrigé** (`2a4065f`) — chaque réglage lu par une vue émet `objectWillChange` dans son `willSet`. La migration vers `@Observable` reste possible, mais n'est plus nécessaire pour corriger le défaut.
+
 **Constat.** `HydrationManager.swift:105-185` : 14 propriétés `@AppStorage` déclarées
 dans une classe `ObservableObject`.
 
@@ -337,6 +413,8 @@ Retirer ce contournement supprime mécaniquement la moitié des points P2.
 
 ### P1-2 — Trois sources de vérité pour les mêmes données
 
+> **Statut.** ✅ **Corrigé** (`3cb83dd`) — un seul store (`historyEntries.json`), plus aucune troncature à 30 jours.
+
 **Constat.** L'état d'hydratation est persisté à trois endroits :
 
 | Source | Fichier | Contenu | Rétention |
@@ -367,6 +445,8 @@ la roadmap : l'historique au-delà de 30 jours est **détruit**, pas archivé
 
 ### P1-3 — La vue mute directement l'état interne du manager
 
+> **Statut.** ✅ **Corrigé** (`2a4065f`) — pile d'annulation privée, API `beginHoldSession()` / `addHeldWater(_:)` / `endHoldSession()`.
+
 **Constat.** `MainView.swift:330-333` :
 
 ```swift
@@ -393,6 +473,8 @@ func endHoldSession()      // agrège le hold en une seule entrée d'undo
 ---
 
 ### P1-4 — Aucune validation des entrées utilisateur
+
+> **Statut.** ✅ **Corrigé** (`d572a1b`) — `ValidatedNumberField` + `NumberInput`, bornes partagées avec les deep links dans `HydrationLimits` ; objectif et intervalle aussi bornés à la lecture.
 
 **Constat.** `SettingsView.swift:181` (objectif) et `:215` (presets) :
 
@@ -427,6 +509,8 @@ valide si la saisie est rejetée.
 
 ### P1-5 — `@StateObject` sur un singleton
 
+> **Statut.** ✅ **Corrigé** (`577a838`).
+
 **Constat.** `MainView.swift:88` : `@StateObject private var manager = HydrationManager.shared`.
 
 **Impact.** `@StateObject` signifie « cette vue **possède** cet objet et en contrôle
@@ -442,6 +526,8 @@ injection par `@EnvironmentObject` depuis un point unique.
 ---
 
 ### P1-6 — Conformité rétroactive sur `Array` de la bibliothèque standard
+
+> **Statut.** ✅ **Corrigé** (`577a838`) — remplacé par `PresetStorage`.
 
 **Constat.** `HydrationManager.swift:82` :
 
@@ -469,6 +555,8 @@ ou, après le refactor P1-1, plus besoin de `RawRepresentable` du tout — encod
 
 ### P1-7 — Ré-entrance gérée par des drapeaux temporaires
 
+> **Statut.** ✅ **Corrigé** (`d572a1b`) — `doNotDisturb` redevient l'intention de l'utilisateur ; l'état du Focus est `focusIsActive`, l'état effectif `isQuietMode`. Plus aucun drapeau temporaire.
+
 **Constat.** `FocusModeMonitor.swift:80-88` désactive `focusModeAutoSync`, modifie
 `doNotDisturb`, puis le réactive — pour éviter que les `didSet` en cascade ne bouclent.
 Même motif dans `HydrationManager.swift:134` (`guard oldValue != focusModeAutoSync`).
@@ -491,6 +579,8 @@ Plus de cascade, plus de drapeau temporaire.
 
 ### P2-1 — L'icône de la barre de menu est reconstruite deux fois par seconde
 
+> **Statut.** ✅ **Corrigé** (`2a4065f`) — abonnement à `objectWillChange`, plus de minuteur.
+
 **Constat.** `HydroBarApp.swift:206` : timer 0,5 s → `updateStatusBarIcon()`, qui en
 mode « pie ring » (`:238-266`) **détruit toutes les sous-vues** et **instancie un
 nouveau `NSHostingController`** à chaque tick.
@@ -511,6 +601,8 @@ tout seul et le timer disparaît. Ne recréer la vue que sur changement de
 ---
 
 ### P2-2 — « Hold to Add » : 20 Hz × (2 écritures disque + reprogrammation des notifications + sync widget)
+
+> **Statut.** ✅ **Corrigé** (`2a4065f`) — persistance différée de 0,5 s, vidée en fin d'appui et à la fermeture.
 
 **Constat.** `MainView.swift:308` déclenche `manager.addWater(amount: 25.0)` toutes
 les 50 ms. Chaque appel enchaîne :
@@ -543,6 +635,8 @@ mais seulement traité pour le widget.
 
 ### P2-3 — Débit du « Hold to Add » : 500 ml/seconde
 
+> **Statut.** ✅ **Corrigé** (`2a4065f`) — 10 ml par tick (200 ml/s) et total affiché en direct sur le bouton.
+
 **Constat.** 25 ml toutes les 50 ms. Un appui d'une seconde ajoute un demi-litre ;
 deux secondes d'inattention ajoutent l'équivalent d'un objectif de la moitié d'une
 journée.
@@ -559,6 +653,8 @@ bouton, et introduire une accélération progressive plutôt qu'un débit consta
 ---
 
 ### P2-4 — Trois timers permanents dont deux redondants
+
+> **Statut.** ✅ **Corrigé** (`2a4065f`) — un minuteur avec tolérance, `NSCalendarDayChanged` et rattrapage au réveil.
 
 **Constat.** `HydrationManager.swift:329` (60 s, reset quotidien), `:340` (60 s,
 badge de rappel), `FocusModeMonitor.swift:108` (30 s, polling du Focus Mode),
@@ -599,6 +695,8 @@ la date elle-même suffirait. À traiter avec P1-2.
 ## P3 — Qualité et outillage
 
 ### P3-1 — Aucun test
+
+> **Statut.** 🟡 **En grande partie corrigé** (`8173d98`) — 68 tests : unités, deep links, allure, statistiques, saisie numérique, versions, instantané du widget. **Reste** la bascule de jour et la persistance, qui demandent d'injecter `UserDefaults`, le système de fichiers et l'horloge dans `HydrationManager`.
 
 **Partiellement corrigé.** Deux suites réelles existent désormais et passent en CI :
 `DeepLinkParserTests` (18 cas) et `HydrationPaceTests` (13 cas). Le gabarit vide
@@ -693,6 +791,8 @@ un `FileManager`, ce qui dépend de P3-1.
 
 ### P3-4 — Ni linter ni formateur
 
+> **Statut.** ✅ **Corrigé** (`84dff92`) — SwiftLint en CI, `.swiftlint.yml` à la racine. Pas de formateur : à ajouter si le projet accueille des contributeurs.
+
 Pas de `.swiftlint.yml`, pas de `.swift-format`. Les conséquences se voient : mélange
 de `String(format:)` et d'interpolation, indentation variable, imports inutilisés,
 blocs commentés laissés en place (`SettingsView.swift:628-641`).
@@ -705,6 +805,8 @@ blocs commentés laissés en place (`SettingsView.swift:628-641`).
 ---
 
 ### P3-5 — Localisation incomplète et changement de langue par redémarrage
+
+> **Statut.** ✅ **Corrigé** (`16bbb0e`) — toutes les clés traduites dans les 8 langues, catalogue dédié pour le widget, `knownRegions` complété, retour à « Système » réparé.
 
 **Constat.** `Localizable.xcstrings` : 81 clés, mais seulement **46 traduites** en
 de/es/it/ja/nl/pt/zh-Hans (57 en fr, 59 en en) — soit ~35 clés non traduites par
@@ -795,6 +897,16 @@ racine du dépôt.
 
 ## P4 — Cosmétique et code mort
 
+> **Statut.** ✅ P4-1, P4-2, P4-4, P4-6 corrigés (`577a838`) ; P4-3 et P4-5 avaient
+> disparu avec les réécritures précédentes. Notes ci-dessous : presets du widget,
+> timeline `.never` et notification inter-processus corrigés (`ba9c754`) ; facteur
+> de l'once centralisé (`3672f3d`) ; `ContentView.swift` supprimé (`577a838`) ;
+> « Reset my day » désormais annulable (`6e11fe5`) ; Team ID passé en variable
+> d'environnement (`a384d27`). Le double mécanisme d'`AddWaterIntent` est conservé
+> à dessein : l'instantané n'est qu'un affichage optimiste, seul le delta est
+> appliqué par l'app, et le prochain instantané de l'app l'écrase. Commentaires en
+> français : conservés, c'est la langue du projet.
+
 | # | Emplacement | Constat |
 |---|---|---|
 | P4-1 | `MainView.swift:181-198` | `MainView.startHolding()` / `stopHolding()` dupliquent `MainContentView` (avec un débit différent : 5 ml au lieu de 25) et `startHolding` n'est **jamais appelé**. Code mort trompeur. |
@@ -838,14 +950,19 @@ racine du dépôt.
 
 ## Plan d'action suggéré
 
-| Lot | Contenu | Effort | Pourquoi en premier |
-|---|---|---|---|
-| **1. Colmatage** ✅ | ~~P0-2~~, ~~P0-6~~, ~~P3-3~~, ~~P3-8~~ faits ; reste P0-5 et le code mort P4-1→P4-2, P4-4, P4-6 | ~2 h | Crash, code mort, risque de perte de données. Aucun risque de régression. |
-| **2. Deep links** ✅ | ~~P0-1~~ — livré, voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | fait | Rend fonctionnel ce qui est déjà documenté et débloque Raycast, Shortcuts, Stream Deck, Alfred. |
-| **3. Filet de sécurité** | P3-1 (injection + tests), ~~P3-2~~ (CI ✅), P3-4 (lint) | ~1,5 j | Prérequis pour refactorer sereinement le lot 4. |
-| **4. Refactor du cœur** | P1-1 (`@Observable`), P1-2, P1-3, P1-4 | ~3 j | Supprime mécaniquement P2-1, P2-4 et la moitié des `DispatchQueue.main.async`. |
-| **5. Perf et finitions** | P2-2, P2-3, P2-5, P1-7, P3-5 | ~2 j | Confort et consommation. |
-| **6. Widget et distribution** | ~~P0-3~~, ~~P3-6~~ (outillage), ~~P3-7~~ ; reste le certificat Developer ID et la capability Xcode | ~0,5 j | Débloque la v1.3 (widget) et supprime l'écran « app endommagée ». |
+> **Statut (revue n°3).** Les six lots sont livrés. Reste, hors code : les étapes
+> liées au compte Apple (voir « Ce qui reste ouvert », revue n°3). Côté code, le
+> prochain chantier est l'injection de dépendances de `HydrationManager`, à mener
+> avec F5.
+
+| Lot | Contenu | État |
+|---|---|---|
+| **1. Colmatage** | P0-2, P0-5, P0-6, P3-3, P3-8, code mort P4 | ✅ |
+| **2. Deep links** | P0-1 — voir [`specs/DEEP_LINKS.md`](specs/DEEP_LINKS.md) | ✅ |
+| **3. Filet de sécurité** | P3-1 (en partie), P3-2, P3-4 | ✅ sauf l'injection de dépendances |
+| **4. Refactor du cœur** | P1-1 → P1-4 | ✅ |
+| **5. Perf et finitions** | P2-1 → P2-5, P1-7, P3-5 | ✅ |
+| **6. Widget et distribution** | P0-3, P3-6, P3-7, R3-3, notes P4 du widget | ✅ code ; certificat et capability à faire |
 
 ---
 
