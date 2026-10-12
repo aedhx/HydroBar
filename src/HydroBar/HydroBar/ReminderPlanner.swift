@@ -33,7 +33,20 @@ enum ReminderPlanner {
         /// Fin d'une pause en cours (F19) : aucun rappel avant.
         var notBefore: Date?
         var calendar: Calendar
+        /// Règles propres à chaque journée (jours off). `nil` : tous les jours
+        /// suivent la plage et l'intervalle ci-dessus.
+        var dayRules: ((Date) -> DayRules)?
+
+        /// Règles de la journée de `date`.
+        func rules(on date: Date) -> DayRules {
+            dayRules?(date) ?? DayRules(kind: .work, startHour: activeStartHour, endHour: activeEndHour,
+                                        intervalMinutes: intervalMinutes, remindersEnabled: true)
+        }
     }
+
+    /// Aucun moment autorisé dans les semaines à venir (rappels coupés tous
+    /// les jours off, et des congés devant soi).
+    static let never = Date.distantFuture
 
     /// Plancher de la cadence resserrée : au-delà, un rappel devient du harcèlement.
     static let minimumAdaptiveIntervalMinutes = 15
@@ -46,7 +59,7 @@ enum ReminderPlanner {
         var candidate = first(context)
         // Borne de sécurité : une journée de pas minimaux, plus la marge.
         for _ in 0..<1_000 {
-            if result.count >= limit { break }
+            if result.count >= limit || candidate == never { break }
             if candidate > context.now { result.append(candidate) }
             candidate = place(candidate.addingTimeInterval(interval(at: candidate, context)), context)
         }
@@ -71,7 +84,7 @@ enum ReminderPlanner {
     }
 
     static func interval(at date: Date, _ context: Context) -> TimeInterval {
-        let base = TimeInterval(max(context.intervalMinutes, 1) * 60)
+        let base = TimeInterval(max(context.rules(on: date).intervalMinutes, 1) * 60)
         guard context.behindPace, context.calendar.isDate(date, inSameDayAs: context.now) else { return base }
         return max(base * 2 / 3, TimeInterval(minimumAdaptiveIntervalMinutes * 60))
     }
@@ -92,22 +105,32 @@ enum ReminderPlanner {
 
     private static func intoActiveHours(_ date: Date, _ context: Context) -> Date {
         let calendar = context.calendar
-        // Plage invalide (vide ou à cheval sur minuit) : pas de contrainte, comme
-        // le repère d'allure qui la refuse lui aussi.
-        guard (0..<24).contains(context.activeStartHour),
-              (1...24).contains(context.activeEndHour),
-              context.activeStartHour < context.activeEndHour
-        else { return date }
+        var candidate = date
+        // Une journée sans rappels renvoie au lendemain : on cherche le premier
+        // moment autorisé sur deux mois au plus.
+        for _ in 0..<62 {
+            let day = calendar.startOfDay(for: candidate)
+            let rules = context.rules(on: day)
+            guard let nextDay = calendar.date(byAdding: .day, value: 1, to: day) else { return candidate }
+            guard rules.remindersEnabled else {
+                candidate = nextDay
+                continue
+            }
+            // Plage invalide (vide ou à cheval sur minuit) : pas de contrainte,
+            // comme le repère d'allure qui la refuse lui aussi.
+            guard (0..<24).contains(rules.startHour),
+                  (1...24).contains(rules.endHour),
+                  rules.startHour < rules.endHour
+            else { return candidate }
 
-        let day = calendar.startOfDay(for: date)
-        guard let start = calendar.date(byAdding: .hour, value: context.activeStartHour, to: day),
-              let end = calendar.date(byAdding: .hour, value: context.activeEndHour, to: day)
-        else { return date }
+            guard let start = calendar.date(byAdding: .hour, value: rules.startHour, to: day),
+                  let end = calendar.date(byAdding: .hour, value: rules.endHour, to: day)
+            else { return candidate }
 
-        if date < start { return start }
-        if date >= end {
-            return calendar.date(byAdding: .day, value: 1, to: start) ?? date
+            if candidate < start { return start }
+            if candidate < end { return candidate }
+            candidate = nextDay
         }
-        return date
+        return never
     }
 }

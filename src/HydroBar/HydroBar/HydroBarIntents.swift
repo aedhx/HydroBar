@@ -51,6 +51,7 @@ enum HydroBarIntentError: Error, CustomLocalizedStringResourceConvertible {
     case amountOutOfRange
     case presetNotFound
     case nothingToUndo
+    case daysOffDisabled
 
     // Mêmes textes que les erreurs de deep links : déjà traduits.
     var localizedStringResource: LocalizedStringResource {
@@ -58,6 +59,7 @@ enum HydroBarIntentError: Error, CustomLocalizedStringResourceConvertible {
         case .amountOutOfRange: return "Invalid or out-of-range amount."
         case .presetNotFound:   return "This preset does not exist."
         case .nothingToUndo:    return "Nothing to undo."
+        case .daysOffDisabled:  return "Turn on Days Off in HydroBar's settings first."
         }
     }
 }
@@ -207,16 +209,71 @@ struct HydroBarFocusFilter: SetFocusFilterIntent {
     @Parameter(title: "Reminders as a Badge")
     var remindersAsBadge: Bool?
 
+    /// Une Concentration « Travail » programmée sait déjà quand on travaille :
+    /// elle peut décider du type de journée.
+    @Parameter(title: "Day Type")
+    var dayType: IntentDayType?
+
     var displayRepresentation: DisplayRepresentation {
-        remindersAsBadge == true
-            ? DisplayRepresentation(title: "Reminders as a badge")
-            : DisplayRepresentation(title: "Reminders unchanged")
+        let reminders: LocalizedStringResource = remindersAsBadge == true ? "Reminders as a badge" : "Reminders unchanged"
+        switch dayType {
+        case .work: return DisplayRepresentation(title: reminders, subtitle: "Work Day")
+        case .off: return DisplayRepresentation(title: reminders, subtitle: "Day Off")
+        case nil: return DisplayRepresentation(title: reminders)
+        }
     }
 
     @MainActor
     func perform() async throws -> some IntentResult {
-        HydrationManager.shared.setFocusFilterQuiet(remindersAsBadge ?? false)
+        // Concentration désactivée : le système rappelle le filtre sans valeur.
+        let manager = HydrationManager.shared
+        manager.setFocusFilterQuiet(remindersAsBadge ?? false)
+        manager.setFocusDayKind(dayType?.dayKind)
         return .result()
+    }
+}
+
+// MARK: - Type de journée
+
+enum IntentDayType: String, AppEnum {
+    case work
+    case off
+
+    static let typeDisplayRepresentation: TypeDisplayRepresentation = "Day Type"
+
+    static let caseDisplayRepresentations: [IntentDayType: DisplayRepresentation] = [
+        .work: "Work Day",
+        .off: "Day Off",
+    ]
+
+    var dayKind: DayKind {
+        switch self {
+        case .work: return .work
+        case .off: return .off
+        }
+    }
+}
+
+/// Pour une automatisation : « jour off » quand le Mac se connecte au Wi-Fi de
+/// la maison un jour de semaine, par exemple.
+struct SetDayTypeIntent: AppIntent {
+    static let title: LocalizedStringResource = "Set Today's Day Type"
+    static let description = IntentDescription("Makes today a work day or a day off in HydroBar. Days off use their own hours, reminders and goal.")
+    static let openAppWhenRun = false
+
+    @Parameter(title: "Day Type")
+    var dayType: IntentDayType
+
+    static var parameterSummary: some ParameterSummary {
+        Summary("Make today a \(\.$dayType)")
+    }
+
+    @MainActor
+    func perform() async throws -> some IntentResult & ProvidesDialog {
+        let manager = HydrationManager.shared
+        guard manager.dayPlan.enabled else { throw HydroBarIntentError.daysOffDisabled }
+        manager.setTodayKind(dayType.dayKind)
+        return .result(dialog: "\(todaySummary(manager))")
     }
 }
 

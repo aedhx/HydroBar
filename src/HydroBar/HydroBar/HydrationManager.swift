@@ -286,8 +286,8 @@ class HydrationManager: ObservableObject {
     func snoozeReminders(_ option: SnoozeOption) {
         objectWillChange.send()
         snoozedUntilTimestamp = option.endDate(from: Date(),
-                                               activeStartHour: activeHoursStart,
-                                               activeEndHour: activeHoursEnd,
+                                               activeStartHour: todayRules.startHour,
+                                               activeEndHour: todayRules.endHour,
                                                calendar: .current).timeIntervalSince1970
         scheduleNotifications()
     }
@@ -431,7 +431,7 @@ class HydrationManager: ObservableObject {
     /// antérieure (cf. AUDIT § P0-2) diviserait par zéro partout où l'on
     /// calcule une progression.
     var targetMl: Double {
-        get { clampedGoal(weekdayGoals.goal(on: Date(), calendar: .current, default: defaultTargetMl)) }
+        get { clampedGoal(plannedGoal(on: Date())) }
         // Les écritures (réglages, intents, deep links) visent l'objectif par
         // défaut ; une surcharge du jour reste prioritaire.
         set { defaultTargetMl = newValue }
@@ -460,11 +460,11 @@ class HydrationManager: ObservableObject {
         }
     }
 
-    private func clampedGoal(_ goal: Double) -> Double {
+    func clampedGoal(_ goal: Double) -> Double {
         min(max(goal, HydrationLimits.goal.lowerBound), HydrationLimits.goal.upperBound)
     }
 
-    private func goalDidChange() {
+    func goalDidChange() {
         // Le jour se juge contre l'objectif qu'il avait : on le note.
         log.setGoal(targetMl, on: Date(), calendar: .current)
         persistLog()
@@ -484,6 +484,14 @@ class HydrationManager: ObservableObject {
     /// chaque journée repart de la première gourde.
     @AppStorage("bottleNumber") var bottleNumber: Int = 1
     @AppStorage("bottleDay") var bottleDayKey: String = ""
+
+    // MARK: - Jours off (logique : HydrationManager+Days.swift)
+
+    @AppStorage("dayPlan") var dayPlanRaw: String = ""
+    /// Type de journée imposé par le filtre de Concentration, vide sinon.
+    @AppStorage("focusDayKind") var focusDayKindRaw: String = ""
+    /// Dernier plan décodé : le planificateur et les vues le lisent souvent.
+    var dayPlanCache: (raw: String, plan: DayPlan)?
 
     // MARK: - Preset suggéré (logique : HydrationManager+Features.swift)
 
@@ -755,7 +763,8 @@ class HydrationManager: ObservableObject {
             goalReachedToday: targetMl > 0 && today >= targetMl,
             behindPace: adaptiveReminders && behind,
             notBefore: remindersSnoozedUntil,
-            calendar: calendar
+            calendar: calendar,
+            dayRules: dayRulesProvider(now: now)
         )
     }
 
@@ -782,7 +791,7 @@ class HydrationManager: ObservableObject {
     private func sendWeeklySummaryIfDue() {
         guard notificationsEnabled, weeklySummaryEnabled, !isQuietMode else { return }
         let now = Date()
-        let hour = max(activeHoursEnd - 1, activeHoursStart)
+        let hour = max(todayRules.endHour - 1, todayRules.startHour)
         guard let key = HydrationStats.weeklySummaryKeyIfDue(now: now, hour: hour,
                                                             lastSentKey: lastWeeklySummaryWeek)
         else { return }
@@ -1032,9 +1041,8 @@ class HydrationManager: ObservableObject {
     /// Fraction de l'objectif attendue à cet instant, au prorata de la plage active.
     /// `nil` avant le début de la plage : rien n'est encore attendu.
     var expectedProgress: Double? {
-        HydrationPace.expectedFraction(at: Date(),
-                                       startHour: activeHoursStart,
-                                       endHour: activeHoursEnd)
+        let rules = todayRules
+        return HydrationPace.expectedFraction(at: Date(), startHour: rules.startHour, endHour: rules.endHour)
     }
 
     /// Phrase complète pour VoiceOver : progression, quantités et allure. Partagée
