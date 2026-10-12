@@ -34,7 +34,7 @@ struct StatisticsView: View {
             
             // Section Activité Mensuelle
             VStack(alignment: .leading, spacing: 10) {
-                Text("Monthly Activity", comment: "Section title for monthly activity")
+                Text("Consistency (30 days)", comment: "Title for 30-day consistency heatmap")
                     .font(.system(size: 13, weight: .semibold))
                     .foregroundColor(.primary)
                     .padding(.horizontal, 20)
