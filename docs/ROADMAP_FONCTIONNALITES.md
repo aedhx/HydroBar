@@ -21,7 +21,7 @@
 | **F4** | **Export des données (CSV / JSON)** ✅ v2.0 | ⭐⭐⭐⭐ | — | F5 |
 | **F5** | **Journal d'événements + historique illimité** ✅ v2.0 | ⭐⭐⭐⭐ | — | P1-2 |
 | **F17** | **Journal du jour + suppression à l'unité** ✅ v2.0 | ⭐⭐⭐⭐ | — | F5 |
-| **F6** | Rappels intelligents | ⭐⭐⭐⭐ | 2 j | P0-3, F5 |
+| **F6** | **Rappels intelligents** ✅ v2.1 | ⭐⭐⭐⭐ | — | P0-3, F5 |
 | **F7** | Accessibilité (VoiceOver, contrastes) | ⭐⭐⭐⭐ | 1,5 j | — |
 | **F8** | **Onboarding au premier lancement** ✅ v2.0 | ⭐⭐⭐ | — | — |
 | **F19** | **Snooze des rappels** ✅ v2.0 | ⭐⭐⭐ | — | — (plage horaire déjà faite) |
@@ -353,7 +353,9 @@ critique une fois la suppression fine disponible, mais reste un clic destructif.
 
 ---
 
-## F6 — Rappels intelligents ⭐⭐⭐⭐
+## F6 — Rappels intelligents ⭐⭐⭐⭐ — ✅ livré (v2.1)
+
+> **Livré (v2.1).** Points 1, 2, 4 et 6 : plage active, silence écran en veille ou session verrouillée, cadence adaptative (un tiers plus rapide en retard, plancher de 15 min), arrêt une fois l'objectif atteint, célébration. `ReminderPlanner` est pur et testé. Restent la détection de visio (3) et le résumé hebdomadaire (5).
 
 Le système actuel est un intervalle fixe qui se réarme à chaque ajout — il notifie à
 3 h du matin comme à 15 h.
@@ -380,7 +382,9 @@ Le point 4 est celui qui différencie l'app d'un simple minuteur.
 
 ---
 
-## F7 — Accessibilité ⭐⭐⭐⭐
+## F7 — Accessibilité ⭐⭐⭐⭐ — 🟡 en partie (v2.1)
+
+> **Livré (v2.1).** Coche « objectif atteint » (non chromatique), « Réduire les animations », VoiceOver sur l'icône de la barre de menu, le bouton « Hold to Add » et les presets. Reste : les tailles de police dynamiques.
 
 Aucun `accessibilityLabel` dans le projet. Quelques points concrets :
 
@@ -575,7 +579,9 @@ de l'activité, du climat et de l'alimentation.
 
 ---
 
-## F14 — Interactions dans la barre de menu ⭐⭐
+## F14 — Interactions dans la barre de menu ⭐⭐ — 🟡 en partie (v2.1)
+
+> **Livré (v2.1).** ⌥-clic sur l'icône (premier preset) et info-bulle de progression. Restent la molette, le glisser-déposer et les styles d'icône supplémentaires.
 
 L'icône ne répond aujourd'hui qu'au clic gauche (popover) et au clic droit (menu).
 
@@ -603,6 +609,8 @@ Devient quasi gratuit une fois F1 livré : le plugin se contente d'ouvrir des UR
 ---
 
 ## F16 — Fenêtre tableau de bord ⭐⭐
+
+> **Avancement (v2.1).** L'édition rétroactive, « manque à part entière », est livrée sans attendre la fenêtre : « Add an Earlier Drink… » dans le journal du jour.
 
 Le popover est contraint à 320 px de large et sa hauteur est calculée à la main via un
 `PreferenceKey` et un rappel vers l'`AppDelegate`
