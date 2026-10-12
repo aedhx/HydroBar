@@ -47,7 +47,7 @@ correctifs P0 représentent environ une journée de travail.
 | **P0 — Bloquant** | 6 | 5 corrigés, 1 invalidé (P0-4) | Fonctionnalités mortes, crash potentiel |
 | **P1 — Architecture** | 7 | 7 corrigés | Réactivité, source de vérité, encapsulation |
 | **P2 — Performance** | 5 | 5 corrigés | Timers, I/O disque, reconstruction de vues |
-| **P3 — Qualité / outillage** | 8 | 7 corrigés, P3-1 en partie | Tests, CI, i18n, distribution |
+| **P3 — Qualité / outillage** | 8 | 8 corrigés | Tests, CI, i18n, distribution |
 | **P4 — Cosmétique** | 6 + notes | corrigés | Code mort, duplication, conventions |
 | **Revue n°2** | 13 | 13 corrigés | Sécurité des deep links, unités, i18n des statistiques |
 | **Revue n°3** | 14 | 14 corrigés | Pertes de données, widget, saisie |
@@ -90,10 +90,13 @@ sont les plus graves de l'application : des **pertes de données silencieuses**.
 
 ### Ce qui reste ouvert
 
-- **P3-1, seconde moitié** : tester la bascule de jour et la persistance — R3-1
-  et R3-5 n'ont pas de test de régression. Prérequis : injecter `UserDefaults`,
-  le système de fichiers et l'horloge dans `HydrationManager`. C'est aussi le
-  prérequis de F5 (journal d'événements) : à faire ensemble.
+- ~~**P3-1, seconde moitié**~~ — *traité en v2.0 avec F5.* Le journal
+  d'événements supprime le total en cache et son archivage à la bascule de
+  jour : R3-1 ne peut plus se produire par construction, et R3-5 a son test de
+  régression. La persistance (`IntakeLogStore`) prend son dossier en paramètre
+  et se teste dans un dossier temporaire. `HydrationManager` lit toujours
+  `UserDefaults` et l'horloge en dur, mais il ne contient plus de logique de
+  données à tester.
 - **Actions côté compte Apple** : capability Communication Notifications (P0-3),
   certificat Developer ID et notarisation (P3-6), vérification de l'App Group
   avec le Team ID (R3-3).
@@ -696,7 +699,7 @@ la date elle-même suffirait. À traiter avec P1-2.
 
 ### P3-1 — Aucun test
 
-> **Statut.** 🟡 **En grande partie corrigé** (`8173d98`) — 70 tests : unités, deep links, allure, statistiques, saisie numérique, versions, instantané du widget. **Reste** la bascule de jour et la persistance, qui demandent d'injecter `UserDefaults`, le système de fichiers et l'horloge dans `HydrationManager`.
+> **Statut.** ✅ **Corrigé** (`8173d98`, puis F5 en v2.0) — 103 tests : unités, deep links, allure, statistiques, saisie numérique, versions, widget, journal d'événements et sa migration, stockage sur disque, export/import, pause des rappels, suggestion d'objectif.
 
 **Partiellement corrigé.** Deux suites réelles existent désormais et passent en CI :
 `DeepLinkParserTests` (18 cas) et `HydrationPaceTests` (13 cas). Le gabarit vide

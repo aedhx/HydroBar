@@ -4,7 +4,7 @@
 
 [![CI](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml/badge.svg)](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml)
 
-![macOS](https://img.shields.io/badge/macOS-12.0+-black?style=for-the-badge&logo=apple)
+![macOS](https://img.shields.io/badge/macOS-15.1+-black?style=for-the-badge&logo=apple)
 ![Swift](https://img.shields.io/badge/Swift-5.0-orange?style=for-the-badge&logo=swift)
 ![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
 
@@ -32,8 +32,9 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **Real-time progress ring** with animated visual feedback and gradient colors
 - **Customizable daily goal** (ml, cl, L, US fl oz, UK fl oz)
 - **Quick preset buttons** for common water amounts
-- **Hold-to-Add mode** for continuous water intake with haptic feedback
-- **Automatic daily reset** at midnight
+- **Hold-to-Add mode** for continuous water intake with haptic feedback, showing the running total on the button
+- **Today's log**: see every drink logged today with its time, and remove any single entry (⌘Z brings it back)
+- **Automatic daily reset** at midnight, and **Reset my day** can be undone
 
 ### 📊 Advanced Statistics
 - **Weekly bar chart** showing your progress over the last 7 days
@@ -42,16 +43,16 @@ Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar of
 - **Color-coded indicators** (green for goal achieved, blue for in progress)
 
 ### 🔔 Smart Notifications
-- **Customizable reminder intervals** (15min to 4 hours)
-- **Focus Mode integration**: automatically respects macOS Do Not Disturb
+- **Reminder intervals**: every 30 minutes, every 2 hours, or a custom interval (5 to 480 minutes)
+- **Pause reminders** for 1 hour, until this evening or until tomorrow, from the notification, the menu bar icon or Settings; the pause ends by itself
+- **Focus Mode integration**: reminders turn into a menu bar badge while a macOS Focus is on
 - **Visual badge** in menu bar when reminders are active
-- **Quick action buttons** in notifications to add water instantly
+- **Quick action buttons** in notifications to add water or snooze instantly
 
 ### ⌨️ Global Keyboard Shortcuts
-- **Custom shortcuts** for each preset amount
+- **Custom shortcuts** for each preset amount, plus **Undo** and **Open HydroBar**
 - **System-wide functionality**: works from any application
-- **Intuitive recorder interface** to set your preferred shortcuts
-- **Accessibility permission** required (one-time setup)
+- **Intuitive recorder interface**, which tells you when a shortcut is already taken
 - **Stream Deck compatible**: Use your configured shortcuts with Elgato Stream Deck for one-click hydration tracking
 
 <div align="center">
@@ -108,10 +109,24 @@ validated and rejected if out of range, and calls are rate limited.
 Full grammar, security model, error codes and `x-callback-url` support:
 [docs/specs/DEEP_LINKS.md](docs/specs/DEEP_LINKS.md).
 
+### 🧩 Shortcuts, Spotlight and Siri
+
+HydroBar adds five actions to the Shortcuts app: **Log Water**, **Log a Preset**,
+**Get Hydration Status**, **Undo Last Drink** and **Set Daily Goal**. Unlike deep
+links, they return values (today's total, in milliliters), so you can build
+automations around them.
+
+### 💾 Export and Backup
+
+In **Settings › Data**:
+- **Export as CSV**: one line per day (`date,amount_ml,target_ml,goal_reached`), readable by any spreadsheet app
+- **Back Up (JSON)**: every drink, with its time
+- **Restore from Backup**: adds only the entries you don't already have, so restoring the same backup twice changes nothing
+
 ### 🔄 Additional Features
 - **Check for updates** in Settings: compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available
 - **Undo/Redo support** (Cmd+Z) to correct mistakes
-- **Complete history** saved locally on your Mac
+- **Complete history** saved locally on your Mac, one entry per drink, never cut off
 - **Data persistence** across app restarts and updates
 - **Privacy-first**: all data stays on your device, no cloud sync (only optional outbound request to GitHub API for update check)
 
@@ -141,11 +156,10 @@ Full grammar, security model, error codes and `x-callback-url` support:
 
 ### Required Permissions
 
-After first launch, grant the following permissions in System Preferences:
+HydroBar asks for **notification** permission when you turn reminders on. If you
+declined it, enable it again in System Settings › Notifications › HydroBar.
 
-- **Notifications**: System Preferences > Notifications > Enable for HydroBar
-- **Accessibility**: System Preferences > Security & Privacy > Privacy > Accessibility > Add HydroBar
-  - Required for global keyboard shortcuts to work
+Global keyboard shortcuts need no special permission.
 
 ### Method 2: Build from Source
 
@@ -161,7 +175,7 @@ open HydroBar.xcodeproj
 ```
 
 **Requirements:**
-- macOS 12.0 (Monterey) or later
+- macOS 15.1 (Sequoia) or later
 - Xcode 14.0 or later
 - Swift 5.0+
 
@@ -226,19 +240,23 @@ Smart reminders with customizable intervals. Notifications integrate seamlessly 
 
 ### Getting Started
 
-1. **Set your daily goal**: Open HydroBar from the menu bar and adjust your target in Settings
-2. **Choose your unit**: Select ml, cl, L, US oz or UK oz
-3. **Add water**: Click preset buttons or use the Hold-to-Add feature
-4. **Enable reminders**: Configure notification intervals in Settings
-5. **Set shortcuts** (optional): Record global keyboard shortcuts for quick water intake
+On first launch, a short welcome sets up your unit, daily goal (with an optional
+suggestion from your weight), presets and reminders. Everything can be changed
+later in Settings.
+
+1. **Add water**: Click preset buttons or use the Hold-to-Add feature
+2. **Check today's log**: Expand it under the Hold-to-Add button to review or remove entries
+3. **Enable reminders**: Configure notification intervals in Settings
+4. **Set shortcuts** (optional): Record global keyboard shortcuts for quick water intake
 
 ### Menu Bar Icon
 
 - **Click** the icon to open the main popover
 - **Right-click** for the context menu:
   - **Version** at the top (current app version)
-  - **Add 25cl / 250ml** quick action
-  - **Keyboard Shortcuts** submenu: view configured shortcuts for each preset
+  - **Add** one of your presets, and **Undo**
+  - **Pause Reminders** (or **Resume Reminders** while paused)
+  - **Keyboard Shortcuts** submenu: view your configured shortcuts
   - **About** (version and credits)
   - **View Repository** (open GitHub sources)
   - **Quit**
@@ -258,7 +276,7 @@ Access detailed statistics by clicking the chart icon in the main view:
 
 ### Prerequisites
 
-- macOS 12.0+ (Monterey or later)
+- macOS 15.1+ (Sequoia or later)
 - Xcode 14.0+
 - Command Line Tools
 
@@ -315,7 +333,11 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 
 ### Key Components
 
-- `HydrationManager.swift`: Core business logic, persistence, history management, App Group sync
+- `HydrationManager.swift`: Core business logic, reminders, App Group sync
+- `IntakeLog.swift` / `IntakeLogStore.swift`: The intake log (one event per drink) and its storage
+- `HydroBarIntents.swift`: Shortcuts, Spotlight and Siri actions
+- `DataPortability.swift`: CSV export, JSON backup and restore
+- `OnboardingView.swift`: First-launch welcome
 - `HydroBarApp.swift`: App lifecycle, menu bar setup, context menu, notifications
 - `MainView.swift`: Main interface with progress ring and quick actions
 - `SettingsView.swift`: Configuration, preferences, and update check (UPDATES section)
@@ -332,8 +354,8 @@ HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
 
 In-depth engineering docs live in [`docs/`](docs/README.md):
 
-- [**Technical audit**](docs/AUDIT_TECHNIQUE.md) — code review, 32 findings ranked P0→P4, with a 6-step action plan
-- [**Feature roadmap**](docs/ROADMAP_FONCTIONNALITES.md) — 16 proposals ranked by value/effort, sequenced v1.3→v1.6
+- [**Technical audit**](docs/AUDIT_TECHNIQUE.md) — code review, findings ranked P0→P4 and their fixes
+- [**Feature roadmap**](docs/ROADMAP_FONCTIONNALITES.md) — 21 proposals ranked by value/effort, with what shipped in v2.0
 - [**Deep links spec**](docs/specs/DEEP_LINKS.md) — the `hydrobar://` URL scheme: grammar, security model, callbacks, tests
 
 > These documents are written in French.
@@ -374,9 +396,8 @@ xattr -cr /Applications/HydroBar.app
 - Verify notification settings in HydroBar Settings
 
 ### Keyboard shortcuts not working
-- Grant Accessibility permission: System Preferences > Security & Privacy > Privacy > Accessibility
-- Restart the app after granting permission
-- Verify shortcuts are configured in Settings
+- Check Settings › Keyboard Shortcuts: a shortcut that another app already uses is marked as inactive
+- Choose a different combination for it
 
 ### Icon not visible in menu bar
 - Check that the app is running (Activity Monitor)
@@ -387,10 +408,10 @@ xattr -cr /Applications/HydroBar.app
 
 ## 📝 Requirements
 
-- **macOS**: 12.0 (Monterey) or later
+- **macOS**: 15.1 (Sequoia) or later
 - **Architecture**: Universal (Intel and Apple Silicon)
 - **Disk space**: ~15-20 MB
-- **Permissions**: Notifications, Accessibility (for shortcuts)
+- **Permissions**: Notifications (only if you turn reminders on)
 
 ---
 
@@ -402,7 +423,8 @@ Future improvements planned:
 - [x] Pace marker on the progress ring *(v1.3)*
 - [x] Desktop widgets (small and medium), in sync with the app *(v1.3)*
 - [x] Custom preset amounts
-- [ ] Data export functionality
+- [x] Today's log, data export and backup *(v2.0)*
+- [x] Shortcuts app actions, reminder snooze, welcome screen *(v2.0)*
 - [ ] iCloud sync (optional)
 - [ ] Advanced statistics filters
 
