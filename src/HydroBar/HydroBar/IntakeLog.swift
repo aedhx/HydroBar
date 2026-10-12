@@ -23,16 +23,19 @@ struct IntakeEvent: Codable, Identifiable, Hashable {
     /// pas une prise réelle, et elle est datée à midi plutôt que d'inventer une
     /// répartition dans la journée.
     let isAggregate: Bool
+    /// Numéro de la gourde du jour (mode gourde), `nil` pour une prise ordinaire.
+    let bottle: Int?
 
-    init(id: UUID = UUID(), date: Date, amountMl: Double, isAggregate: Bool = false) {
+    init(id: UUID = UUID(), date: Date, amountMl: Double, isAggregate: Bool = false, bottle: Int? = nil) {
         self.id = id
         self.date = date
         self.amountMl = amountMl
         self.isAggregate = isAggregate
+        self.bottle = bottle
     }
 
     private enum CodingKeys: String, CodingKey {
-        case id, date, amountMl, isAggregate
+        case id, date, amountMl, isAggregate, bottle
     }
 
     // `isAggregate` est facultatif à la lecture : un fichier importé écrit à la
@@ -43,6 +46,7 @@ struct IntakeEvent: Codable, Identifiable, Hashable {
         date = try container.decode(Date.self, forKey: .date)
         amountMl = try container.decode(Double.self, forKey: .amountMl)
         isAggregate = try container.decodeIfPresent(Bool.self, forKey: .isAggregate) ?? false
+        bottle = try container.decodeIfPresent(Int.self, forKey: .bottle)
     }
 }
 

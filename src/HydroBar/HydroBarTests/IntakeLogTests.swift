@@ -203,3 +203,34 @@ private func temporaryStore() throws -> IntakeLogStore {
     #expect(decoded.amountMl == 250)
     #expect(!decoded.isAggregate)
 }
+
+// MARK: - Mode gourde
+
+@Test func countsOnlyTheCurrentBottleOfTheDay() {
+    let events = [
+        IntakeEvent(date: at(day: 15, 9), amountMl: 375, bottle: 1),
+        IntakeEvent(date: at(day: 15, 10), amountMl: 250),               // prise ordinaire
+        IntakeEvent(date: at(day: 15, 14), amountMl: 200, bottle: 2),
+        IntakeEvent(date: at(day: 14, 9), amountMl: 500, bottle: 1),     // la veille
+    ]
+    #expect(Bottle.drunkMl(events: events, bottle: 1, on: at(day: 15, 0), calendar: utc) == 375)
+    #expect(Bottle.drunkMl(events: events, bottle: 2, on: at(day: 15, 0), calendar: utc) == 200)
+}
+
+@Test func logsOnlyTheDifferenceToTheNextLevel() {
+    // Gourde de 750 ml, déjà bue à moitié : passer aux trois quarts ajoute un quart.
+    #expect(Bottle.amountToReach(fraction: 0.75, drunkMl: 375, capacityMl: 750) == 188)
+    #expect(Bottle.amountToReach(fraction: 1, drunkMl: 375, capacityMl: 750) == 375)
+}
+
+@Test func doesNotLogALevelAlreadyReached() {
+    #expect(Bottle.amountToReach(fraction: 0.5, drunkMl: 375, capacityMl: 750) == nil)
+    #expect(Bottle.amountToReach(fraction: 0.25, drunkMl: 500, capacityMl: 750) == nil)
+}
+
+@Test func storesTheBottleNumberWithTheEvent() throws {
+    let event = IntakeEvent(date: at(day: 15, 9), amountMl: 375, bottle: 2)
+    let data = try IntakeLogStore.encoder.encode(event)
+    let decoded = try IntakeLogStore.decoder.decode(IntakeEvent.self, from: data)
+    #expect(decoded.bottle == 2)
+}

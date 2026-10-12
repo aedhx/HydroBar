@@ -143,7 +143,7 @@ struct SettingsView: View {
             page { generalSection; appearanceSection; languageSection; updatesSection }
                 .tabItem { Label(String(localized: "General", comment: "Settings tab"), systemImage: "gearshape") }
                 .tag(SettingsTab.general)
-            page { goalSection; activeHoursSection; presetsSection }
+            page { goalSection; activeHoursSection; presetsSection; bottleSection }
                 .tabItem { Label(String(localized: "Hydration", comment: "Settings tab"), systemImage: "drop") }
                 .tag(SettingsTab.hydration)
             page { remindersSection }
@@ -249,6 +249,46 @@ struct SettingsView: View {
             }
 
             weekdayGoalsSection
+    }
+
+    // MARK: - Mode gourde
+
+    private var bottleSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("BOTTLE", comment: "Settings section title for bottle mode")
+                .font(Theme.Font.sectionTitle)
+                .foregroundColor(.secondary)
+
+            Toggle(isOn: Binding(get: { manager.bottleModeEnabled },
+                                 set: { manager.bottleModeEnabled = $0 })) {
+                Text("Bottle mode", comment: "Toggle: bottle mode")
+                    .font(Theme.Font.body)
+            }
+            .toggleStyle(.switch)
+
+            Text("Drink from a bottle? Log how much of it you've had — a quarter, half, three quarters — and HydroBar records the difference.",
+                 comment: "Explanation of bottle mode")
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if manager.bottleModeEnabled {
+                HStack(spacing: 8) {
+                    Text("Bottle size", comment: "Bottle mode: capacity label")
+                        .font(Theme.Font.body)
+                    ValidatedNumberField(
+                        value: manager.selectedUnit.fromMl(manager.bottleCapacityMl),
+                        range: displayRange(Bottle.capacityRange),
+                        format: formatForInput,
+                        onCommit: { manager.bottleCapacityMl = manager.mlValue(from: $0) }
+                    )
+                    .frame(width: 90)
+                    Text(verbatim: manager.selectedUnit.symbol)
+                        .font(Theme.Font.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
     }
 
     // MARK: - Objectif par jour de la semaine
