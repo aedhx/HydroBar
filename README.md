@@ -255,6 +255,7 @@ later in Settings.
 ### Menu Bar Icon
 
 - **Click** the icon to open the main popover
+- **⌘,** or **Settings…** in the context menu opens the Settings window
 - **Option-click** to log your first preset without opening it
 - **Right-click** for the context menu:
   - **Version** at the top (current app version)
@@ -264,7 +265,7 @@ later in Settings.
   - **About** (version and credits)
   - **View Repository** (open GitHub sources)
   - **Quit**
-- **Icon styles**: Progress ring (default) or percentage display
+- **Icon styles**: Progress ring (default) or percentage display, monochrome to match your menu bar (a colored icon is available in Settings)
 - **Badge indicator**: Red dot appears when reminders are active
 
 ### Statistics View
@@ -430,6 +431,7 @@ Future improvements planned:
 - [x] Today's log, data export and backup *(v2.0)*
 - [x] Shortcuts app actions, reminder snooze, welcome screen *(v2.0)*
 - [x] Smart reminders, hourly pattern, logging earlier drinks, accessibility *(v2.1)*
+- [x] Monochrome menu bar icon, micro-animations, tabbed Settings window *(v2.2)*
 - [ ] iCloud sync (optional)
 - [ ] Advanced statistics filters
 
