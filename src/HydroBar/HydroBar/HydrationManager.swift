@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AppKit
 import UserNotifications
 import WidgetKit
 import os
@@ -85,7 +86,18 @@ class HydrationManager: ObservableObject {
     @AppStorage("presetsMl") private var storedPresetsMlRaw: String = "[200.0, 500.0, 750.0]" // Toujours en ml en interne
     @AppStorage("lastResetDate") private var lastResetDateString: String = ""
     @AppStorage("currentMl") private var storedCurrentMl: Double = 0.0
+    // MARK: - Réglages publiés
+    //
+    // `@AppStorage` est conçu pour les vues : dans un `ObservableObject`, il lit et
+    // écrit correctement UserDefaults mais n'émet AUCUN `objectWillChange`. Les
+    // vues ne voyaient donc pas les changements de réglages, et l'app compensait
+    // par des minuteurs de rafraîchissement — dont celui qui reconstruisait
+    // l'icône de la barre de menu deux fois par seconde (cf. AUDIT § P1-1, P2-1).
+    // Chaque réglage lu par une vue émet donc explicitement, AVANT le changement,
+    // comme l'exige le contrat d'ObservableObject.
+
     @AppStorage("notificationsEnabled") var notificationsEnabled: Bool = false {
+        willSet { objectWillChange.send() }
         didSet {
             scheduleNotifications()
             if notificationsEnabled {
@@ -96,81 +108,69 @@ class HydrationManager: ObservableObject {
         }
     }
     @AppStorage("notificationInterval") private var storedNotificationInterval: String = NotificationInterval.thirtyMinutes.rawValue
-    @AppStorage("customNotificationMinutes") var customNotificationMinutes: Int = 60
+    @AppStorage("customNotificationMinutes") var customNotificationMinutes: Int = 60 {
+        willSet { objectWillChange.send() }
+    }
     @AppStorage("doNotDisturb") var doNotDisturb: Bool = false {
+        willSet { objectWillChange.send() }
         didSet {
-            // IMPORTANT: Ne jamais modifier notificationsEnabled ici
-            // Le mode DnD ne désactive pas les notifications, il change juste leur comportement
+            // Le mode DnD ne désactive pas les notifications, il change seulement
+            // leur forme (pastille au lieu de notification système).
             if notificationsEnabled {
                 scheduleNotifications()
                 checkReminderStatus()
             }
         }
     }
-    
+
     @AppStorage("focusModeAutoSync") var focusModeAutoSync: Bool = false {
+        willSet { objectWillChange.send() }
         didSet {
-            // Éviter les appels récursifs
             guard oldValue != focusModeAutoSync else { return }
-            
-            if focusModeAutoSync {
-                FocusModeMonitor.shared.setAutoSync(true)
-            } else {
-                FocusModeMonitor.shared.setAutoSync(false)
-            }
+            FocusModeMonitor.shared.setAutoSync(focusModeAutoSync)
         }
     }
-    
+
+    /// La langue s'applique au prochain lancement : l'app lit `AppleLanguages`
+    /// au démarrage. Voir le sélecteur de langue dans les réglages.
     @AppStorage("appLanguage") var appLanguage: String = "system" {
-        didSet {
-            // Mettre à jour la langue de l'application
-            updateAppLanguage()
-        }
+        willSet { objectWillChange.send() }
     }
-    
-    @AppStorage("debugModeEnabled") var debugModeEnabled: Bool = false
+
+    @AppStorage("debugModeEnabled") var debugModeEnabled: Bool = false {
+        willSet { objectWillChange.send() }
+    }
 
     /// Autorise `hydrobar://reset` et `hydrobar://set-goal` à s'exécuter sans alerte
     /// de confirmation. Désactivé par défaut : n'importe quelle page web peut
     /// déclencher un schéma d'URL. Voir docs/specs/DEEP_LINKS.md § 4.1.
     @AppStorage("allowDestructiveDeepLinks") var allowDestructiveDeepLinks: Bool = false {
-        didSet {
-            // @AppStorage n'émet rien depuis un ObservableObject (cf. AUDIT_TECHNIQUE P1-1) :
-            // sans cette notification, le toggle des réglages ne se redessine pas.
-            objectWillChange.send()
-        }
+        willSet { objectWillChange.send() }
     }
 
     // MARK: - Plage horaire active
     // Sert au repère d'allure de l'anneau, et servira à borner les rappels (F19).
 
     @AppStorage("activeHoursStart") var activeHoursStart: Int = HydrationPace.defaultStartHour {
-        didSet { objectWillChange.send() }
+        willSet { objectWillChange.send() }
     }
 
     @AppStorage("activeHoursEnd") var activeHoursEnd: Int = HydrationPace.defaultEndHour {
-        didSet { objectWillChange.send() }
+        willSet { objectWillChange.send() }
     }
-    
-    /// Met à jour la langue de l'application
-    private func updateAppLanguage() {
-        // La langue sera appliquée au prochain démarrage de l'app
-        // Pour une mise à jour immédiate, on notifie le changement
-        DispatchQueue.main.async {
-            self.objectWillChange.send()
-        }
+
+    @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing {
+        willSet { objectWillChange.send() }
     }
-    @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing
     
     // MARK: - Published Properties
     @Published var currentMl: Double = 0.0 {
         didSet {
+            // Immédiat : UserDefaults est la source de vérité du jour en cours.
+            // Un crash avant l'écriture différée ne perd donc rien — au lancement
+            // suivant, la valeur est reprise d'ici.
             storedCurrentMl = currentMl
-            // Defer @Published mutations (history, historyEntries) to avoid
-            // "Publishing changes from within view updates" warnings.
-            DispatchQueue.main.async { [weak self] in
-                self?.saveTodayEntry()
-            }
+            schedulePersist()
         }
     }
     
@@ -192,20 +192,66 @@ class HydrationManager: ObservableObject {
     @Published var showReminderBadge: Bool = false
     
     // MARK: - Undo Stack
-    var undoStack: [(amount: Double, timestamp: Date)] = []
-    private let maxUndoStackSize = 50 // Limiter la taille pour éviter la consommation mémoire
-    
-    // MARK: - Timer pour vérification quotidienne
-    private var dailyCheckTimer: Timer?
-    
-    // MARK: - Timer pour vérification des rappels
-    private var reminderCheckTimer: Timer?
+
+    /// Privée : `MainContentView` y ajoutait directement ses entrées, avec sa
+    /// propre copie de la limite de taille (cf. AUDIT § P1-3). Les vues passent
+    /// désormais par `beginHoldSession()` / `endHoldSession()`.
+    private var undoStack: [(amount: Double, timestamp: Date)] = []
+    private let maxUndoStackSize = 50
+
+    private func pushUndo(_ amount: Double) {
+        undoStack.append((amount: amount, timestamp: Date()))
+        if undoStack.count > maxUndoStackSize {
+            undoStack.removeFirst()
+        }
+    }
+
+    // MARK: - Session « Hold to Add »
+
+    /// Total ajouté depuis le début de l'appui en cours ; `nil` hors appui.
+    /// Pendant un appui, les effets coûteux — reprogrammation des notifications,
+    /// entrée d'annulation, écriture sur disque — sont reportés à la fin, au lieu
+    /// d'être répétés 20 fois par seconde (cf. AUDIT § P2-2).
+    private var holdSessionTotal: Double?
+
+    /// Total de l'appui en cours, affiché sur le bouton pendant l'appui.
+    @Published private(set) var holdTotalMl: Double = 0
+
+    func beginHoldSession() {
+        holdSessionTotal = 0
+        holdTotalMl = 0
+    }
+
+    func addHeldWater(_ ml: Double) {
+        guard let total = holdSessionTotal else { return }
+        holdSessionTotal = total + ml
+        holdTotalMl = total + ml
+        addWater(amount: ml, skipUndo: true)
+    }
+
+    /// Clôt l'appui : une seule entrée d'annulation pour tout le geste, une seule
+    /// reprogrammation des notifications, une seule écriture.
+    func endHoldSession() {
+        guard let total = holdSessionTotal else { return }
+        holdSessionTotal = nil
+        holdTotalMl = 0
+        if total > 0 { pushUndo(total) }
+        if notificationsEnabled { scheduleNotifications() }
+        flushPendingWrites()
+    }
+
+    // MARK: - Minuteurs
+
+    /// Un seul minuteur, au lieu de deux minuteurs de 60 s distincts — chacun
+    /// empêchait l'App Nap de son côté (cf. AUDIT § P2-4).
+    private var minuteTimer: Timer?
     @AppStorage("lastWaterAddedDate") private var lastWaterAddedDateString: String = ""
     
     // MARK: - Computed Properties
     var targetMl: Double {
         get { storedTargetMl }
         set {
+            objectWillChange.send()
             storedTargetMl = newValue
             syncToAppGroup()
         }
@@ -216,6 +262,7 @@ class HydrationManager: ObservableObject {
             AppUnit(rawValue: storedSelectedUnitRaw) ?? .cl
         }
         set {
+            objectWillChange.send()
             storedSelectedUnitRaw = newValue.rawValue
             syncToAppGroup()
         }
@@ -226,6 +273,7 @@ class HydrationManager: ObservableObject {
             PresetStorage.decode(storedPresetsMlRaw)
         }
         set {
+            objectWillChange.send()
             storedPresetsMlRaw = PresetStorage.encode(newValue)
         }
     }
@@ -235,6 +283,7 @@ class HydrationManager: ObservableObject {
             NotificationInterval(rawValue: storedNotificationInterval) ?? .thirtyMinutes
         }
         set {
+            objectWillChange.send()
             storedNotificationInterval = newValue.rawValue
             if notificationsEnabled {
                 scheduleNotifications()
@@ -263,8 +312,7 @@ class HydrationManager: ObservableObject {
         if notificationsEnabled {
             scheduleNotifications()
         }
-        setupDailyResetTimer()
-        setupReminderCheckTimer()
+        setupTimers()
         
         // Démarrer la surveillance du Focus Mode
         FocusModeMonitor.shared.startMonitoring(manager: self)
@@ -281,8 +329,7 @@ class HydrationManager: ObservableObject {
     }
     
     deinit {
-        dailyCheckTimer?.invalidate()
-        reminderCheckTimer?.invalidate()
+        minuteTimer?.invalidate()
     }
     
     // MARK: - Changement de jour
@@ -330,28 +377,35 @@ class HydrationManager: ObservableObject {
         return true
     }
 
-    /// Configure un timer pour vérifier périodiquement si on a changé de jour
-    private func setupDailyResetTimer() {
-        // Vérifier toutes les minutes si on a passé minuit
-        dailyCheckTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+    /// Planifie les vérifications périodiques et s'abonne aux événements système
+    /// qui les rendent précises.
+    private func setupTimers() {
+        // Une vérification par minute suffit pour les rappels. La tolérance laisse
+        // macOS regrouper ce réveil avec d'autres — l'ancien code n'en avait pas.
+        let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
             self?.rollOverIfNewDay()
-        }
-        
-        // S'assurer que le timer fonctionne même quand l'app est en arrière-plan
-        RunLoop.current.add(dailyCheckTimer!, forMode: .common)
-    }
-    
-    /// Configure un timer pour vérifier périodiquement si un rappel doit être affiché
-    private func setupReminderCheckTimer() {
-        // Vérifier toutes les minutes si un rappel doit être affiché
-        reminderCheckTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
             self?.checkReminderStatus()
         }
-        
-        // S'assurer que le timer fonctionne même quand l'app est en arrière-plan
-        RunLoop.current.add(reminderCheckTimer!, forMode: .common)
-        
-        // Vérifier immédiatement
+        timer.tolerance = 10
+        RunLoop.main.add(timer, forMode: .common)
+        minuteTimer = timer
+
+        let center = NotificationCenter.default
+        // Le système signale le changement de jour à minuit pile : la bascule
+        // n'attend plus jusqu'à 60 s.
+        center.addObserver(forName: .NSCalendarDayChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.rollOverIfNewDay()
+        }
+        // Après une veille, les minuteurs repartent en retard : on rattrape tout
+        // de suite. Avant, une nuit de veille laissait l'anneau sur la veille
+        // jusqu'au premier tick.
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.rollOverIfNewDay()
+            self?.checkReminderStatus()
+        }
+
         checkReminderStatus()
     }
     
@@ -411,30 +465,20 @@ class HydrationManager: ObservableObject {
         rollOverIfNewDay()
 
         
-        // Enregistrer l'action pour undo (seulement si amount > 0 et skipUndo = false)
         if amount > 0 && !skipUndo {
-            undoStack.append((amount: amount, timestamp: Date()))
-            
-            // Limiter la taille du stack
-            if undoStack.count > maxUndoStackSize {
-                undoStack.removeFirst()
-            }
+            pushUndo(amount)
         }
-        
+
         currentMl += amount
-
-        // Mettre à jour la date de dernière consommation d'eau
         updateLastWaterAddedDate()
-
-        // Réinitialiser le badge de rappel
         showReminderBadge = false
 
-        // Repousser le prochain rappel après avoir ajouté de l'eau
-        if notificationsEnabled {
+        // Repousser le prochain rappel — sauf pendant un appui long, où ce serait
+        // fait 20 fois par seconde : endHoldSession() s'en charge une seule fois.
+        if notificationsEnabled && holdSessionTotal == nil {
             scheduleNotifications()
         }
 
-        // NEW: sync state to App Group for widget and trigger widget refresh
         syncToAppGroup()
     }
     
@@ -1028,33 +1072,50 @@ class HydrationManager: ObservableObject {
         addWater(amount: delta)
     }
 
-    // MARK: - App Group Sync
+    // MARK: - Persistance différée
 
-    /// Writes the current hydration state to the shared App Group container for widget access.
-    /// Must be called after every state mutation (addWater, undo, daily reset, target change).
-    /// This is a lightweight write (~200 bytes) — safe to call at 20Hz during Hold-to-Add.
+    /// Toute écriture — historique JSON et instantané du widget — passe par un
+    /// délai unique. Avant, chaque gorgée de « Hold to Add » réécrivait les deux
+    /// fichiers d'historique, encodait l'instantané du widget et le stockait,
+    /// 20 fois par seconde ; seul le rechargement du widget était différé
+    /// (cf. AUDIT § P2-2). Les écritures atomiques de P3-3 rendaient le problème
+    /// plus coûteux encore : chaque écriture ajoute un fichier temporaire et un
+    /// renommage.
+    private var pendingPersist: DispatchWorkItem?
+    private static let persistDelay: TimeInterval = 0.5
+
+    /// Conservé sous ce nom : c'est l'appel des points de mutation (objectif,
+    /// unité, bascule de jour, ajout, annulation, reset).
     private func syncToAppGroup() {
-        let last7Days = getLast7DaysSnapshotsForWidget()
-        let snapshot = HydrationSnapshot(
+        schedulePersist()
+    }
+
+    private func schedulePersist() {
+        pendingPersist?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.flushPendingWrites() }
+        pendingPersist = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.persistDelay, execute: work)
+    }
+
+    /// Écrit immédiatement tout ce qui attend. Appelé à la fin d'un appui long et
+    /// à la fermeture de l'app : un délai ne doit jamais coûter une donnée.
+    func flushPendingWrites() {
+        pendingPersist?.cancel()
+        pendingPersist = nil
+        saveTodayEntry()
+        writeWidgetSnapshot()
+    }
+
+    private func writeWidgetSnapshot() {
+        AppGroupStore.write(HydrationSnapshot(
             currentMl: currentMl,
             targetMl: targetMl,
             unit: selectedUnit.rawValue,
             lastUpdated: Date(),
-            weekHistory: last7Days
-        )
-        AppGroupStore.write(snapshot)
-
-        // Debounce widget reload: cancel pending reload and schedule a new one 0.5s later.
-        // This prevents hammering WidgetKit 20x/sec during hold-to-add.
-        widgetReloadWorkItem?.cancel()
-        let work = DispatchWorkItem {
-            WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
-        }
-        widgetReloadWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+            weekHistory: getLast7DaysSnapshotsForWidget()
+        ))
+        WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
     }
-
-    private var widgetReloadWorkItem: DispatchWorkItem?
 
     /// Builds the last 7 days of HistoryEntrySnapshot values for the widget.
     /// Uses historyEntries (30-day canonical source). Synthesizes today's entry from

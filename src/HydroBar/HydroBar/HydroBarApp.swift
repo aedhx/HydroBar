@@ -8,6 +8,7 @@
 import SwiftUI
 import UserNotifications
 import AppKit
+import Combine
 
 @main
 struct HydroBarApp: App {
@@ -141,6 +142,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var hostingController: NSHostingController<MenuBarIconView>?
+
+    /// L'icône se met à jour quand l'état change, et seulement alors. Remplace un
+    /// minuteur à 2 Hz qui reconstruisait un NSHostingController complet à chaque
+    /// tick, 24 h/24, pour une valeur qui change quelques dizaines de fois par
+    /// jour (cf. AUDIT § P2-1).
+    private var iconSubscription: AnyCancellable?
+
+    /// Style actuellement monté dans le bouton : la vue SwiftUI n'est
+    /// reconstruite que lorsqu'il change.
+    private var renderedIconStyle: MenuBarIconStyle?
     
     // MARK: - Deep links (hydrobar://)
 
@@ -157,6 +168,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     /// n'existe sont mises en attente par le routeur jusqu'à `markReady()`.
     func application(_ application: NSApplication, open urls: [URL]) {
         urls.forEach { DeepLinkRouter.shared.handle($0) }
+    }
+
+    /// L'écriture de l'historique est différée d'une demi-seconde : on la vide à
+    /// la fermeture pour qu'un délai ne coûte jamais une donnée.
+    func applicationWillTerminate(_ notification: Notification) {
+        HydrationManager.shared.flushPendingWrites()
     }
 
     func presentPopover(showing view: ViewType) {
@@ -232,68 +249,66 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // Configurer le responder pour Cmd+Z
         setupUndoSupport()
         
-        // Mettre à jour l'icône périodiquement
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            self?.updateStatusBarIcon()
-        }
+        // objectWillChange est émis AVANT la mutation : receive(on:) diffère la
+        // lecture au tour de boucle suivant, quand la nouvelle valeur est en place.
+        iconSubscription = HydrationManager.shared.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.updateStatusBarIcon() }
     }
     
     func updateStatusBarIcon() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self,
-                  let button = self.statusItem?.button else { return }
-            
-            let manager = HydrationManager.shared
-            
-            if manager.menuBarIconStyle == .percentage {
-                // Mode pourcentage : utiliser NSImage pour un rendu plus fiable
-                // Retirer les vues SwiftUI
+        guard let button = statusItem?.button else { return }
+        let manager = HydrationManager.shared
+
+        switch manager.menuBarIconStyle {
+        case .percentage:
+            if renderedIconStyle != .percentage {
                 button.subviews.forEach { $0.removeFromSuperview() }
-                self.hostingController = nil
-                
-                // Utiliser une longueur variable pour le texte
-                self.statusItem?.length = NSStatusItem.variableLength
-                
-                let target = manager.targetMl
-                let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
-                let isGoalReached = target > 0 && manager.currentMl >= target
-                
-                if let image = self.createPercentageImage(percentage: percentage, isGoalReached: isGoalReached, showBadge: manager.showReminderBadge) {
-                    button.image = image
-                    button.imagePosition = .imageLeading
-                    button.title = ""
-                }
-            } else {
-                // Mode pie ring : utiliser SwiftUI avec longueur fixe pour centrage
-                button.image = nil
+                hostingController = nil
+                statusItem?.length = NSStatusItem.variableLength
+                button.imagePosition = .imageLeading
                 button.title = ""
-                
-                // Utiliser une longueur fixe pour garantir un centrage correct
-                self.statusItem?.length = 24
-                
-                // Retirer les anciennes vues
-                button.subviews.forEach { $0.removeFromSuperview() }
-                
-                self.hostingController = NSHostingController(rootView: MenuBarIconView(manager: manager))
-                
-                let iconSize: CGFloat = 18
-                let buttonFrame = button.bounds
-                
-                // Centrer la vue dans le bouton (le bouton a une hauteur standard de ~22px)
-                let xOffset = max(0, (buttonFrame.width - iconSize) / 2)
-                let yOffset = max(0, (buttonFrame.height - iconSize) / 2)
-                
-                self.hostingController?.view.frame = NSRect(x: xOffset, y: yOffset, width: iconSize, height: iconSize)
-                self.hostingController?.view.wantsLayer = true
-                self.hostingController?.view.layer?.backgroundColor = NSColor.clear.cgColor
-                
-                if let hostingView = self.hostingController?.view {
-                    button.addSubview(hostingView)
-                }
             }
+            // Une image texte coûte peu : elle est redessinée à chaque changement.
+            let target = manager.targetMl
+            let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
+            let isGoalReached = target > 0 && manager.currentMl >= target
+            button.image = createPercentageImage(percentage: percentage,
+                                                 isGoalReached: isGoalReached,
+                                                 showBadge: manager.showReminderBadge)
+
+        case .pieRing:
+            // La vue SwiftUI observe le manager elle-même : il suffit de la monter
+            // une fois, elle se redessine ensuite seule.
+            guard renderedIconStyle != .pieRing else { break }
+            button.image = nil
+            button.title = ""
+            statusItem?.length = 24
+            button.subviews.forEach { $0.removeFromSuperview() }
+
+            let controller = NSHostingController(rootView: MenuBarIconView(manager: manager))
+            let hostingView = controller.view
+            hostingView.wantsLayer = true
+            hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+            hostingView.translatesAutoresizingMaskIntoConstraints = false
+            button.addSubview(hostingView)
+
+            // Centré par contraintes, pas par un cadre calculé. Les dimensions du
+            // bouton ne sont pas toujours définitives au moment du montage :
+            // l'ancien minuteur corrigeait un mauvais centrage au tick suivant ;
+            // monté une seule fois, un cadre calculé trop tôt resterait faux.
+            let iconSize: CGFloat = 18
+            NSLayoutConstraint.activate([
+                hostingView.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+                hostingView.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+                hostingView.widthAnchor.constraint(equalToConstant: iconSize),
+                hostingView.heightAnchor.constraint(equalToConstant: iconSize),
+            ])
+            hostingController = controller
         }
+        renderedIconStyle = manager.menuBarIconStyle
     }
-    
+
     private func createPercentageImage(percentage: Int, isGoalReached: Bool, showBadge: Bool) -> NSImage? {
         let text = "\(percentage)%"
         let fontSize: CGFloat = 12
