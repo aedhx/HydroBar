@@ -711,6 +711,12 @@ réduisent à un fondu avec « Réduire les animations ».
 - `NSHostingController.sizingOptions = .preferredContentSize` à la place du calcul
   manuel de la hauteur du popover.
 
+> **Livré en v2.0 également** : presets appris, mode gourde, objectif par jour
+> de la semaine, vue sur l'année, bilan du mois partageable, filtre de
+> Concentration, bouton du Centre de contrôle (F10), bilan hebdomadaire (F6.5),
+> popover qui se dimensionne seul. Restent : rappels qui évitent les réunions,
+> captures de référence en CI.
+
 **Produit** : presets appris des quantités les plus bues, mode gourde
 (un quart, la moitié, finie), objectif par jour de la semaine, heatmap sur un an,
 bilan du mois partageable en image, rappels qui évitent les réunions du

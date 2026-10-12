@@ -23,11 +23,24 @@ Reminders used to fire at a fixed interval, day and night, even after you'd reac
 - they **stop for the day** once your goal is reached, and start again the next morning;
 - when you're **behind your pace**, they come about a third more often, never more than every 15 minutes. You can turn this off with **Adapt to my pace**;
 - they pause while your screen is asleep or your session is locked, instead of piling up in Notification Center;
+- with a **Focus filter** (System Settings › Focus), any Focus can turn them into a menu bar badge. It needs no extra permission;
+- a **weekly summary** arrives on the last evening of the week: days on goal, daily average and streak;
 - you can **pause** them for 1 hour, until this evening or until tomorrow, from the notification itself, the menu bar icon's context menu, or Settings. The pause ends by itself;
 - a single notification celebrates the moment you cross your daily goal, with your current streak.
 
-### When You Drink
-A new chart in Statistics shows how much you drink at each hour of the day, averaged over the last 30 days. It also shows your longest dry spell, for example "2:00 PM – 5:00 PM".
+### Bottle Mode
+Drink from a bottle at your desk? Turn on **Bottle mode** in Settings › Hydration. The popover then shows your bottle, and you log how much of it you've had: a quarter, half, three quarters, or finished. HydroBar records the difference each time and draws the bottle emptying. Undo puts the water back.
+
+### Goals That Fit Your Week
+Set a different goal for any day of the week: higher on sports days, lower on weekends. Days without their own goal use your daily goal.
+
+### Presets That Learn
+When you keep logging the same amount, for example 33 cl, HydroBar suggests turning it into a preset. It replaces the one you use least, and remembers if you say no.
+
+### Statistics
+- **When You Drink**: how much you drink at each hour of the day, averaged over the last 30 days, with your longest dry spell, for example "2:00 PM – 5:00 PM".
+- **This Month**: a recap card with your daily average, days on goal, best day and streak, which you can share or copy as an image.
+- **Your Year**: your daily average for each of the last 12 months, against your goal.
 
 ### Shortcuts, Spotlight and Siri
 Five actions for the Shortcuts app: **Log Water**, **Log a Preset**, **Get Hydration Status**, **Undo Last Drink** and **Set Daily Goal**. They return values, so you can build automations around them, such as logging a glass every morning or showing your progress in a widget of your own.
@@ -43,6 +56,9 @@ Settings now open in their own window, organized in tabs: **General**, **Hydrati
 
 ### Feedback Outside the Popover
 When you log a drink without opening HydroBar, the menu bar icon flashes and a "+20 cl" label appears below it. This covers keyboard shortcuts, the Shortcuts app, the widget and deep links. You can also **Option-click** the icon to log your first preset.
+
+### Control Center
+On macOS 26, add the **Add Water** control to Control Center or the menu bar to log your first preset from anywhere.
 
 ### More Keyboard Shortcuts
 Global shortcuts are no longer limited to presets: you can now set one to **Undo** and one to **Open HydroBar** from anywhere.
