@@ -18,6 +18,8 @@ excluded:
 disabled_rules:
   - todo                # les TODO sont suivis dans docs/, pas bloqués ici
   - opening_brace       # conflit avec les closures multi-lignes de SwiftUI
+  - trailing_comma      # une virgule finale rend les diffs d'ajout plus propres
+  - multiple_closures_with_trailing_closure   # Button(action:) { label } est l'idiome SwiftUI
 
 opt_in_rules:
   - empty_count

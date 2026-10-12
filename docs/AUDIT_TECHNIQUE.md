@@ -21,7 +21,7 @@ HydroBar fait ce qu'il promet et l'UI est soignée. Les problèmes se concentren
 3. **Peu de filet de sécurité** : une division non gardée pouvait faire crasher
    l'app depuis les réglages (**corrigée**, P0-2) et une écriture disque non
    atomique pouvait effacer un mois d'historique en silence (**corrigée**, P3-3). La CI
-   (P3-2) fait désormais tourner SwiftLint et 68 tests ; seuls la bascule de jour
+   (P3-2) fait désormais tourner SwiftLint et 70 tests ; seuls la bascule de jour
    et la persistance restent sans test (P3-1).
 
 Rien n'est irrécupérable — le code est lisible, bien découpé en fichiers, et les
@@ -696,7 +696,7 @@ la date elle-même suffirait. À traiter avec P1-2.
 
 ### P3-1 — Aucun test
 
-> **Statut.** 🟡 **En grande partie corrigé** (`8173d98`) — 68 tests : unités, deep links, allure, statistiques, saisie numérique, versions, instantané du widget. **Reste** la bascule de jour et la persistance, qui demandent d'injecter `UserDefaults`, le système de fichiers et l'horloge dans `HydrationManager`.
+> **Statut.** 🟡 **En grande partie corrigé** (`8173d98`) — 70 tests : unités, deep links, allure, statistiques, saisie numérique, versions, instantané du widget. **Reste** la bascule de jour et la persistance, qui demandent d'injecter `UserDefaults`, le système de fichiers et l'horloge dans `HydrationManager`.
 
 **Partiellement corrigé.** Deux suites réelles existent désormais et passent en CI :
 `DeepLinkParserTests` (18 cas) et `HydrationPaceTests` (13 cas). Le gabarit vide
