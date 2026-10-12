@@ -174,6 +174,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         HydrationManager.shared.flushPendingWrites()
     }
 
+    /// Raccourci global « Open HydroBar » (F20).
+    func togglePopoverFromShortcut() {
+        guard let button = statusItem?.button else { return }
+        NSApp.activate()
+        togglePopover(for: button)
+    }
+
     func presentPopover(showing view: ViewType) {
         AppNavigation.shared.requestView(view)
         guard let button = statusItem?.button, let popover = popover else { return }
@@ -408,21 +415,10 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     
     /// Charge les raccourcis sauvegardés depuis UserDefaults
     private func loadSavedShortcuts() {
-        let manager = GlobalHotkeyManager.shared
-        let hydrationManager = HydrationManager.shared
-        
-        // Charger les raccourcis pour chaque preset
-        for index in 0..<hydrationManager.presetsMl.count {
-            let key = shortcutDefaultsKey(forPreset: index)
-            if let data = UserDefaults.standard.data(forKey: key),
-               let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data) {
-                // Réenregistrer le raccourci
-                manager.registerShortcut(
-                    for: index,
-                    keyCode: shortcut.keyCode,
-                    modifiers: shortcut.modifiers
-                )
-            }
+        let hotkeys = GlobalHotkeyManager.shared
+        let presetActions = HydrationManager.shared.presetsMl.indices.map { HotkeyAction.preset($0) }
+        for action in presetActions + HotkeyAction.general {
+            hotkeys.registerSavedShortcut(for: action)
         }
     }
     
@@ -491,16 +487,14 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         let shortcutsTitle = String(localized: "Keyboard Shortcuts", comment: "Context menu submenu for configured shortcuts")
         let shortcutsItem = NSMenuItem(title: shortcutsTitle, action: nil, keyEquivalent: "")
         let shortcutsSubmenu = NSMenu()
-        let presetCount = HydrationManager.shared.presetsMl.count
-        for index in 0..<presetCount {
-            let key = shortcutDefaultsKey(forPreset: index)
-            let presetLabel = String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1)
+        let presetActions = HydrationManager.shared.presetsMl.indices.map { HotkeyAction.preset($0) }
+        for action in presetActions + HotkeyAction.general {
             let displayText: String
-            if let data = UserDefaults.standard.data(forKey: key),
+            if let data = UserDefaults.standard.data(forKey: action.defaultsKey),
                let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data) {
-                displayText = "\(presetLabel): \(shortcut.displayString)"
+                displayText = "\(action.localizedName): \(shortcut.displayString)"
             } else {
-                displayText = "\(presetLabel): —"
+                displayText = "\(action.localizedName): —"
             }
             let item = NSMenuItem(title: displayText, action: nil, keyEquivalent: "")
             item.isEnabled = false

@@ -15,7 +15,7 @@ func shortcutDefaultsKey(forPreset index: Int) -> String {
 }
 
 struct ShortcutRecorderView: View {
-    let presetIndex: Int
+    let action: HotkeyAction
     @State private var isRecording: Bool = false
     @State private var currentShortcut: Shortcut?
     @State private var eventMonitor: Any?
@@ -139,7 +139,7 @@ struct ShortcutRecorderView: View {
     /// sauvegardait dans tous les cas, puis ignorait l'échec.
     private func apply(_ shortcut: Shortcut) {
         let result = GlobalHotkeyManager.shared.registerShortcut(
-            for: presetIndex,
+            for: action,
             keyCode: shortcut.keyCode,
             modifiers: shortcut.modifiers
         )
@@ -159,7 +159,7 @@ struct ShortcutRecorderView: View {
     private func restorePreviousShortcut() {
         guard let previous = currentShortcut else { return }
         GlobalHotkeyManager.shared.registerShortcut(
-            for: presetIndex,
+            for: action,
             keyCode: previous.keyCode,
             modifiers: previous.modifiers
         )
@@ -172,13 +172,12 @@ struct ShortcutRecorderView: View {
     /// seconde source de vérité (R2-13). On vérifie en revanche qu'il est
     /// réellement actif — un enregistrement peut avoir échoué au lancement.
     private func loadShortcut() {
-        let key = shortcutDefaultsKey(forPreset: presetIndex)
-        guard let data = UserDefaults.standard.data(forKey: key),
+        guard let data = UserDefaults.standard.data(forKey: action.defaultsKey),
               let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data)
         else { return }
 
         currentShortcut = shortcut
-        if !GlobalHotkeyManager.shared.isRegistered(presetIndex: presetIndex) {
+        if !GlobalHotkeyManager.shared.isRegistered(action) {
             errorMessage = String(localized: "Inactive: another app is using this shortcut.",
                                   comment: "Saved shortcut that failed to register at launch")
         }
@@ -187,23 +186,23 @@ struct ShortcutRecorderView: View {
     private func saveShortcut(_ shortcut: Shortcut) {
         currentShortcut = shortcut
         if let data = try? JSONEncoder().encode(shortcut) {
-            UserDefaults.standard.set(data, forKey: shortcutDefaultsKey(forPreset: presetIndex))
+            UserDefaults.standard.set(data, forKey: action.defaultsKey)
         }
     }
 
     private func removeShortcut() {
         currentShortcut = nil
         errorMessage = nil
-        UserDefaults.standard.removeObject(forKey: shortcutDefaultsKey(forPreset: presetIndex))
-        GlobalHotkeyManager.shared.unregisterShortcut(for: presetIndex)
+        UserDefaults.standard.removeObject(forKey: action.defaultsKey)
+        GlobalHotkeyManager.shared.unregisterShortcut(for: action)
     }
 }
 
 #Preview {
     VStack(spacing: 20) {
-        ShortcutRecorderView(presetIndex: 0)
-        ShortcutRecorderView(presetIndex: 1)
-        ShortcutRecorderView(presetIndex: 2)
+        ShortcutRecorderView(action: .preset(0))
+        ShortcutRecorderView(action: .undo)
+        ShortcutRecorderView(action: .togglePopover)
     }
     .padding()
 }
