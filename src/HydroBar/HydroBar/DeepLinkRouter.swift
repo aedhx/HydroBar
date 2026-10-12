@@ -77,10 +77,14 @@ final class DeepLinkRouter: ObservableObject {
     private var recentCalls: [Date] = []
     private static let maxCallsPerSecond = 10
 
-    /// Schémas de callback refusés. `hydrobar` est bloqué pour empêcher une boucle
-    /// où une URL se rappelle elle-même.
+    /// Schémas de callback refusés.
+    /// - `hydrobar` : empêche une boucle où une URL se rappelle elle-même.
+    /// - `http` / `https` : un callback web fait ouvrir une page par le navigateur
+    ///   sur ordre d'un tiers — HydroBar devenait un contournement du bloqueur de
+    ///   pop-ups. Les consommateurs légitimes d'x-callback-url (Raycast,
+    ///   Raccourcis, Keyboard Maestro) utilisent tous des schémas propres.
     private static let blockedCallbackSchemes: Set<String> = [
-        "file", "javascript", "data", "about", "hydrobar",
+        "file", "javascript", "data", "about", "hydrobar", "http", "https",
     ]
 
     init(manager: HydrationManager = .shared) {
@@ -109,9 +113,20 @@ final class DeepLinkRouter: ObservableObject {
             return
         }
 
+        // Le limiteur passe AVANT le parsing : chaque URL reçue compte, valide ou
+        // non. Sinon un flot d'URLs invalides contournerait la limite — chacune
+        // déclenchant une notification ou un callback.
+        // Un appel rejeté pour débit n'a aucun effet de bord : ni callback, ni
+        // notification. C'est ce qui borne réellement l'abus.
+        do {
+            try checkRateLimit()
+        } catch {
+            record(url, outcome: DeepLinkError.rateLimited.rawValue)
+            return
+        }
+
         do {
             let action = try DeepLinkParser.parse(url)
-            try checkRateLimit()
             let added = try execute(action)
             record(url, outcome: "ok")
             succeed(url: url, added: added)
@@ -228,8 +243,8 @@ final class DeepLinkRouter: ObservableObject {
         // Pas de callback : l'erreur reste visible via une notification locale
         // (au mieux — elle dépend de l'autorisation) et toujours dans le journal.
         // `userCancelled` : l'utilisateur vient de refuser, il sait déjà.
-        // `rateLimited` : notifier 10 fois par seconde serait la nuisance qu'on évite.
-        guard error != .userCancelled, error != .rateLimited, !isSilent(url) else { return }
+        // `rateLimited` n'arrive jamais ici : il est traité en amont, sans effet de bord.
+        guard error != .userCancelled, !isSilent(url) else { return }
         notifyFailure(error)
     }
 

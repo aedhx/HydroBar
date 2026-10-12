@@ -496,6 +496,9 @@ class HydrationManager: ObservableObject {
         currentMl = 0.0
         clearUndoStack() // Vider le stack undo lors du reset
         updateLastResetDate()
+        // Seul chemin de mutation qui oubliait de propager l'état : le widget
+        // gardait l'ancienne valeur après un reset (bouton ou hydrobar://reset).
+        syncToAppGroup()
     }
     
     // MARK: - UI Helper Methods
@@ -731,7 +734,10 @@ class HydrationManager: ObservableObject {
 
     private func report(issue: String) {
         DispatchQueue.main.async { [weak self] in
-            self?.lastDataIssue = issue
+            // Une écriture qui échoue en boucle (disque plein, pendant
+            // « Hold to Add ») republierait sinon le même texte 20 fois par seconde.
+            guard let self, self.lastDataIssue != issue else { return }
+            self.lastDataIssue = issue
         }
     }
     

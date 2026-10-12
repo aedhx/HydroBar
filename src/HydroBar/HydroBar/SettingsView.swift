@@ -819,7 +819,7 @@ struct SettingsView: View {
                 .padding(.leading, 28)
 
             case .unavailable:
-                Text("Focus status is unreadable on this build. The Communication Notifications capability is missing from the app target.", comment: "Focus Mode capability missing")
+                Text("Focus status is unreadable. Check that HydroBar is allowed to send notifications — the Focus status also needs it.", comment: "Focus Mode status unreadable despite authorization")
                     .font(.system(size: 11))
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)

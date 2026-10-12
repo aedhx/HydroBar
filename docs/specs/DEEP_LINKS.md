@@ -88,7 +88,18 @@ journal consultable en mode debug (§ 4.4), et dans une notification locale — 
 dernière au mieux, puisqu'elle dépend de l'autorisation de notification.
 
 Un callback est fourni par l'appelant, donc potentiellement hostile : les schémas
-`file`, `data`, `javascript`, `about` et `hydrobar` lui-même (boucle) sont refusés.
+`file`, `data`, `javascript`, `about`, `hydrobar` lui-même (boucle), et **`http` /
+`https`** sont refusés.
+
+Le refus de `http(s)` mérite une explication. Un callback web fait ouvrir une page
+par le navigateur par défaut, **sur ordre d'un tiers** : n'importe quelle page
+pouvait faire ouvrir à HydroBar l'URL de son choix, en contournant le bloqueur de
+pop-ups du navigateur. Les consommateurs légitimes d'x-callback-url — Raycast,
+Raccourcis, Keyboard Maestro — utilisent tous des schémas propres.
+
+> **Correction (revue n°2).** La première version autorisait `http(s)` et ouvrait
+> le callback `x-error` y compris sur un appel rejeté pour débit. Les deux sont
+> corrigés.
 
 ## 4. Sécurité
 
@@ -131,10 +142,18 @@ pas produire une valeur approchée.
 
 ### 4.3 Limitation de débit
 
-Maximum **10 actions par seconde**, fenêtre glissante — `open` comprise, sinon une
-page peut faire clignoter l'app indéfiniment. Au-delà, les requêtes sont rejetées avec
-`rateLimited`. Empêche une page malveillante de saturer la journée d'un coup, et
-protège au passage le chemin de persistance
+Maximum **10 appels par seconde**, fenêtre glissante — **toute URL reçue compte,
+valide ou non**, `open` comprise. Au-delà, l'appel est rejeté avec `rateLimited`, et
+un appel rejeté pour débit n'a **aucun effet de bord** : ni callback, ni
+notification. C'est ce qui borne réellement l'abus.
+
+> **Correction (revue n°2).** La première version vérifiait le débit *après* le
+> parsing. Une URL invalide échouait donc avant d'atteindre le limiteur :
+> `hydrobar://x` envoyé en boucle produisait une notification par appel, sans
+> limite. Le limiteur passe désormais en premier.
+
+Empêche une page malveillante de saturer la journée d'un coup, et protège au
+passage le chemin de persistance
 (cf. [§ P2-2](../AUDIT_TECHNIQUE.md#p2-2---hold-to-add---20-hz--2-écritures-disque--reprogrammation-des-notifications--sync-widget)).
 
 ### 4.4 Journal des actions
@@ -162,7 +181,7 @@ inexpliqué est indébuggable.
 | `presetOutOfRange` | Index de preset inexistant | 400 |
 | `confirmationRequired` | Action destructive sans `confirm=1` | 403 |
 | `userCancelled` | L'utilisateur a refusé la confirmation | 403 |
-| `rateLimited` | Plus de 10 actions/seconde | 429 |
+| `rateLimited` | Plus de 10 appels/seconde, valides ou non — sans effet de bord | 429 |
 | `nothingToUndo` | Pile d'undo vide | 409 |
 
 ## 6. Implémentation
