@@ -1,0 +1,33 @@
+HydroBar lebt in deiner Menüleiste und hilft dir, genug Wasser zu trinken, ohne dich zu stören.
+
+Trage ein Glas mit einem Klick ein, sieh deinen Tag auf einen Blick im Ring und erhalte Erinnerungen, die Sinn ergeben.
+
+IN EINER SEKUNDE EINGETRAGEN
+• Deine eigenen Voreinstellungen, je ein Klick
+• Gedrückt halten für jede beliebige Menge
+• Flaschenmodus: Sag einfach, wie viel deiner Flasche leer ist
+• Tastenkürzel, Kurzbefehle-App, Siri, Schreibtisch-Widget und Kontrollzentrum
+
+ERINNERUNGEN, DIE DEINEN TAG RESPEKTIEREN
+• Nur während deiner aktiven Zeit, und sie hören auf, sobald dein Ziel erreicht ist
+• Etwas häufiger, wenn du hinter deinem Tempo liegst
+• Sie zeigen deinen Stand: „1,2 L von 2 L · noch 800 ml bis 22 Uhr“
+• Trage direkt aus der Mitteilung ein Glas oder eine beliebige Menge ein
+• Sie warten, während du telefonierst oder in einer Videokonferenz bist
+• Sie folgen deinen Fokus-Modi, und vor Tagesende kommt ein letzter Aufruf
+
+ARBEITSTAGE UND FREIE TAGE
+Freie Tage haben eigene Zeiten, Erinnerungen und ein eigenes Ziel. Markiere einen Feiertag mit einem Klick, trage deinen Urlaub ein oder lass deinen Arbeitsfokus entscheiden.
+
+DEINE FORTSCHRITTE
+• Serien, Wochenbilanz und eine Monatsbilanz zum Teilen
+• Dein Jahr auf einen Blick
+• Wann du über den Tag trinkst, und deine längste Pause
+• Ein eigenes Ziel für jeden Wochentag
+
+PRIVAT VON GRUND AUF
+Kein Konto, kein Tracking, keine Datenerfassung. Alles bleibt auf deinem Mac. Exportiere als CSV oder sichere als JSON, wann immer du willst.
+
+Verfügbar auf Deutsch, Englisch, Französisch, Spanisch, Italienisch, Japanisch, Niederländisch, Portugiesisch und vereinfachtem Chinesisch.
+
+HydroBar gibt allgemeine Trink-Erinnerungen. Es ist kein Medizinprodukt; frag eine Ärztin oder einen Arzt nach deinem persönlichen Bedarf.

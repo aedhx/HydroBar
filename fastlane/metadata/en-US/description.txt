@@ -1,0 +1,33 @@
+HydroBar lives in your menu bar and helps you drink enough water, without getting in your way.
+
+Log a glass in one click, see your day at a glance in the ring, and get reminders that make sense.
+
+LOG IN A SECOND
+• Your own presets, one click each
+• Hold to Add for any amount
+• Bottle mode: just say how much of your bottle is gone
+• Keyboard shortcuts, the Shortcuts app, Siri, a desktop widget and Control Center
+
+REMINDERS THAT RESPECT YOUR DAY
+• Only during your active hours, and they stop once your goal is reached
+• A little more often when you're behind your pace
+• They tell you where you are: "1.2 L of 2 L · 800 ml to go by 10 PM"
+• Log a drink or type any amount right from the notification
+• They wait while you're on a call or in a video meeting
+• They follow your Focus modes, and a last call comes before the day ends
+
+WORK DAYS AND DAYS OFF
+Days off get their own hours, reminders and goal. Mark a holiday in one click, add your time off, or let your Work Focus decide.
+
+SEE YOUR PROGRESS
+• Streaks, a weekly summary and a monthly recap you can share
+• Your year at a glance
+• When you drink during the day, and your longest dry spell
+• A different goal for each day of the week
+
+PRIVATE BY DESIGN
+No account, no tracking, no data collected. Everything stays on your Mac. Export to CSV or back up to JSON whenever you want.
+
+Available in English, French, German, Spanish, Italian, Japanese, Dutch, Portuguese and Simplified Chinese.
+
+HydroBar gives general hydration reminders. It is not a medical device; ask a doctor about your own needs.
