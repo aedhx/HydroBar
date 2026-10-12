@@ -482,59 +482,13 @@ class HydrationManager: ObservableObject {
     }
     /// Numéro de la gourde en cours, valable pour `bottleDayKey` seulement :
     /// chaque journée repart de la première gourde.
-    @AppStorage("bottleNumber") private var bottleNumber: Int = 1
-    @AppStorage("bottleDay") private var bottleDayKey: String = ""
+    @AppStorage("bottleNumber") var bottleNumber: Int = 1
+    @AppStorage("bottleDay") var bottleDayKey: String = ""
 
-    var currentBottle: Int {
-        bottleDayKey == IntakeLog.dayKey(for: Date(), calendar: .current) ? bottleNumber : 1
-    }
-
-    /// Quantité déjà bue dans la gourde en cours.
-    var bottleDrunkMl: Double {
-        Bottle.drunkMl(events: log.events, bottle: currentBottle, on: Date(), calendar: .current)
-    }
-
-    /// Enregistre ce qui manque pour que la gourde soit à `fraction`.
-    func setBottleLevel(_ fraction: Double) {
-        guard let amount = Bottle.amountToReach(fraction: fraction, drunkMl: bottleDrunkMl,
-                                                capacityMl: bottleCapacityMl) else { return }
-        addWater(amount: amount, bottle: currentBottle)
-    }
-
-    func startNewBottle() {
-        objectWillChange.send()
-        let next = currentBottle + 1
-        bottleDayKey = IntakeLog.dayKey(for: Date(), calendar: .current)
-        bottleNumber = next
-    }
-
-    // MARK: - Preset suggéré
+    // MARK: - Preset suggéré (logique : HydrationManager+Features.swift)
 
     /// Quantités dont l'utilisateur a refusé la suggestion.
-    @AppStorage("dismissedPresetSuggestions") private var dismissedSuggestionsRaw: String = ""
-
-    private var dismissedSuggestions: Set<Double> {
-        Set(dismissedSuggestionsRaw.split(separator: ",").compactMap { Double($0) })
-    }
-
-    var presetSuggestion: (amountMl: Double, replacingIndex: Int)? {
-        PresetSuggestion.suggest(events: log.events, presets: presetsMl, now: Date(),
-                                 dismissed: dismissedSuggestions)
-    }
-
-    func acceptPresetSuggestion() {
-        guard let suggestion = presetSuggestion else { return }
-        var presets = presetsMl
-        presets[suggestion.replacingIndex] = suggestion.amountMl
-        presetsMl = presets
-    }
-
-    func dismissPresetSuggestion() {
-        guard let suggestion = presetSuggestion else { return }
-        objectWillChange.send()
-        let values = dismissedSuggestions.union([suggestion.amountMl])
-        dismissedSuggestionsRaw = values.map { String(Int($0)) }.joined(separator: ",")
-    }
+    @AppStorage("dismissedPresetSuggestions") var dismissedSuggestionsRaw: String = ""
 
     var selectedUnit: AppUnit {
         get {
