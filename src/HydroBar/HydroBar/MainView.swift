@@ -19,12 +19,14 @@ struct HoldButton: NSViewRepresentable {
 
     func makeNSView(context: Context) -> HoldButtonNSView {
         let view = HoldButtonNSView()
+        view.label = label
         view.onPress = onPress
         view.onRelease = onRelease
         return view
     }
 
     func updateNSView(_ nsView: HoldButtonNSView, context: Context) {
+        nsView.label = label
         nsView.onPress = onPress
         nsView.onRelease = onRelease
         nsView.isHolding = isHolding
@@ -33,6 +35,7 @@ struct HoldButton: NSViewRepresentable {
 }
 
 class HoldButtonNSView: NSView {
+    var label: String = ""
     var onPress: (() -> Void)?
     var onRelease: (() -> Void)?
     var isHolding: Bool = false
@@ -54,7 +57,6 @@ class HoldButtonNSView: NSView {
         color.setFill()
         path.fill()
 
-        let label = "Hold to Add"
         let attrs: [NSAttributedString.Key: Any] = [
             .font: NSFont.systemFont(ofSize: 14, weight: .medium),
             .foregroundColor: NSColor.white
@@ -78,14 +80,14 @@ enum ViewType {
 
 // PreferenceKey pour communiquer la taille du contenu au parent
 struct ContentSizeKey: PreferenceKey {
-    static var defaultValue: CGSize = .zero
+    static let defaultValue: CGSize = .zero
     static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
         value = nextValue()
     }
 }
 
 struct MainView: View {
-    @StateObject private var manager = HydrationManager.shared
+    @ObservedObject private var manager = HydrationManager.shared
     @ObservedObject private var navigation = AppNavigation.shared
     @State private var isHolding = false
     @State private var holdTimer: Timer?
@@ -156,12 +158,6 @@ struct MainView: View {
                         .preference(key: ContentSizeKey.self, value: geometry.size)
                 }
             )
-            .onChange(of: currentView) { _, _ in
-                // Forcer une mise à jour de la taille quand on change de vue
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                    // La taille sera mise à jour automatiquement par le PreferenceKey
-                }
-            }
         }
         .frame(width: 320)
         .background(.regularMaterial)
@@ -183,19 +179,6 @@ struct MainView: View {
         }
     }
     
-    private func startHolding() {
-        isHolding = true
-        holdTimer = Timer.scheduledTimer(withTimeInterval: 0.05, repeats: true) { _ in
-            if isHolding {
-                manager.addWater(amount: 5.0)
-                DispatchQueue.main.async {
-                    NSApplication.shared.windows.first(where: { $0.isVisible })?.makeKey()
-                    NSHapticFeedbackManager.defaultPerformer.perform(.generic, performanceTime: .now)
-                }
-            }
-        }
-    }
-
     private func stopHolding() {
         isHolding = false
         holdTimer?.invalidate()
@@ -274,7 +257,7 @@ struct MainContentView: View {
             
             // Bouton Hold-to-Add
             HoldButton(
-                label: "Hold to Add",
+                label: String(localized: "Hold to Add", comment: "Button to add water continuously while pressed"),
                 isHolding: isHolding,
                 onPress: { if !isHolding { startHolding() } },
                 onRelease: { stopHolding() }
