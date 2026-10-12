@@ -1,0 +1,754 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-10-12T17:16:03+00:00",
+  "title": "Design System: HydroBar",
+  "extensions": {
+    "colorMeta": {
+      "water": {
+        "role": "primary",
+        "displayName": "Water Blue",
+        "canonical": "#0a84ff",
+        "tonalRamp": [
+          "oklch(15.0% 0.206 255.5)",
+          "oklch(26.4% 0.206 255.5)",
+          "oklch(37.9% 0.206 255.5)",
+          "oklch(49.3% 0.206 255.5)",
+          "oklch(60.7% 0.206 255.5)",
+          "oklch(72.1% 0.206 255.5)",
+          "oklch(83.6% 0.206 255.5)",
+          "oklch(95.0% 0.206 255.5)"
+        ]
+      },
+      "water-light": {
+        "role": "primary",
+        "displayName": "Shallow Cyan",
+        "canonical": "#64d2ff",
+        "tonalRamp": [
+          "oklch(15.0% 0.119 227.7)",
+          "oklch(26.4% 0.119 227.7)",
+          "oklch(37.9% 0.119 227.7)",
+          "oklch(49.3% 0.119 227.7)",
+          "oklch(60.7% 0.119 227.7)",
+          "oklch(72.1% 0.119 227.7)",
+          "oklch(83.6% 0.119 227.7)",
+          "oklch(95.0% 0.119 227.7)"
+        ]
+      },
+      "goal": {
+        "role": "secondary",
+        "displayName": "Goal Green",
+        "canonical": "#30d158",
+        "tonalRamp": [
+          "oklch(15.0% 0.208 147.0)",
+          "oklch(26.4% 0.208 147.0)",
+          "oklch(37.9% 0.208 147.0)",
+          "oklch(49.3% 0.208 147.0)",
+          "oklch(60.7% 0.208 147.0)",
+          "oklch(72.1% 0.208 147.0)",
+          "oklch(83.6% 0.208 147.0)",
+          "oklch(95.0% 0.208 147.0)"
+        ]
+      },
+      "goal-light": {
+        "role": "secondary",
+        "displayName": "Mint",
+        "canonical": "#66d4cf",
+        "tonalRamp": [
+          "oklch(15.0% 0.101 191.3)",
+          "oklch(26.4% 0.101 191.3)",
+          "oklch(37.9% 0.101 191.3)",
+          "oklch(49.3% 0.101 191.3)",
+          "oklch(60.7% 0.101 191.3)",
+          "oklch(72.1% 0.101 191.3)",
+          "oklch(83.6% 0.101 191.3)",
+          "oklch(95.0% 0.101 191.3)"
+        ]
+      },
+      "track": {
+        "role": "neutral",
+        "displayName": "Track Gray",
+        "canonical": "rgba(142, 142, 147, .3)",
+        "tonalRamp": [
+          "oklch(15.0% 0.007 286.2 / 0.3)",
+          "oklch(26.4% 0.007 286.2 / 0.3)",
+          "oklch(37.9% 0.007 286.2 / 0.3)",
+          "oklch(49.3% 0.007 286.2 / 0.3)",
+          "oklch(60.7% 0.007 286.2 / 0.3)",
+          "oklch(72.1% 0.007 286.2 / 0.3)",
+          "oklch(83.6% 0.007 286.2 / 0.3)",
+          "oklch(95.0% 0.007 286.2 / 0.3)"
+        ]
+      },
+      "action": {
+        "role": "primary",
+        "displayName": "Action Blue",
+        "canonical": "#0068d6",
+        "tonalRamp": [
+          "oklch(15.0% 0.187 256.7)",
+          "oklch(26.4% 0.187 256.7)",
+          "oklch(37.9% 0.187 256.7)",
+          "oklch(49.3% 0.187 256.7)",
+          "oklch(60.7% 0.187 256.7)",
+          "oklch(72.1% 0.187 256.7)",
+          "oklch(83.6% 0.187 256.7)",
+          "oklch(95.0% 0.187 256.7)"
+        ]
+      },
+      "action-hover": {
+        "role": "primary",
+        "displayName": "Action Blue, pressed",
+        "canonical": "#005ec2",
+        "tonalRamp": [
+          "oklch(15.0% 0.174 256.6)",
+          "oklch(26.4% 0.174 256.6)",
+          "oklch(37.9% 0.174 256.6)",
+          "oklch(49.3% 0.174 256.6)",
+          "oklch(60.7% 0.174 256.6)",
+          "oklch(72.1% 0.174 256.6)",
+          "oklch(83.6% 0.174 256.6)",
+          "oklch(95.0% 0.174 256.6)"
+        ]
+      },
+      "water-tint": {
+        "role": "primary",
+        "displayName": "Water Tint",
+        "canonical": "rgba(10, 132, 255, .25)",
+        "tonalRamp": [
+          "oklch(15.0% 0.206 255.5 / 0.25)",
+          "oklch(26.4% 0.206 255.5 / 0.25)",
+          "oklch(37.9% 0.206 255.5 / 0.25)",
+          "oklch(49.3% 0.206 255.5 / 0.25)",
+          "oklch(60.7% 0.206 255.5 / 0.25)",
+          "oklch(72.1% 0.206 255.5 / 0.25)",
+          "oklch(83.6% 0.206 255.5 / 0.25)",
+          "oklch(95.0% 0.206 255.5 / 0.25)"
+        ]
+      },
+      "water-tint-strong": {
+        "role": "primary",
+        "displayName": "Water Tint, hover",
+        "canonical": "rgba(10, 132, 255, .4)",
+        "tonalRamp": [
+          "oklch(15.0% 0.206 255.5 / 0.4)",
+          "oklch(26.4% 0.206 255.5 / 0.4)",
+          "oklch(37.9% 0.206 255.5 / 0.4)",
+          "oklch(49.3% 0.206 255.5 / 0.4)",
+          "oklch(60.7% 0.206 255.5 / 0.4)",
+          "oklch(72.1% 0.206 255.5 / 0.4)",
+          "oklch(83.6% 0.206 255.5 / 0.4)",
+          "oklch(95.0% 0.206 255.5 / 0.4)"
+        ]
+      },
+      "desktop-blue": {
+        "role": "neutral",
+        "displayName": "Desktop Blue",
+        "canonical": "#3060c0",
+        "tonalRamp": [
+          "oklch(15.0% 0.160 262.3)",
+          "oklch(26.4% 0.160 262.3)",
+          "oklch(37.9% 0.160 262.3)",
+          "oklch(49.3% 0.160 262.3)",
+          "oklch(60.7% 0.160 262.3)",
+          "oklch(72.1% 0.160 262.3)",
+          "oklch(83.6% 0.160 262.3)",
+          "oklch(95.0% 0.160 262.3)"
+        ]
+      },
+      "mat-dark": {
+        "role": "neutral",
+        "displayName": "Window Dark",
+        "canonical": "rgba(24, 26, 33, .62)",
+        "tonalRamp": [
+          "oklch(15.0% 0.014 272.7 / 0.62)",
+          "oklch(26.4% 0.014 272.7 / 0.62)",
+          "oklch(37.9% 0.014 272.7 / 0.62)",
+          "oklch(49.3% 0.014 272.7 / 0.62)",
+          "oklch(60.7% 0.014 272.7 / 0.62)",
+          "oklch(72.1% 0.014 272.7 / 0.62)",
+          "oklch(83.6% 0.014 272.7 / 0.62)",
+          "oklch(95.0% 0.014 272.7 / 0.62)"
+        ]
+      },
+      "mat-deep": {
+        "role": "neutral",
+        "displayName": "Window Deep",
+        "canonical": "rgba(14, 16, 22, .72)",
+        "tonalRamp": [
+          "oklch(15.0% 0.013 270.6 / 0.72)",
+          "oklch(26.4% 0.013 270.6 / 0.72)",
+          "oklch(37.9% 0.013 270.6 / 0.72)",
+          "oklch(49.3% 0.013 270.6 / 0.72)",
+          "oklch(60.7% 0.013 270.6 / 0.72)",
+          "oklch(72.1% 0.013 270.6 / 0.72)",
+          "oklch(83.6% 0.013 270.6 / 0.72)",
+          "oklch(95.0% 0.013 270.6 / 0.72)"
+        ]
+      },
+      "mat-goal": {
+        "role": "secondary",
+        "displayName": "Goal Glass",
+        "canonical": "rgba(14, 40, 30, .66)",
+        "tonalRamp": [
+          "oklch(15.0% 0.038 165.9 / 0.66)",
+          "oklch(26.4% 0.038 165.9 / 0.66)",
+          "oklch(37.9% 0.038 165.9 / 0.66)",
+          "oklch(49.3% 0.038 165.9 / 0.66)",
+          "oklch(60.7% 0.038 165.9 / 0.66)",
+          "oklch(72.1% 0.038 165.9 / 0.66)",
+          "oklch(83.6% 0.038 165.9 / 0.66)",
+          "oklch(95.0% 0.038 165.9 / 0.66)"
+        ]
+      },
+      "mat-light": {
+        "role": "neutral",
+        "displayName": "Window Light",
+        "canonical": "rgba(250, 250, 252, .72)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 286.4 / 0.72)",
+          "oklch(26.4% 0.003 286.4 / 0.72)",
+          "oklch(37.9% 0.003 286.4 / 0.72)",
+          "oklch(49.3% 0.003 286.4 / 0.72)",
+          "oklch(60.7% 0.003 286.4 / 0.72)",
+          "oklch(72.1% 0.003 286.4 / 0.72)",
+          "oklch(83.6% 0.003 286.4 / 0.72)",
+          "oklch(95.0% 0.003 286.4 / 0.72)"
+        ]
+      },
+      "mat-light-dark-scheme": {
+        "role": "neutral",
+        "displayName": "Window Light, dark scheme",
+        "canonical": "rgba(36, 38, 46, .7)",
+        "tonalRamp": [
+          "oklch(15.0% 0.015 274.3 / 0.7)",
+          "oklch(26.4% 0.015 274.3 / 0.7)",
+          "oklch(37.9% 0.015 274.3 / 0.7)",
+          "oklch(49.3% 0.015 274.3 / 0.7)",
+          "oklch(60.7% 0.015 274.3 / 0.7)",
+          "oklch(72.1% 0.015 274.3 / 0.7)",
+          "oklch(83.6% 0.015 274.3 / 0.7)",
+          "oklch(95.0% 0.015 274.3 / 0.7)"
+        ]
+      },
+      "plate": {
+        "role": "neutral",
+        "displayName": "Plate",
+        "canonical": "rgba(48, 50, 60, .66)",
+        "tonalRamp": [
+          "oklch(15.0% 0.018 276.4 / 0.66)",
+          "oklch(26.4% 0.018 276.4 / 0.66)",
+          "oklch(37.9% 0.018 276.4 / 0.66)",
+          "oklch(49.3% 0.018 276.4 / 0.66)",
+          "oklch(60.7% 0.018 276.4 / 0.66)",
+          "oklch(72.1% 0.018 276.4 / 0.66)",
+          "oklch(83.6% 0.018 276.4 / 0.66)",
+          "oklch(95.0% 0.018 276.4 / 0.66)"
+        ]
+      },
+      "glass-control": {
+        "role": "neutral",
+        "displayName": "Glass Control",
+        "canonical": "rgba(255, 255, 255, .14)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9 / 0.14)",
+          "oklch(26.4% 0.000 89.9 / 0.14)",
+          "oklch(37.9% 0.000 89.9 / 0.14)",
+          "oklch(49.3% 0.000 89.9 / 0.14)",
+          "oklch(60.7% 0.000 89.9 / 0.14)",
+          "oklch(72.1% 0.000 89.9 / 0.14)",
+          "oklch(83.6% 0.000 89.9 / 0.14)",
+          "oklch(95.0% 0.000 89.9 / 0.14)"
+        ]
+      },
+      "menubar-dark": {
+        "role": "neutral",
+        "displayName": "Menu Bar, dark",
+        "canonical": "rgba(28, 30, 38, .9)",
+        "tonalRamp": [
+          "oklch(15.0% 0.016 274.1 / 0.9)",
+          "oklch(26.4% 0.016 274.1 / 0.9)",
+          "oklch(37.9% 0.016 274.1 / 0.9)",
+          "oklch(49.3% 0.016 274.1 / 0.9)",
+          "oklch(60.7% 0.016 274.1 / 0.9)",
+          "oklch(72.1% 0.016 274.1 / 0.9)",
+          "oklch(83.6% 0.016 274.1 / 0.9)",
+          "oklch(95.0% 0.016 274.1 / 0.9)"
+        ]
+      },
+      "bar-light": {
+        "role": "neutral",
+        "displayName": "Menu Bar, light",
+        "canonical": "rgba(250, 250, 252, .97)",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 286.4 / 0.97)",
+          "oklch(26.4% 0.003 286.4 / 0.97)",
+          "oklch(37.9% 0.003 286.4 / 0.97)",
+          "oklch(49.3% 0.003 286.4 / 0.97)",
+          "oklch(60.7% 0.003 286.4 / 0.97)",
+          "oklch(72.1% 0.003 286.4 / 0.97)",
+          "oklch(83.6% 0.003 286.4 / 0.97)",
+          "oklch(95.0% 0.003 286.4 / 0.97)"
+        ]
+      },
+      "bar-light-dark-scheme": {
+        "role": "neutral",
+        "displayName": "Menu Bar, light, dark scheme",
+        "canonical": "rgba(36, 38, 46, .97)",
+        "tonalRamp": [
+          "oklch(15.0% 0.015 274.3 / 0.97)",
+          "oklch(26.4% 0.015 274.3 / 0.97)",
+          "oklch(37.9% 0.015 274.3 / 0.97)",
+          "oklch(49.3% 0.015 274.3 / 0.97)",
+          "oklch(60.7% 0.015 274.3 / 0.97)",
+          "oklch(72.1% 0.015 274.3 / 0.97)",
+          "oklch(83.6% 0.015 274.3 / 0.97)",
+          "oklch(95.0% 0.015 274.3 / 0.97)"
+        ]
+      },
+      "label-on-dark": {
+        "role": "neutral",
+        "displayName": "Label on Dark",
+        "canonical": "#ffffff",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9)",
+          "oklch(26.4% 0.000 89.9)",
+          "oklch(37.9% 0.000 89.9)",
+          "oklch(49.3% 0.000 89.9)",
+          "oklch(60.7% 0.000 89.9)",
+          "oklch(72.1% 0.000 89.9)",
+          "oklch(83.6% 0.000 89.9)",
+          "oklch(95.0% 0.000 89.9)"
+        ]
+      },
+      "label-on-dark-2": {
+        "role": "neutral",
+        "displayName": "Window Secondary",
+        "canonical": "#c9d6ee",
+        "tonalRamp": [
+          "oklch(15.0% 0.036 262.8)",
+          "oklch(26.4% 0.036 262.8)",
+          "oklch(37.9% 0.036 262.8)",
+          "oklch(49.3% 0.036 262.8)",
+          "oklch(60.7% 0.036 262.8)",
+          "oklch(72.1% 0.036 262.8)",
+          "oklch(83.6% 0.036 262.8)",
+          "oklch(95.0% 0.036 262.8)"
+        ]
+      },
+      "ink": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "#1d1d1f",
+        "tonalRamp": [
+          "oklch(15.0% 0.004 286.1)",
+          "oklch(26.4% 0.004 286.1)",
+          "oklch(37.9% 0.004 286.1)",
+          "oklch(49.3% 0.004 286.1)",
+          "oklch(60.7% 0.004 286.1)",
+          "oklch(72.1% 0.004 286.1)",
+          "oklch(83.6% 0.004 286.1)",
+          "oklch(95.0% 0.004 286.1)"
+        ]
+      },
+      "ink-dark-scheme": {
+        "role": "neutral",
+        "displayName": "Ink, dark scheme",
+        "canonical": "#f5f5f7",
+        "tonalRamp": [
+          "oklch(15.0% 0.003 286.4)",
+          "oklch(26.4% 0.003 286.4)",
+          "oklch(37.9% 0.003 286.4)",
+          "oklch(49.3% 0.003 286.4)",
+          "oklch(60.7% 0.003 286.4)",
+          "oklch(72.1% 0.003 286.4)",
+          "oklch(83.6% 0.003 286.4)",
+          "oklch(95.0% 0.003 286.4)"
+        ]
+      },
+      "ink-2": {
+        "role": "neutral",
+        "displayName": "Ink Secondary",
+        "canonical": "#48484d",
+        "tonalRamp": [
+          "oklch(15.0% 0.008 286.0)",
+          "oklch(26.4% 0.008 286.0)",
+          "oklch(37.9% 0.008 286.0)",
+          "oklch(49.3% 0.008 286.0)",
+          "oklch(60.7% 0.008 286.0)",
+          "oklch(72.1% 0.008 286.0)",
+          "oklch(83.6% 0.008 286.0)",
+          "oklch(95.0% 0.008 286.0)"
+        ]
+      },
+      "ink-2-dark-scheme": {
+        "role": "neutral",
+        "displayName": "Ink Secondary, dark scheme",
+        "canonical": "#c9d6ee",
+        "tonalRamp": [
+          "oklch(15.0% 0.036 262.8)",
+          "oklch(26.4% 0.036 262.8)",
+          "oklch(37.9% 0.036 262.8)",
+          "oklch(49.3% 0.036 262.8)",
+          "oklch(60.7% 0.036 262.8)",
+          "oklch(72.1% 0.036 262.8)",
+          "oklch(83.6% 0.036 262.8)",
+          "oklch(95.0% 0.036 262.8)"
+        ]
+      },
+      "fill": {
+        "role": "neutral",
+        "displayName": "Fill",
+        "canonical": "rgba(120, 120, 128, .14)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 286.0 / 0.14)",
+          "oklch(26.4% 0.012 286.0 / 0.14)",
+          "oklch(37.9% 0.012 286.0 / 0.14)",
+          "oklch(49.3% 0.012 286.0 / 0.14)",
+          "oklch(60.7% 0.012 286.0 / 0.14)",
+          "oklch(72.1% 0.012 286.0 / 0.14)",
+          "oklch(83.6% 0.012 286.0 / 0.14)",
+          "oklch(95.0% 0.012 286.0 / 0.14)"
+        ]
+      },
+      "fill-dark-scheme": {
+        "role": "neutral",
+        "displayName": "Fill, dark scheme",
+        "canonical": "rgba(120, 120, 128, .32)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 286.0 / 0.32)",
+          "oklch(26.4% 0.012 286.0 / 0.32)",
+          "oklch(37.9% 0.012 286.0 / 0.32)",
+          "oklch(49.3% 0.012 286.0 / 0.32)",
+          "oklch(60.7% 0.012 286.0 / 0.32)",
+          "oklch(72.1% 0.012 286.0 / 0.32)",
+          "oklch(83.6% 0.012 286.0 / 0.32)",
+          "oklch(95.0% 0.012 286.0 / 0.32)"
+        ]
+      },
+      "line": {
+        "role": "neutral",
+        "displayName": "Hairline",
+        "canonical": "rgba(60, 60, 67, .16)",
+        "tonalRamp": [
+          "oklch(15.0% 0.012 285.8 / 0.16)",
+          "oklch(26.4% 0.012 285.8 / 0.16)",
+          "oklch(37.9% 0.012 285.8 / 0.16)",
+          "oklch(49.3% 0.012 285.8 / 0.16)",
+          "oklch(60.7% 0.012 285.8 / 0.16)",
+          "oklch(72.1% 0.012 285.8 / 0.16)",
+          "oklch(83.6% 0.012 285.8 / 0.16)",
+          "oklch(95.0% 0.012 285.8 / 0.16)"
+        ]
+      },
+      "line-dark-scheme": {
+        "role": "neutral",
+        "displayName": "Hairline, dark scheme",
+        "canonical": "rgba(255, 255, 255, .12)",
+        "tonalRamp": [
+          "oklch(15.0% 0.000 89.9 / 0.12)",
+          "oklch(26.4% 0.000 89.9 / 0.12)",
+          "oklch(37.9% 0.000 89.9 / 0.12)",
+          "oklch(49.3% 0.000 89.9 / 0.12)",
+          "oklch(60.7% 0.000 89.9 / 0.12)",
+          "oklch(72.1% 0.000 89.9 / 0.12)",
+          "oklch(83.6% 0.000 89.9 / 0.12)",
+          "oklch(95.0% 0.000 89.9 / 0.12)"
+        ]
+      },
+      "recap-deep": {
+        "role": "neutral",
+        "displayName": "Recap Blue, deep",
+        "canonical": "#0058c4",
+        "tonalRamp": [
+          "oklch(15.0% 0.184 258.5)",
+          "oklch(26.4% 0.184 258.5)",
+          "oklch(37.9% 0.184 258.5)",
+          "oklch(49.3% 0.184 258.5)",
+          "oklch(60.7% 0.184 258.5)",
+          "oklch(72.1% 0.184 258.5)",
+          "oklch(83.6% 0.184 258.5)",
+          "oklch(95.0% 0.184 258.5)"
+        ]
+      },
+      "recap-bright": {
+        "role": "neutral",
+        "displayName": "Recap Blue, bright",
+        "canonical": "#0a6cd6",
+        "tonalRamp": [
+          "oklch(15.0% 0.182 256.2)",
+          "oklch(26.4% 0.182 256.2)",
+          "oklch(37.9% 0.182 256.2)",
+          "oklch(49.3% 0.182 256.2)",
+          "oklch(60.7% 0.182 256.2)",
+          "oklch(72.1% 0.182 256.2)",
+          "oklch(83.6% 0.182 256.2)",
+          "oklch(95.0% 0.182 256.2)"
+        ]
+      }
+    },
+    "typographyMeta": {
+      "display": {
+        "displayName": "Display",
+        "purpose": "The hero headline only; 40px on phones."
+      },
+      "headline": {
+        "displayName": "Headline",
+        "purpose": "One per section window; the close uses clamp(44px, 6vw, 92px)."
+      },
+      "title": {
+        "displayName": "Title",
+        "purpose": "Sub-items in a window; the same family at 680 sets definition terms, FAQ questions and list row names."
+      },
+      "numeral": {
+        "displayName": "Numeral",
+        "purpose": "Times of day, the recap total and the ring percentage (a fifth of the ring's diameter); always tabular."
+      },
+      "lede": {
+        "displayName": "Lede",
+        "purpose": "The paragraph under each headline, max 34em."
+      },
+      "body": {
+        "displayName": "Body",
+        "purpose": "Running text, held to 28 to 44em."
+      },
+      "button": {
+        "displayName": "Button",
+        "purpose": "Every button label; 14px in the menu bar."
+      },
+      "label": {
+        "displayName": "Label",
+        "purpose": "The tick's time label, meta lines, month names; menu bar items at 500."
+      }
+    },
+    "materials": [
+      {
+        "name": "glass",
+        "value": "backdrop-filter: blur(28px) saturate(170%)",
+        "purpose": "Every pane, plate, the menu bar and the glass button."
+      },
+      {
+        "name": "wallpaper",
+        "value": "url(assets/wallpaper.jpg) center / cover no-repeat, linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e)",
+        "purpose": "The fixed desktop behind all panes: a 2560x1600 raster rendered from an authored SVG, with the gradient as loading fallback."
+      }
+    ],
+    "shadows": [
+      {
+        "name": "rim-dark",
+        "value": "inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22)",
+        "purpose": "Every dark pane and the story stage; light panes in dark mode."
+      },
+      {
+        "name": "rim-light",
+        "value": "inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .55), 0 24px 60px rgba(0, 0, 0, .14)",
+        "purpose": "Light panes in light mode."
+      },
+      {
+        "name": "plate",
+        "value": "0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12)",
+        "purpose": "Notification and preset plates."
+      },
+      {
+        "name": "card",
+        "value": "0 24px 50px rgba(0, 0, 0, .14)",
+        "purpose": "The opaque recap card."
+      },
+      {
+        "name": "segment-pressed",
+        "value": "0 2px 6px rgba(0, 0, 0, .14)",
+        "purpose": "The selected segment."
+      },
+      {
+        "name": "glass-hairline",
+        "value": "inset 0 0 0 1px rgba(255, 255, 255, .14)",
+        "purpose": "Keys, chips and the glass button on dark material (.22 on the button)."
+      },
+      {
+        "name": "menubar-light-rule",
+        "value": "0 1px 0 var(--line)",
+        "purpose": "The hairline under the light menu bar."
+      }
+    ],
+    "motion": [
+      {
+        "name": "ease-out",
+        "value": "cubic-bezier(.16, 1, .3, 1)",
+        "purpose": "Every transition: arcs ease, numbers change, nothing bounces."
+      },
+      {
+        "name": "duration-control",
+        "value": "200ms",
+        "purpose": "Button lift and press, key tint."
+      },
+      {
+        "name": "duration-content",
+        "value": "450ms to 600ms",
+        "purpose": "Story moments arriving and leaving, hero copy, goal material."
+      },
+      {
+        "name": "duration-arc",
+        "value": "800ms to 900ms",
+        "purpose": "Ring arcs, the pace tick and its label, the dial, the bottle's water."
+      },
+      {
+        "name": "reduce-motion",
+        "value": "transition-duration: .01ms",
+        "purpose": "Under prefers-reduced-motion every transition collapses; the day reads as discrete stops."
+      }
+    ],
+    "breakpoints": [
+      {
+        "name": "list-stack",
+        "value": "560px"
+      },
+      {
+        "name": "phone",
+        "value": "760px"
+      },
+      {
+        "name": "grid-stack",
+        "value": "860px"
+      },
+      {
+        "name": "tablet",
+        "value": "900px"
+      }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one call to action: Action Blue with a white label, on any material.",
+      "html": "<div class=\"ds-desk\"><a class=\"ds-btn-primary\" href=\"#\">Get HydroBar free</a></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-btn-primary { display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; border-radius: 14px; background: var(--action, #0068d6); color: #fff; font: 650 18px/1 var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); text-decoration: none; transition: transform .2s var(--ease-out, cubic-bezier(.16, 1, .3, 1)), background-color .2s; } .ds-btn-primary:hover { background: #005ec2; transform: translateY(-1px); } .ds-btn-primary:active { transform: translateY(1px); } .ds-btn-primary:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }"
+    },
+    {
+      "name": "Glass Button",
+      "kind": "button",
+      "refersTo": "button-glass",
+      "description": "Secondary action on dark glass: white at 14% with an inner hairline and the glass blur.",
+      "html": "<div class=\"ds-desk\"><div class=\"ds-pane\"><a class=\"ds-btn-glass\" href=\"#\">Download the DMG</a></div></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-pane { padding: 28px; border-radius: 30px; background: var(--mat-dark, rgba(24, 26, 33, .62)); backdrop-filter: blur(28px) saturate(170%); -webkit-backdrop-filter: blur(28px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22); } .ds-btn-glass { display: inline-flex; align-items: center; min-height: 56px; padding: 0 28px; border-radius: 14px; background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); backdrop-filter: blur(28px) saturate(170%); font: 650 18px/1 var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); text-decoration: none; transition: transform .2s var(--ease-out, cubic-bezier(.16, 1, .3, 1)); } .ds-btn-glass:hover { transform: translateY(-1px); } .ds-btn-glass:active { transform: translateY(1px); } .ds-btn-glass:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }"
+    },
+    {
+      "name": "Segmented Control",
+      "kind": "chip",
+      "refersTo": "segmented",
+      "description": "A systemFill well with text segments; the selected one fills with Action Blue.",
+      "html": "<div class=\"ds-seg\" role=\"group\" aria-label=\"Day type\"><button type=\"button\" aria-pressed=\"true\">Work day</button><button type=\"button\" aria-pressed=\"false\">Day off</button></div>",
+      "css": ".ds-seg { display: inline-flex; padding: 5px; border-radius: 14px; background: var(--fill, rgba(120, 120, 128, .14)); } .ds-seg button { font: 650 16px var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); color: var(--ink-2, #48484d); background: none; border: 0; padding: 12px 22px; border-radius: 10px; cursor: pointer; } .ds-seg button:hover { color: var(--ink, #1d1d1f); } .ds-seg button[aria-pressed=\"true\"] { background: var(--action, #0068d6); color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .14); } .ds-seg button:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }"
+    },
+    {
+      "name": "Water Keys",
+      "kind": "chip",
+      "refersTo": "mark-key",
+      "description": "Water Tint keys on dark glass for bottle marks and presets; hover deepens the tint, used keys fade.",
+      "html": "<div class=\"ds-desk\"><div class=\"ds-pane\"><div class=\"ds-marks\"><button type=\"button\">¼</button><button type=\"button\">½</button><button type=\"button\" aria-pressed=\"true\">¾</button><button type=\"button\">Done</button></div></div></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-pane { padding: 28px; border-radius: 30px; background: var(--mat-dark, rgba(24, 26, 33, .62)); backdrop-filter: blur(28px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22); } .ds-marks { display: flex; flex-wrap: wrap; gap: 12px; } .ds-marks button { font: 700 22px var(--display, \"Bricolage Grotesque\", ui-rounded, system-ui, sans-serif); min-width: 72px; height: 60px; padding: 0 20px; border-radius: 14px; border: 0; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); color: #fff; cursor: pointer; transition: background-color .2s; } .ds-marks button:hover { background: rgba(10, 132, 255, .4); } .ds-marks button[aria-pressed=\"true\"] { background: rgba(255, 255, 255, .1); color: #c9d6ee; } .ds-marks button:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }"
+    },
+    {
+      "name": "Menu Bar",
+      "kind": "nav",
+      "refersTo": "menubar",
+      "description": "The site's macOS menu bar: brand, links, mini ring, tabular clock and a compact primary button; turns light over light panes.",
+      "html": "<div class=\"ds-desk\"><header class=\"ds-menubar\"><a class=\"ds-brand\" href=\"#\"><span class=\"ds-icon\"></span>HydroBar</a><nav><a href=\"#\">A day</a><a href=\"#\">Days off</a><a href=\"#\">Privacy</a></nav><span class=\"ds-status\"><span class=\"ds-mini\"><svg width=\"18\" height=\"18\" viewBox=\"0 0 18 18\"><circle cx=\"9\" cy=\"9\" r=\"7\" fill=\"none\" stroke=\"currentColor\" stroke-opacity=\".35\" stroke-width=\"2.4\"/><circle cx=\"9\" cy=\"9\" r=\"7\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2.4\" stroke-linecap=\"round\" transform=\"rotate(-90 9 9)\" stroke-dasharray=\"30 44\"/></svg></span><span class=\"ds-clock\">Tue 3:20 PM</span><a class=\"ds-get\" href=\"#\">Get it free</a></span></header></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-menubar { height: 44px; display: flex; align-items: center; gap: 28px; padding: 0 22px; border-radius: 10px; font: 500 15px var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); color: #fff; background: rgba(28, 30, 38, .9); backdrop-filter: blur(28px) saturate(170%); } .ds-menubar a { color: inherit; text-decoration: none; } .ds-menubar nav { display: flex; gap: 22px; } .ds-menubar nav a:hover { text-decoration: underline; text-underline-offset: .22em; } .ds-brand { display: flex; align-items: center; gap: 9px; font: 760 17px var(--display, \"Bricolage Grotesque\", ui-rounded, system-ui, sans-serif); letter-spacing: -.01em; } .ds-icon { width: 22px; height: 22px; border-radius: 5px; background: linear-gradient(135deg, #0a84ff, #64d2ff); } .ds-status { margin-left: auto; display: flex; align-items: center; gap: 14px; } .ds-mini { display: grid; place-items: center; width: 30px; height: 24px; border-radius: 6px; background: rgba(255, 255, 255, .2); } .ds-clock { font-variant-numeric: tabular-nums; } .ds-get { display: inline-flex; align-items: center; min-height: 32px; padding: 0 14px; border-radius: 9px; background: var(--action, #0068d6); font: 650 14px/1 var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); } .ds-get:hover { background: #005ec2; } .ds-menubar a:focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }"
+    },
+    {
+      "name": "Glass Window",
+      "kind": "card",
+      "refersTo": "window-dark",
+      "description": "Every section: translucent material over the wallpaper with the rim, 30px corners, the wallpaper showing around it.",
+      "html": "<div class=\"ds-desk\"><section class=\"ds-window\"><h2>Your water is nobody else's business.</h2><p>No account, no analytics, no ads.</p></section><section class=\"ds-window ds-window-light\"><h2>Twelve rings make a year.</h2><p>Each month's daily average against the goal.</p></section></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-window { margin: 14px 0; padding: 48px clamp(20px, 4vw, 56px); border-radius: 30px; background: var(--mat-dark, rgba(24, 26, 33, .62)); backdrop-filter: blur(28px) saturate(170%); -webkit-backdrop-filter: blur(28px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22); color: #fff; } .ds-window h2 { margin: 0; font: 760 40px/1.02 var(--display, \"Bricolage Grotesque\", ui-rounded, system-ui, sans-serif); letter-spacing: -.025em; } .ds-window p { margin: 20px 0 0; font: 400 clamp(19px, 1.6vw, 22px)/1.6 var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); color: var(--label-on-dark-2, #c9d6ee); } .ds-window-light { background: var(--mat-light, rgba(250, 250, 252, .72)); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .55), 0 24px 60px rgba(0, 0, 0, .14); color: var(--ink, #1d1d1f); } .ds-window-light p { color: var(--ink-2, #48484d); }"
+    },
+    {
+      "name": "Notification Plate",
+      "kind": "custom",
+      "refersTo": "notification-plate",
+      "description": "A faithful macOS notification recreated from the app, with the user's presets as action chips.",
+      "html": "<div class=\"ds-desk\"><div class=\"ds-note\"><span class=\"ds-app\"></span><div><b>HydroBar</b><div class=\"ds-body\">250 ml of 2 L · 1.75 L to go by 10:00 PM.</div></div><span class=\"ds-when\">now</span><div class=\"ds-actions\"><span>+250 ml</span><span>+330 ml</span><span>+500 ml</span><span>Snooze 1 Hour</span></div></div></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-note { width: min(400px, 100%); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(48, 50, 60, .66); backdrop-filter: blur(28px) saturate(170%); -webkit-backdrop-filter: blur(28px) saturate(170%); color: #f5f5f7; box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); font-family: -apple-system, BlinkMacSystemFont, var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); } .ds-app { width: 38px; height: 38px; border-radius: 9px; background: linear-gradient(135deg, #0a84ff, #64d2ff); } .ds-note b { font-size: 14px; font-weight: 650; } .ds-body { font-size: 14px; line-height: 1.38; margin-top: 1px; } .ds-when { font-size: 12px; color: rgba(235, 235, 245, .66); } .ds-actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; } .ds-actions span { font-size: 13px; font-weight: 550; padding: 5px 11px; border-radius: 8px; background: rgba(255, 255, 255, .12); } .ds-actions span:hover { background: rgba(255, 255, 255, .2); }"
+    },
+    {
+      "name": "Progress Ring",
+      "kind": "custom",
+      "description": "The system's signature: a gray track, a round-capped water arc, a light pace tick and a tabular numeral; green to mint once the goal is reached.",
+      "html": "<div class=\"ds-desk\"><div class=\"ds-pane ds-ring\"><svg viewBox=\"0 0 1000 1000\" aria-hidden=\"true\"><defs><linearGradient id=\"ds-g-water\" x1=\"0\" y1=\"0\" x2=\"1\" y2=\"1\"><stop offset=\"0\" stop-color=\"#0a84ff\"/><stop offset=\"1\" stop-color=\"#64d2ff\"/></linearGradient></defs><circle cx=\"500\" cy=\"500\" r=\"440\" fill=\"none\" stroke=\"rgba(142,142,147,.3)\" stroke-width=\"112\"/><circle class=\"ds-arc\" cx=\"500\" cy=\"500\" r=\"440\" fill=\"none\" stroke=\"url(#ds-g-water)\" stroke-width=\"112\" stroke-linecap=\"round\" transform=\"rotate(-90 500 500)\" stroke-dasharray=\"1880 2765\"/><g style=\"transform-origin:500px 500px;transform:rotate(188deg)\"><rect x=\"491\" y=\"-12\" width=\"18\" height=\"160\" rx=\"9\" fill=\"rgba(245,245,247,.62)\"/></g></svg><div class=\"ds-center\"><div class=\"ds-pct\">68%</div><div class=\"ds-sub\">1.36 L of 2 L · on track</div></div></div></div>",
+      "css": ".ds-desk { background: linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); padding: 24px; border-radius: 16px; } .ds-pane { border-radius: 30px; background: var(--mat-dark, rgba(24, 26, 33, .62)); backdrop-filter: blur(28px) saturate(170%); box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22); } .ds-ring { position: relative; width: 320px; aspect-ratio: 1; padding: 24px; color: #fff; } .ds-ring svg { width: 100%; height: 100%; overflow: visible; } .ds-arc { transition: stroke-dasharray .9s var(--ease-out, cubic-bezier(.16, 1, .3, 1)); } .ds-ring:hover .ds-arc { stroke-dasharray: 2300 2765; } .ds-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; } .ds-pct { font: 700 64px/.86 var(--display, \"Bricolage Grotesque\", ui-rounded, system-ui, sans-serif); letter-spacing: -.04em; font-variant-numeric: tabular-nums; } .ds-sub { margin-top: 8px; font: 600 15px/1.3 var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); color: var(--label-on-dark-2, #c9d6ee); font-variant-numeric: tabular-nums; }"
+    },
+    {
+      "name": "Recap Card",
+      "kind": "card",
+      "refersTo": "recap-card",
+      "description": "The app's monthly recap card, its water gradient darkened for AA contrast on white text.",
+      "html": "<div class=\"ds-recap\"><div class=\"ds-top\"><span>HydroBar</span><span>October 2026</span></div><div class=\"ds-big\">1.9 L</div><div class=\"ds-small\">a day on average</div></div>",
+      "css": ".ds-recap { width: 360px; border-radius: 22px; padding: 30px; background: linear-gradient(135deg, #0058c4, #0a6cd6); color: #fff; box-shadow: 0 24px 50px rgba(0, 0, 0, .14); font-family: var(--text, \"Instrument Sans\", system-ui, -apple-system, sans-serif); } .ds-top { display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; color: rgba(255, 255, 255, .88); } .ds-big { font: 700 64px/1 var(--display, \"Bricolage Grotesque\", ui-rounded, system-ui, sans-serif); letter-spacing: -.035em; margin-top: 30px; font-variant-numeric: tabular-nums; } .ds-small { color: rgba(255, 255, 255, .88); margin-top: 6px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Ring on the Desktop",
+    "overview": "HydroBar's web surfaces are the Mac itself, magnified. A macOS wallpaper, green at the top left and deep blue at the bottom right with soft waves, is the ground of every page. Each section is a window of frosted glass set on that desktop with a visible gap around it, the way the app's popover sits over whatever is behind it. The menu bar ring, a few pixels wide in the real menu bar, is the hero object, blown up until it overflows its window and carries the whole story.\n\nThe palette and the material are the app's, not an interpretation of it: macOS systemBlue to systemCyan for water, systemGreen to systemMint for a reached goal, a 30% gray for the unfilled track, and translucent dark or light material with a bright rim. Bricolage Grotesque gives the headlines a warm, slightly irregular voice; Instrument Sans does the explaining. Interface pieces such as notifications, preset buttons, the menu bar and the monthly recap card are recreated faithfully from the app's SwiftUI views and strings, so the page proves the product by showing it.\n\nDensity is calm: large type, generous section padding, one idea per window. Motion is eased and quiet: arcs fill, numbers change, nothing bounces. Both light and dark color schemes are first-class.",
+    "keyCharacteristics": [
+      "A fixed macOS wallpaper behind everything; every section is a glass pane over it.",
+      "Water is blue to cyan, the goal is green to mint, the empty track is neutral gray.",
+      "Rings, arcs and dials are the primary graphic language, from the 22px brand mark to a ring larger than the viewport.",
+      "Real macOS interface recreated, never illustrated or described.",
+      "Bricolage Grotesque headlines over Instrument Sans text, in light and dark."
+    ],
+    "rules": [
+      {
+        "name": "The Two Waters Rule",
+        "body": "Blue to cyan means water logged; green to mint means the goal is reached. Green appears only at a reached goal (the closed ring, the last call, a met month), never as a general success or accent color.",
+        "section": "colors"
+      },
+      {
+        "name": "The White-on-Action Rule",
+        "body": "systemBlue (#0a84ff) is for drawing. Any surface with a white label uses Action Blue (#0068d6, hover #005ec2).",
+        "section": "colors"
+      },
+      {
+        "name": "The Gray Track Rule",
+        "body": "The unfilled part of every ring is neutral gray (Track Gray on dark, Fill on light), never a pale tint of blue.",
+        "section": "colors"
+      },
+      {
+        "name": "The Two Voices Rule",
+        "body": "Bricolage speaks (headlines, titles, questions, terms and numerals); Instrument Sans explains (body, ledes, buttons and labels). Never swap them.",
+        "section": "typography"
+      },
+      {
+        "name": "The Tabular Clock Rule",
+        "body": "Every number that changes in place (the clock, the percentage, litres, times) uses tabular figures so it updates without shifting.",
+        "section": "typography"
+      },
+      {
+        "name": "The Desktop Rule",
+        "body": "Every section is a glass window over the wallpaper, with the wallpaper visible around it. No section is an opaque, full-bleed slab.",
+        "section": "elevation"
+      },
+      {
+        "name": "The Rim Rule",
+        "body": "Glass is never drawn without its rim: top highlight, inner hairline, soft drop.",
+        "section": "elevation"
+      }
+    ],
+    "dos": [
+      "**Do** set every section as a glass pane over the wallpaper: 14px gaps (8px under 760px), 30px corners (24px), the matching rim, `blur(28px) saturate(170%)`.",
+      "**Do** use dark material for the story, the bottle band, privacy, the close and the footer, and light material for explanatory sections; in dark mode the light material becomes rgba(36, 38, 46, .7) with the dark rim.",
+      "**Do** recreate macOS interface from the app's own views and strings (notifications, presets, menu bar, recap card) instead of illustrating it.",
+      "**Do** let the site menu bar follow the ground beneath it: dark glass over dark panes, the light bar over light panes.",
+      "**Do** ease every transition with cubic-bezier(.16, 1, .3, 1): 0.2s for buttons, 0.45–0.6s for content, 0.8–0.9s for arcs and ticks.",
+      "**Do** collapse every transition to 0.01ms under Reduce Motion, so the day reads as discrete stops."
+    ],
+    "donts": [
+      "**Don't** put white text on systemBlue (#0a84ff); use Action Blue (#0068d6).",
+      "**Don't** use green for anything other than a reached goal.",
+      "**Don't** tint a ring's empty track blue; it stays Track Gray or Fill.",
+      "**Don't** replace the raster wallpaper with a flat color or a plain CSS gradient: the glass needs its soft forms to act on. The gradient is only a loading fallback.",
+      "**Don't** lay features out as a row of equal cards; use hairline-divided rows inside a pane.",
+      "**Don't** bounce or overshoot: arcs ease, numbers change, nothing springs."
+    ]
+  }
+}
