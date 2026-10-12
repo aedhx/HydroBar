@@ -124,7 +124,10 @@ private func event(day: Int, _ hour: Int, _ ml: Double) -> IntakeEvent {
                                   defaultGoal: 2000, calendar: utc)
 
     #expect(log.events.count == 2)
-    #expect(log.events.allSatisfy(\.isAggregate))
+    // Calculé hors de #expect : la macro traite allSatisfy (rethrows) comme
+    // un appel qui peut lever une erreur.
+    let allAggregate = log.events.allSatisfy { $0.isAggregate }
+    #expect(allAggregate)
     let first = try #require(log.events.first)
     #expect(utc.component(.hour, from: first.date) == 12)
     #expect(log.goal(on: at(day: 14, 0), calendar: utc) == 2500)
