@@ -100,33 +100,35 @@ du `.p8`) ; voir la documentation fastlane « App Store Connect API ».
 
 ---
 
-## 4. Captures d'écran (sur un vrai Mac)
+## 4. Captures d'écran
 
-Format **16:10**, en PNG ou JPEG, de 1 à 10 par langue. Utilise l'une de ces
-tailles : 1280 × 800, 1440 × 900, 2560 × 1600 ou 2880 × 1800. Les captures doivent
-montrer l'app réelle.
+**Déjà générées** : 6 écrans × 9 langues, en 2880 × 1800, dans
+`fastlane/screenshots/<langue>/`. Elles s'envoient avec
+`fastlane deliver --skip_metadata --skip_binary_upload`, ou se glissent dans
+App Store Connect.
 
-Pour avoir de belles données :
+| # | Écran | Message |
+|---|---|---|
+| 1 | Popover du jour | Boire assez, sans y penser |
+| 2 | Notification et ses actions | Des rappels utiles |
+| 3 | Onglet Jours des réglages | Jours de travail, jours off |
+| 4 | Statistiques | Bilan du mois, année |
+| 5 | Mode gourde | |
+| 6 | Menu de l'icône et widget | Partout sur le Mac, rien ailleurs |
 
-1. lance une build **Debug** depuis Xcode ;
-2. dans Réglages › Général, clique 5 fois sur le numéro de version pour
-   activer le mode debug ;
-3. dans Réglages › Intégrations › Debug, choisis **Generate Fake History Data**.
+Elles sont produites par `marketing/` à partir des textes de l'app (voir
+[marketing/README.md](../marketing/README.md)). Ce sont des **recréations
+fidèles** de l'interface : avant l'envoi, compare-les à l'app sur un Mac.
+Apple demande que la fiche montre l'app telle qu'elle est (règle 2.3). Si un
+écran diffère, corrige `marketing/template.html` et relance
+`node marketing/render.cjs` : les 9 langues suivent.
 
-Captures conseillées, dans cet ordre :
+Pour remplacer un écran par une vraie capture, utilise une build **Debug** :
+clique 5 fois sur le numéro de version dans Réglages › Général, puis
+**Generate Fake History Data** dans Réglages › Intégrations › Debug.
 
-1. **Le popover ouvert** sur un bureau épuré : anneau à ~70 %, presets, pastille du
-   type de journée.
-2. **Une notification** avec ses boutons ouverts (presets, Autre quantité…).
-3. **Les statistiques** : bilan du mois et vue sur l'année.
-4. **L'onglet Jours** des réglages : jours off, congés.
-5. **Le mode gourde** dans le popover.
-6. (facultatif) **Le widget** sur le bureau et le menu contextuel de l'icône.
-
-Pour chaque langue, change la langue de l'app (Réglages › Général › Langue)
-et refais les captures. À défaut, les captures anglaises s'affichent partout.
-Range-les dans `fastlane/screenshots/<langue>/` pour les envoyer avec
-`fastlane deliver --skip_metadata`.
+**Aperçu social GitHub** : `Resources/v2/social-preview.jpg` (1280 × 640), à
+déposer dans Settings › General › Social preview du dépôt.
 
 ---
 

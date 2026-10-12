@@ -165,7 +165,7 @@ extension HydrationManager {
     private func add(reminder body: String, at date: Date, now: Date, identifier: String,
                      sound: Bool, title: String? = nil) {
         let content = UNMutableNotificationContent()
-        content.title = title ?? String(localized: "Hydrobar", comment: "Notification title")
+        content.title = title ?? "HydroBar"
         content.body = body
         content.sound = sound ? .default : nil
         content.categoryIdentifier = reminderCategory
