@@ -127,9 +127,6 @@ struct SettingsView: View {
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
     @ObservedObject private var focusMonitor = FocusModeMonitor.shared
-    @State private var targetValue: String = ""
-    @State private var presetValues: [String] = ["", "", ""]
-    @State private var customMinutes: String = "60"
     @State private var debugTapCount: Int = 0
 
     var body: some View {
@@ -160,10 +157,7 @@ struct SettingsView: View {
                     .foregroundColor(.secondary)
                 Picker("", selection: Binding(
                     get: { manager.selectedUnit },
-                    set: { newValue in
-                        manager.selectedUnit = newValue
-                        updateDisplayValues()
-                    }
+                    set: { manager.selectedUnit = $0 }
                 )) {
                     ForEach(AppUnit.allCases, id: \.self) { unit in
                         Text(verbatim: unit.pickerLabel).tag(unit)
@@ -179,17 +173,15 @@ struct SettingsView: View {
                     .font(.system(size: 11, weight: .semibold))
                     .foregroundColor(.secondary)
 
-                HStack(spacing: 8) {
-                    TextField("", text: $targetValue)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(size: 15))
-                        .onChange(of: targetValue) { oldValue, newValue in
-                            if let value = Double(newValue) {
-                                let mlValue = manager.mlValue(from: value)
-                                manager.targetMl = mlValue
-                            }
-                        }
-                    
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    ValidatedNumberField(
+                        value: manager.selectedUnit.fromMl(manager.targetMl),
+                        range: displayRange(HydrationLimits.goal),
+                        format: formatForInput,
+                        onCommit: { manager.targetMl = manager.mlValue(from: $0) }
+                    )
+                    .font(.system(size: 15))
+
                     Text(verbatim: manager.selectedUnit.symbol)
                         .font(.system(size: 13, weight: .medium))
                         .foregroundColor(.secondary)
@@ -209,33 +201,14 @@ struct SettingsView: View {
                 HStack(spacing: 10) {
                     ForEach(Array(manager.presetsMl.enumerated()), id: \.offset) { index, preset in
                         VStack(spacing: 6) {
-                            TextField("", text: Binding(
-                                get: {
-                                    if presetValues.count <= index {
-                                        presetValues = Array(repeating: "", count: max(3, manager.presetsMl.count))
-                                        updateDisplayValues()
-                                    }
-                                    return index < presetValues.count ? presetValues[index] : formatPresetValue(preset)
-                                },
-                                set: { newValue in
-                                    if presetValues.count <= index {
-                                        presetValues = Array(repeating: "", count: max(3, manager.presetsMl.count))
-                                    }
-                                    presetValues[index] = newValue
-                                    
-                                    if let value = Double(newValue) {
-                                        let mlValue = manager.mlValue(from: value)
-                                        var presets = manager.presetsMl
-                                        if presets.count > index {
-                                            presets[index] = mlValue
-                                            manager.presetsMl = presets
-                                        }
-                                    }
-                                }
-                            ))
-                            .textFieldStyle(.roundedBorder)
+                            ValidatedNumberField(
+                                value: manager.selectedUnit.fromMl(preset),
+                                range: displayRange(HydrationLimits.single),
+                                format: formatForInput,
+                                alignment: .center,
+                                onCommit: { updatePreset(at: index, displayValue: $0) }
+                            )
                             .font(.system(size: 14, weight: .medium))
-                            .multilineTextAlignment(.center)
                             .frame(maxWidth: .infinity)
                             
                             Image(systemName: iconForPreset(at: index))
@@ -324,17 +297,15 @@ struct SettingsView: View {
                     // Champ Custom si Perso sélectionné
                     if manager.notificationInterval == .custom {
                         HStack(spacing: 8) {
-                            TextField("", text: Binding(
-                                get: { String(manager.customNotificationMinutes) },
-                                set: { newValue in
-                                    if let minutes = Int(newValue) {
-                                        manager.customNotificationMinutes = minutes
-                                        manager.scheduleNotifications()
-                                    }
-                                    customMinutes = newValue
+                            ValidatedNumberField(
+                                value: Double(manager.reminderIntervalMinutes),
+                                range: Double(HydrationLimits.reminderMinutes.lowerBound)...Double(HydrationLimits.reminderMinutes.upperBound),
+                                format: { NumberInput.fieldText($0, fractionDigits: 0...0) },
+                                onCommit: { minutes in
+                                    manager.customNotificationMinutes = Int(minutes.rounded())
+                                    manager.scheduleNotifications()
                                 }
-                            ))
-                            .textFieldStyle(.roundedBorder)
+                            )
                             .font(.system(size: 13))
                             .frame(width: 80)
                             
@@ -358,19 +329,23 @@ struct SettingsView: View {
                         
                         Spacer()
                         
+                        // Le réglage manuel reste modifiable quand la synchro
+                        // Concentration est active : les deux se cumulent.
+                        // Le changement reprogramme les rappels (didSet).
                         Toggle("", isOn: Binding(
                             get: { manager.doNotDisturb },
-                            set: { newValue in
-                                // IMPORTANT: Ne jamais désactiver notificationsEnabled ici
-                                if !manager.focusModeAutoSync {
-                                    manager.doNotDisturb = newValue
-                                    manager.scheduleNotifications()
-                                }
-                            }
+                            set: { manager.doNotDisturb = $0 }
                         ))
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .disabled(manager.focusModeAutoSync)
+                    }
+
+                    if manager.focusModeAutoSync && manager.focusIsActive && !manager.doNotDisturb {
+                        Text("A Focus is on: reminders appear as a badge.",
+                             comment: "Shown when a macOS Focus currently silences reminders")
+                            .font(.system(size: 11))
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
@@ -682,15 +657,6 @@ struct SettingsView: View {
             // La source de vérité du lancement au démarrage est le système :
             // l'utilisateur a pu le changer dans Réglages Système entre-temps.
             launchAtLogin.refresh()
-
-            // Initialiser presetValues avec la bonne taille
-            if presetValues.count < manager.presetsMl.count {
-                presetValues = Array(repeating: "", count: manager.presetsMl.count)
-            }
-            updateDisplayValues()
-        }
-        .onChange(of: manager.selectedUnit) {
-            updateDisplayValues()
         }
     }
     
@@ -898,14 +864,23 @@ struct SettingsView: View {
         return date.formatted(.dateTime.hour().minute())
     }
 
-    private func formatPresetValue(_ preset: Double) -> String {
+    // MARK: - Saisie des quantités
+
+    /// Bornes en millilitres converties dans l'unité affichée.
+    private func displayRange(_ mlRange: ClosedRange<Double>) -> ClosedRange<Double> {
         let unit = manager.selectedUnit
-        let value = unit.fromMl(preset)
-        if value.truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.0f", value)
-        } else {
-            return String(format: "%.1f", value)
-        }
+        return unit.fromMl(mlRange.lowerBound)...unit.fromMl(mlRange.upperBound)
+    }
+
+    private func formatForInput(_ value: Double) -> String {
+        NumberInput.fieldText(value, fractionDigits: manager.selectedUnit.inputFractionDigits)
+    }
+
+    private func updatePreset(at index: Int, displayValue: Double) {
+        var presets = manager.presetsMl
+        guard presets.indices.contains(index) else { return }
+        presets[index] = manager.mlValue(from: displayValue)
+        manager.presetsMl = presets
     }
     
     private func iconForPreset(at index: Int) -> String {
@@ -937,31 +912,6 @@ struct SettingsView: View {
             return 18
         default:
             return 16
-        }
-    }
-    
-    private func updateDisplayValues() {
-        // Mettre à jour les valeurs d'affichage selon l'unité choisie
-        let unit = manager.selectedUnit
-        
-        // Objectif
-        let target = unit.fromMl(manager.targetMl)
-        if target.truncatingRemainder(dividingBy: 1) == 0 {
-            targetValue = String(format: "%.0f", target)
-        } else {
-            targetValue = String(format: "%.1f", target)
-        }
-        
-        // Presets
-        if manager.presetsMl.count >= 3 {
-            for (index, preset) in manager.presetsMl.enumerated() {
-                let value = unit.fromMl(preset)
-                if value.truncatingRemainder(dividingBy: 1) == 0 {
-                    presetValues[index] = String(format: "%.0f", value)
-                } else {
-                    presetValues[index] = String(format: "%.1f", value)
-                }
-            }
         }
     }
 }
