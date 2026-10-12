@@ -202,14 +202,16 @@ class HydrationManager: ObservableObject {
     }
 
     // MARK: - Plage horaire active
-    // Sert au repère d'allure de l'anneau, et servira à borner les rappels (F19).
+    // Sert au repère d'allure de l'anneau et borne les rappels (F6).
 
     @AppStorage("activeHoursStart") var activeHoursStart: Int = HydrationPace.defaultStartHour {
         willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
     }
 
     @AppStorage("activeHoursEnd") var activeHoursEnd: Int = HydrationPace.defaultEndHour {
         willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
     }
 
     // MARK: - Autorisation des notifications
@@ -569,6 +571,7 @@ class HydrationManager: ObservableObject {
         let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
             self?.rollOverIfNewDay()
             self?.resumeRemindersIfSnoozeEnded()
+            self?.replanRemindersIfNeeded()
             // Filet de sécurité si une notification Darwin du widget s'est perdue.
             self?.applyPendingWidgetDelta()
             self?.checkReminderStatus()
@@ -586,6 +589,22 @@ class HydrationManager: ObservableObject {
         // Après une veille, les minuteurs repartent en retard : on rattrape tout
         // de suite. Avant, une nuit de veille laissait l'anneau sur la veille
         // jusqu'au premier tick.
+        // Écran en veille, session verrouillée ou changée : plus de rappels
+        // jusqu'au retour (F6). Ils s'empilaient dans le centre de notifications.
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.screensDidSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
+            workspaceCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                self?.isUserAway = true
+                self?.scheduleNotifications()
+            }
+        }
+        for name in [NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
+            workspaceCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                self?.isUserAway = false
+                self?.scheduleNotifications()
+            }
+        }
+
         NSWorkspace.shared.notificationCenter.addObserver(
             forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
         ) { [weak self] _ in
@@ -617,34 +636,94 @@ class HydrationManager: ObservableObject {
 
     /// Vérifie si un rappel doit être affiché (badge ou notification)
     func checkReminderStatus() {
-        guard notificationsEnabled, remindersSnoozedUntil == nil else {
+        // La pastille remplace la notification en mode Ne pas déranger : elle
+        // suit les mêmes règles que les rappels (plage active, objectif atteint).
+        guard notificationsEnabled, isQuietMode, remindersSnoozedUntil == nil else {
             showReminderBadge = false
             return
         }
-        
-        let intervalMinutes = reminderIntervalMinutes
-        
-        // Vérifier si l'intervalle est écoulé depuis la dernière consommation
-        let now = Date()
-        let lastWaterDate = getLastWaterAddedDate() ?? now // Si jamais de consommation, utiliser maintenant
-        let timeSinceLastWater = now.timeIntervalSince(lastWaterDate)
-        let intervalInSeconds = TimeInterval(intervalMinutes * 60)
-        
-        if timeSinceLastWater >= intervalInSeconds {
-            // L'intervalle est écoulé
-            if isQuietMode {
-                // Mode DnD actif : afficher le badge au lieu de la notification
-                showReminderBadge = true
-            } else {
-                // Mode DnD inactif : la notification système sera gérée par scheduleNotifications
-                showReminderBadge = false
-            }
-        } else {
-            // L'intervalle n'est pas encore écoulé
-            showReminderBadge = false
-        }
+        showReminderBadge = ReminderPlanner.isDue(reminderContext(now: Date()))
     }
-    
+
+    // MARK: - Rappels intelligents (F6)
+
+    /// Cadence adaptative : resserrer les rappels quand l'utilisateur est en
+    /// retard sur son allure. Activée par défaut.
+    @AppStorage("adaptiveReminders") var adaptiveReminders: Bool = true {
+        willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
+    }
+
+    /// Écran en veille ou session inactive : inutile de rappeler quelqu'un qui
+    /// n'est pas devant son Mac. Les rappels reprennent au réveil.
+    private var isUserAway = false
+
+    /// Premier rappel programmé. Une fois passé, le minuteur replanifie : la
+    /// série programmée est finie, et l'allure a pu changer depuis.
+    private var nextPlannedReminder: Date?
+
+    private static let reminderIdentifierPrefix = "HYDRATION_REMINDER"
+    private static let maxPlannedReminders = 6
+
+    private func reminderContext(now: Date) -> ReminderPlanner.Context {
+        let calendar = Calendar.current
+        let today = log.total(on: now, calendar: calendar)
+        let behind = HydrationPace.deficitMl(currentMl: today,
+                                             targetMl: targetMl,
+                                             expectedFraction: expectedProgress) != nil
+        return ReminderPlanner.Context(
+            now: now,
+            lastDrink: getLastWaterAddedDate() ?? now,
+            intervalMinutes: reminderIntervalMinutes,
+            activeStartHour: activeHoursStart,
+            activeEndHour: activeHoursEnd,
+            goalReachedToday: targetMl > 0 && today >= targetMl,
+            behindPace: adaptiveReminders && behind,
+            notBefore: remindersSnoozedUntil,
+            calendar: calendar
+        )
+    }
+
+    private func removePendingReminders() {
+        let ids = [Self.reminderIdentifierPrefix]
+            + (0..<Self.maxPlannedReminders).map { "\(Self.reminderIdentifierPrefix)_\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: ids)
+    }
+
+    private func replanRemindersIfNeeded() {
+        guard let next = nextPlannedReminder, next <= Date() else { return }
+        scheduleNotifications()
+    }
+
+    // MARK: - Objectif atteint
+
+    /// Jour de la dernière célébration, pour n'en envoyer qu'une par jour même
+    /// si l'utilisateur annule puis repasse la barre.
+    @AppStorage("lastGoalCelebrationDay") private var lastGoalCelebrationDay: String = ""
+
+    private func celebrateIfGoalJustReached(previousTotal: Double) {
+        let calendar = Calendar.current
+        let now = Date()
+        let dayKey = IntakeLog.dayKey(for: now, calendar: calendar)
+        guard notificationsEnabled, !isQuietMode,
+              targetMl > 0, previousTotal < targetMl, currentMl >= targetMl,
+              lastGoalCelebrationDay != dayKey
+        else { return }
+        lastGoalCelebrationDay = dayKey
+
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Goal reached!", comment: "Goal celebration notification title")
+        let streak = currentStreak
+        content.body = streak > 1
+            ? String(format: String(localized: "%lld days in a row. Well done!",
+                                    comment: "Goal celebration body; %lld is the streak length"), streak)
+            : String(localized: "You reached your daily goal. Well done!",
+                     comment: "Goal celebration body without a streak")
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "GOAL_REACHED", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
     private func updateLastResetDate() {
         lastResetDateString = DateFormat.iso8601.string(from: Date())
     }
@@ -658,6 +737,7 @@ class HydrationManager: ObservableObject {
         guard amount > 0, amount.isFinite else { return }
 
         let now = Date()
+        let previousTotal = currentMl
         let event = IntakeEvent(date: now, amountMl: amount)
         log.add(event)
         log.setGoal(targetMl, on: now, calendar: .current)
@@ -666,8 +746,9 @@ class HydrationManager: ObservableObject {
 
         updateLastWaterAddedDate()
         showReminderBadge = false
-        // Repousser le prochain rappel.
-        if notificationsEnabled { scheduleNotifications() }
+        // Replanifier les rappels à partir de cette prise.
+        scheduleNotifications()
+        celebrateIfGoalJustReached(previousTotal: previousTotal)
         syncToAppGroup()
     }
 
@@ -677,6 +758,7 @@ class HydrationManager: ObservableObject {
         guard let removed = log.remove(id: id) else { return }
         pushUndo(.removed([removed]))
         persistLog()
+        scheduleNotifications()
         syncToAppGroup()
     }
     
@@ -723,6 +805,7 @@ class HydrationManager: ObservableObject {
             log.restore(events)
         }
         persistLog()
+        scheduleNotifications()
         syncToAppGroup()
         return true
     }
@@ -739,6 +822,7 @@ class HydrationManager: ObservableObject {
         let removed = log.removeEvents(on: Date(), calendar: .current)
         if !removed.isEmpty { pushUndo(.removed(removed)) }
         persistLog()
+        scheduleNotifications()
         syncToAppGroup()
     }
     
@@ -910,63 +994,47 @@ class HydrationManager: ObservableObject {
     
     /// Programme les notifications locales répétées
     func scheduleNotifications() {
-        guard notificationsEnabled else {
-            // Annuler toutes les notifications si désactivées
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            showReminderBadge = false
-            return
-        }
-        
-        // En pause : rien jusqu'à la fin, que le minuteur détecte.
-        if remindersSnoozedUntil != nil {
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            showReminderBadge = false
-            return
-        }
+        removePendingReminders()
 
-        // Si mode Ne pas déranger est activé, ne pas programmer de notifications système
-        // Le badge sera géré par checkReminderStatus()
-        if isQuietMode {
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            // Vérifier immédiatement le statut du badge
+        // Mode Ne pas déranger : la pastille remplace la notification.
+        guard notificationsEnabled, !isQuietMode, !isUserAway else {
+            nextPlannedReminder = nil
             checkReminderStatus()
             return
         }
-        
-        // Annuler les anciennes notifications
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        
-        let intervalMinutes = reminderIntervalMinutes
-        
-        // Créer le contenu de la notification
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "Hydrobar", comment: "Notification title")
-        content.body = String(localized: "Time to hydrate!", comment: "Notification body message")
-        content.sound = .default
-        content.categoryIdentifier = "HYDRATION_REMINDER"
-        content.userInfo = ["presetIndex": 0] // Index du premier preset
-        
-        // Créer le trigger répétitif
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: TimeInterval(intervalMinutes * 60),
-            repeats: true
-        )
-        
-        // Créer la requête
-        let request = UNNotificationRequest(
-            identifier: "HYDRATION_REMINDER",
-            content: content,
-            trigger: trigger
-        )
-        
-        // Programmer la notification
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                Self.logger.error("Échec de programmation de la notification: \(error.localizedDescription, privacy: .public)")
+        showReminderBadge = false
+
+        let now = Date()
+        let context = reminderContext(now: now)
+        let dates = ReminderPlanner.upcoming(context, limit: Self.maxPlannedReminders)
+        nextPlannedReminder = dates.first
+        let calendar = Calendar.current
+
+        for (index, date) in dates.enumerated() {
+            let content = UNMutableNotificationContent()
+            content.title = String(localized: "Hydrobar", comment: "Notification title")
+            // Le retard ne vaut que pour aujourd'hui : demain repart de zéro.
+            content.body = context.behindPace && calendar.isDate(date, inSameDayAs: now)
+                ? String(localized: "You're behind your pace for today. Time for a glass!",
+                         comment: "Reminder body when the user is behind schedule")
+                : String(localized: "Time to hydrate!", comment: "Notification body message")
+            content.sound = .default
+            content.categoryIdentifier = "HYDRATION_REMINDER"
+
+            // Déclencheurs non répétitifs : un intervalle fixe répété ignorait
+            // la plage active et l'objectif atteint.
+            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: max(date.timeIntervalSince(now), 1),
+                                                            repeats: false)
+            let request = UNNotificationRequest(identifier: "\(Self.reminderIdentifierPrefix)_\(index)",
+                                                content: content, trigger: trigger)
+            UNUserNotificationCenter.current().add(request) { error in
+                if let error {
+                    Self.logger.error("Échec de programmation d'un rappel: \(error.localizedDescription, privacy: .public)")
+                }
             }
         }
     }
-    
+
     // MARK: - Widget → App Sync
 
     /// Écoute la notification Darwin que le widget poste après un ajout (cf.

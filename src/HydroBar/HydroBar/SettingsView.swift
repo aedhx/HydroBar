@@ -330,6 +330,8 @@ struct SettingsView: View {
                         }
                     }
                     
+                    adaptiveRemindersRow
+
                     snoozeRow
 
                     focusModeSection
@@ -877,6 +879,32 @@ struct SettingsView: View {
             ShortcutRecorderView(action: action)
 
             Spacer(minLength: 0)
+        }
+    }
+
+    // MARK: - Rappels intelligents (F6)
+
+    private var adaptiveRemindersRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "gauge.with.dots.needle.33percent")
+                    .font(.system(size: 13))
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+                Text("Adapt to my pace", comment: "Toggle: remind more often when behind schedule")
+                    .font(.system(size: 13))
+                Spacer()
+                Toggle("", isOn: Binding(get: { manager.adaptiveReminders },
+                                         set: { manager.adaptiveReminders = $0 }))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+            }
+            Text("Reminders follow your active hours, stop once your goal is reached, and come a bit more often when you're behind.",
+                 comment: "Explanation of how reminders are scheduled")
+                .font(.system(size: 11))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, 28)
         }
     }
 
