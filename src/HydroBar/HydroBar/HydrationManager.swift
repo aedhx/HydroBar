@@ -603,6 +603,20 @@ class HydrationManager: ObservableObject {
         syncToAppGroup()
     }
     
+    /// Fusionne une sauvegarde importée (F4). Seules les prises absentes sont
+    /// ajoutées : importer deux fois la même sauvegarde ne change rien.
+    /// - Returns: le nombre de prises ajoutées.
+    @discardableResult
+    func importBackup(_ backup: IntakeLog) -> Int {
+        var merged = log
+        let added = merged.merge(backup)
+        guard added > 0 || merged != log else { return 0 }
+        log = merged
+        persistLog()
+        syncToAppGroup()
+        return added
+    }
+
     /// Met à jour la date de dernière consommation d'eau
     private func updateLastWaterAddedDate() {
         lastWaterAddedDateString = DateFormat.iso8601.string(from: Date())
