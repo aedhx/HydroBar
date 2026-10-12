@@ -170,3 +170,42 @@ private func sunday(_ hour: Int) -> Date {
     let key = try #require(HydrationStats.weeklySummaryKeyIfDue(now: sunday(21), hour: 21, lastSentKey: "", calendar: monday))
     #expect(HydrationStats.weeklySummaryKeyIfDue(now: sunday(22), hour: 21, lastSentKey: key, calendar: monday) == nil)
 }
+
+// MARK: - Objectif par jour et preset suggéré
+
+@Test func usesTheWeekdayGoalWhenThereIsOne() {
+    var goals = WeekdayGoals()
+    goals.overrides[utc.component(.weekday, from: now)] = 2800
+    #expect(goals.goal(on: now, calendar: utc, default: 2000) == 2800)
+    #expect(goals.goal(on: daysAgo(1), calendar: utc, default: 2000) == 2000)
+}
+
+@Test func weekdayGoalsSurviveStorage() {
+    var goals = WeekdayGoals()
+    goals.overrides[2] = 2500
+    goals.overrides[7] = 1500
+    #expect(WeekdayGoals.decode(goals.encoded()) == goals)
+    #expect(WeekdayGoals.decode("") == WeekdayGoals())
+}
+
+private func glasses(_ ml: Double, count: Int) -> [IntakeEvent] {
+    (0..<count).map { IntakeEvent(date: daysAgo($0 + 1).addingTimeInterval(3600 * 10), amountMl: ml) }
+}
+
+@Test func suggestsAFrequentAmountThatIsNotAPreset() throws {
+    let events = glasses(330, count: 6) + glasses(500, count: 4)
+    let suggestion = try #require(PresetSuggestion.suggest(events: events, presets: [200, 500, 750], now: now, calendar: utc))
+    #expect(suggestion.amountMl == 330)
+    #expect(suggestion.replacingIndex == 2)   // 750 jamais utilisé ; à égalité avec 200, le dernier
+}
+
+@Test func doesNotSuggestRareAmountsOrExistingPresets() {
+    #expect(PresetSuggestion.suggest(events: glasses(330, count: 4), presets: [200, 500, 750], now: now, calendar: utc) == nil)
+    #expect(PresetSuggestion.suggest(events: glasses(505, count: 9), presets: [200, 500, 750], now: now, calendar: utc) == nil)
+}
+
+@Test func remembersADismissedSuggestion() {
+    let events = glasses(330, count: 6)
+    #expect(PresetSuggestion.suggest(events: events, presets: [200, 500, 750], now: now,
+                                     dismissed: [330], calendar: utc) == nil)
+}

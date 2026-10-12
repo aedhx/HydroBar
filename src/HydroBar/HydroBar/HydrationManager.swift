@@ -431,15 +431,73 @@ class HydrationManager: ObservableObject {
     /// antérieure (cf. AUDIT § P0-2) diviserait par zéro partout où l'on
     /// calcule une progression.
     var targetMl: Double {
-        get { min(max(storedTargetMl, HydrationLimits.goal.lowerBound), HydrationLimits.goal.upperBound) }
+        get { clampedGoal(weekdayGoals.goal(on: Date(), calendar: .current, default: defaultTargetMl)) }
+        // Les écritures (réglages, intents, deep links) visent l'objectif par
+        // défaut ; une surcharge du jour reste prioritaire.
+        set { defaultTargetMl = newValue }
+    }
+
+    /// Objectif par défaut, celui des jours sans surcharge.
+    var defaultTargetMl: Double {
+        get { clampedGoal(storedTargetMl) }
         set {
             objectWillChange.send()
             storedTargetMl = newValue
-            // Le jour se juge contre l'objectif qu'il avait : on le note.
-            log.setGoal(targetMl, on: Date(), calendar: .current)
-            persistLog()
-            syncToAppGroup()
+            goalDidChange()
         }
+    }
+
+    // MARK: - Objectif par jour de la semaine
+
+    @AppStorage("weekdayGoals") private var weekdayGoalsRaw: String = ""
+
+    var weekdayGoals: WeekdayGoals {
+        get { WeekdayGoals.decode(weekdayGoalsRaw) }
+        set {
+            objectWillChange.send()
+            weekdayGoalsRaw = newValue.encoded()
+            goalDidChange()
+        }
+    }
+
+    private func clampedGoal(_ goal: Double) -> Double {
+        min(max(goal, HydrationLimits.goal.lowerBound), HydrationLimits.goal.upperBound)
+    }
+
+    private func goalDidChange() {
+        // Le jour se juge contre l'objectif qu'il avait : on le note.
+        log.setGoal(targetMl, on: Date(), calendar: .current)
+        persistLog()
+        scheduleNotifications()
+        syncToAppGroup()
+    }
+
+    // MARK: - Preset suggéré
+
+    /// Quantités dont l'utilisateur a refusé la suggestion.
+    @AppStorage("dismissedPresetSuggestions") private var dismissedSuggestionsRaw: String = ""
+
+    private var dismissedSuggestions: Set<Double> {
+        Set(dismissedSuggestionsRaw.split(separator: ",").compactMap { Double($0) })
+    }
+
+    var presetSuggestion: (amountMl: Double, replacingIndex: Int)? {
+        PresetSuggestion.suggest(events: log.events, presets: presetsMl, now: Date(),
+                                 dismissed: dismissedSuggestions)
+    }
+
+    func acceptPresetSuggestion() {
+        guard let suggestion = presetSuggestion else { return }
+        var presets = presetsMl
+        presets[suggestion.replacingIndex] = suggestion.amountMl
+        presetsMl = presets
+    }
+
+    func dismissPresetSuggestion() {
+        guard let suggestion = presetSuggestion else { return }
+        objectWillChange.send()
+        let values = dismissedSuggestions.union([suggestion.amountMl])
+        dismissedSuggestionsRaw = values.map { String(Int($0)) }.joined(separator: ",")
     }
 
     var selectedUnit: AppUnit {
