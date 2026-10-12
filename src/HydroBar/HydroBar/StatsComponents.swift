@@ -55,6 +55,7 @@ struct KPICardView: View {
 // MARK: - StatsHeaderView
 struct StatsHeaderView: View {
     @ObservedObject var manager: HydrationManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         LazyVGrid(columns: [
@@ -84,8 +85,8 @@ struct StatsHeaderView: View {
         .padding(.horizontal, 20)
         .padding(.top, 4)
         .padding(.bottom, 4)
-        .animation(.easeOut(duration: 0.3).delay(0.1), value: manager.dailyAverage)
-        .animation(.easeOut(duration: 0.3).delay(0.15), value: manager.weeklyTotal)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.3).delay(0.1), value: manager.dailyAverage)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.3).delay(0.15), value: manager.weeklyTotal)
     }
     
     /// Toujours dans l'unité choisie. L'ancienne version basculait en litres

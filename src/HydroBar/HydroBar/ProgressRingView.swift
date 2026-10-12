@@ -10,6 +10,7 @@ import SwiftUI
 struct ProgressRingView: View {
     @ObservedObject var manager: HydrationManager
     @State private var animatedProgress: Double = 0
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     private let diameter: CGFloat = 180
     private let lineWidth: CGFloat = 12
@@ -66,6 +67,15 @@ struct ProgressRingView: View {
 
             // Texte au centre
             VStack(spacing: 4) {
+                // Objectif atteint : une coche, pas seulement le passage au vert.
+                // Bleu et vert sont les deux couleurs les plus confondues en
+                // deutéranopie (roadmap F7).
+                if progress >= 1.0 {
+                    Image(systemName: "checkmark.circle.fill")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundColor(.green)
+                }
+
                 Text("\(percentage)%")
                     .font(.system(size: 32, weight: .bold, design: .rounded))
                     .foregroundColor(.primary)
@@ -81,14 +91,15 @@ struct ProgressRingView: View {
         }
         .frame(width: diameter, height: diameter)
         .accessibilityElement(children: .ignore)
-        .accessibilityLabel(accessibilityDescription)
+        .accessibilityLabel(manager.progressAccessibilitySummary)
+        // « Réduire les animations » : l'anneau se place sans balayage.
         .onAppear {
-            withAnimation(.easeOut(duration: 0.8)) {
+            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.8)) {
                 animatedProgress = displayProgress
             }
         }
         .onChange(of: displayProgress) { _, newValue in
-            withAnimation(.easeInOut(duration: 0.3)) {
+            withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.3)) {
                 animatedProgress = newValue
             }
         }
@@ -120,29 +131,6 @@ struct ProgressRingView: View {
             }
         }
         .font(.system(size: 10, weight: .medium, design: .rounded))
-    }
-
-    // MARK: - Accessibilité
-
-    /// L'anneau, la graduation et les deux lignes de texte forment une seule
-    /// information : VoiceOver l'annonce d'un bloc plutôt qu'en quatre fragments.
-    private var accessibilityDescription: String {
-        let base = String(
-            format: String(localized: "Hydration: %lld percent, %@ of %@",
-                           comment: "VoiceOver description of the progress ring"),
-            percentage,
-            manager.displayValue(for: manager.currentMl),
-            manager.displayValue(for: manager.targetMl)
-        )
-        guard manager.expectedProgress != nil else { return base }
-
-        if let deficit = manager.paceDeficitMl {
-            let behind = String(format: String(localized: "%@ behind",
-                                               comment: "Pace caption when the user is behind schedule"),
-                                manager.displayValue(for: deficit))
-            return "\(base). \(behind)"
-        }
-        return "\(base). " + String(localized: "On track", comment: "Pace caption when the user is on schedule")
     }
 }
 

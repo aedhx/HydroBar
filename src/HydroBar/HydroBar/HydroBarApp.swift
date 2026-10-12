@@ -257,6 +257,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         guard let button = statusItem?.button else { return }
         let manager = HydrationManager.shared
 
+        // VoiceOver et info-bulle : l'icône seule n'annonçait rien d'exploitable.
+        let summary = manager.progressAccessibilitySummary
+        button.setAccessibilityLabel("HydroBar")
+        button.setAccessibilityValue(summary)
+        button.toolTip = summary + "\n" + String(localized: "Option-click to log your first preset.",
+                                                 comment: "Menu bar icon tooltip hint")
+
         switch manager.menuBarIconStyle {
         case .percentage:
             if renderedIconStyle != .percentage {
@@ -371,6 +378,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         if event.type == .rightMouseUp {
             // Clic droit : afficher le menu contextuel
             showContextMenu(for: sender)
+        } else if event.modifierFlags.contains(.option) {
+            // ⌥-clic : premier preset, sans ouvrir le popover (F14).
+            let manager = HydrationManager.shared
+            if let first = manager.presetsMl.first {
+                manager.addWater(amount: first)
+                NSSound(named: "Pop")?.play()
+            }
         } else {
             // Clic gauche : ouvrir/fermer le popover
             togglePopover(for: sender)
