@@ -117,7 +117,7 @@ verrous cumulés :
    accidentel).
 2. Une alerte modale demande la validation de l'utilisateur — sauf si le réglage
    *« Autoriser les liens destructifs sans confirmation »* (désactivé par défaut,
-   à ajouter dans l'onglet Intégrations) est activé.
+   section Intégrations de l'onglet Raccourcis) est activé.
 
 `add` et `undo` ne sont pas destructifs : `add` est annulable par `undo`, et `undo`
 est borné par la pile existante. `reset` est lui aussi annulable par `undo` (la
