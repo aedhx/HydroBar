@@ -979,110 +979,6 @@
       },
       "shouldTranslate": false
     },
-    "ACTIVE HOURS": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AKTIVE STUNDEN"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HORAS ACTIVAS"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PLAGE ACTIVE"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ORE ATTIVE"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アクティブな時間帯"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ACTIEVE UREN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HORAS ATIVAS"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "活跃时段"
-          }
-        }
-      }
-    },
-    "AUTOMATIC": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMATISCH"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMÁTICO"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMATIQUE"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMATICO"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自動"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMATISCH"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUTOMÁTICO"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "自动"
-          }
-        }
-      }
-    },
     "About": {
       "extractionState": "manual",
       "localizations": {
@@ -2026,6 +1922,59 @@
         }
       }
     },
+    "Automatic": {
+      "comment": "Settings section title: automatic day type",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automático"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatique"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatico"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自動"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automatisch"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Automático"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "自动"
+          }
+        }
+      }
+    },
     "Average": {
       "extractionState": "manual",
       "localizations": {
@@ -2185,58 +2134,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "按时段的平均饮水量"
-          }
-        }
-      }
-    },
-    "BOTTLE": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FLASCHE"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "BOTELLA"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GOURDE"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "BORRACCIA"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ボトル"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FLES"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GARRAFA"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "水瓶"
           }
         }
       }
@@ -3564,169 +3461,6 @@
         }
       }
     },
-    "DAILY GOAL": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "TAGESZIEL"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DAILY GOAL"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBJETIVO DIARIO"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBJECTIF QUOTIDIEN"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBIETTIVO GIORNALIERO"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "毎日の目標"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DAGELIJKS DOEL"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBJETIVO DIÁRIO"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "每日目标"
-          }
-        }
-      }
-    },
-    "DATA": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DATEN"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DATOS"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DONNÉES"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DATI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "データ"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GEGEVENS"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DADOS"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "数据"
-          }
-        }
-      }
-    },
-    "DAYS OFF": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FREIE TAGE"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DÍAS LIBRES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "JOURS OFF"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GIORNI LIBERI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休日"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "VRIJE DAGEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DIAS DE FOLGA"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休息日"
-          }
-        }
-      }
-    },
     "DEBUG": {
       "extractionState": "manual",
       "localizations": {
@@ -3943,58 +3677,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "日期类型"
-          }
-        }
-      }
-    },
-    "Days": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Tage"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Días"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Jours"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Giorni"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "曜日"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dagen"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Dias"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "日期"
           }
         }
       }
@@ -4942,110 +4624,6 @@
         }
       }
     },
-    "GENERAL": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ALLGEMEIN"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GENERAL"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GÉNÉRAL"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GENERALE"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "一般"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ALGEMEEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "GERAL"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "通用"
-          }
-        }
-      }
-    },
-    "GOAL BY DAY OF THE WEEK": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ZIEL NACH WOCHENTAG"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBJETIVO POR DÍA DE LA SEMANA"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBJECTIF PAR JOUR DE LA SEMAINE"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBIETTIVO PER GIORNO DELLA SETTIMANA"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "曜日ごとの目標"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DOEL PER DAG VAN DE WEEK"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OBJETIVO POR DIA DA SEMANA"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "按星期设置目标"
-          }
-        }
-      }
-    },
     "General": {
       "localizations": {
         "de": {
@@ -5217,6 +4795,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "目标"
+          }
+        }
+      }
+    },
+    "Goal by day of the week": {
+      "comment": "Settings section title for per-weekday goals",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ziel nach Wochentag"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Objetivo por día de la semana"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Objectif par jour de la semaine"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Obiettivo per giorno della settimana"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "曜日ごとの目標"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Doel per dag van de week"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Objetivo por dia da semana"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "按星期设置目标"
           }
         }
       }
@@ -5811,58 +5442,6 @@
         }
       }
     },
-    "HydroBar Settings": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HydroBar-Einstellungen"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configuración de HydroBar"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Réglages de HydroBar"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Impostazioni di HydroBar"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HydroBar の設定"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HydroBar-instellingen"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "Configurações do HydroBar"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HydroBar 设置"
-          }
-        }
-      }
-    },
     "HydroBar can remind you to drink when you haven't logged anything for a while. macOS will ask for your permission.": {
       "localizations": {
         "de": {
@@ -6067,59 +5646,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "HydroBar 将在下次打开时使用新语言。"
-          }
-        }
-      }
-    },
-    "INTEGRATIONS": {
-      "comment": "Settings section title for integrations",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INTEGRATIONEN"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INTEGRACIONES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INTÉGRATIONS"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INTEGRAZIONI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "連携"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INTEGRATIES"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "INTEGRAÇÕES"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "集成"
           }
         }
       }
@@ -6342,37 +5868,31 @@
     "L": {
       "shouldTranslate": false
     },
-    "LANGUAGE": {
-      "extractionState": "manual",
+    "Language": {
+      "comment": "Settings row: app language",
       "localizations": {
         "de": {
           "stringUnit": {
             "state": "translated",
-            "value": "SPRACHE"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "LANGUAGE"
+            "value": "Sprache"
           }
         },
         "es": {
           "stringUnit": {
             "state": "translated",
-            "value": "IDIOMA"
+            "value": "Idioma"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "LANGUE"
+            "value": "Langue"
           }
         },
         "it": {
           "stringUnit": {
             "state": "translated",
-            "value": "LINGUA"
+            "value": "Lingua"
           }
         },
         "ja": {
@@ -6384,13 +5904,13 @@
         "nl": {
           "stringUnit": {
             "state": "translated",
-            "value": "TAAL"
+            "value": "Taal"
           }
         },
         "pt": {
           "stringUnit": {
             "state": "translated",
-            "value": "IDIOMA"
+            "value": "Idioma"
           }
         },
         "zh-Hans": {
@@ -7039,117 +6559,6 @@
         }
       }
     },
-    "MENU BAR ICON STYLE": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SYMBOLLEISTEN-SYMBOL-STIL"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MENU BAR ICON STYLE"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ESTILO DE ICONO DE BARRA DE MENÚ"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "STYLE ICÔNE MENU BAR"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "STILE ICONA BARRA MENÙ"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "メニューバーアイコンスタイル"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MENUBALK PICTORAM STIJL"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ESTILO DO ÍCONE DA BARRA DE MENU"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "菜单栏图标样式"
-          }
-        }
-      }
-    },
-    "MY DAYS OFF": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MEINE FREIEN TAGE"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MIS DÍAS LIBRES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MES JOURS OFF"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "I MIEI GIORNI LIBERI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休日の曜日"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MIJN VRIJE DAGEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MEUS DIAS DE FOLGA"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "我的休息日"
-          }
-        }
-      }
-    },
     "Makes today a work day or a day off in HydroBar. Days off use their own hours, reminders and goal.": {
       "localizations": {
         "de": {
@@ -7198,6 +6607,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 HydroBar 中将今天设为工作日或休息日。休息日有自己的时段、提醒和目标。"
+          }
+        }
+      }
+    },
+    "Menu bar icon": {
+      "comment": "Settings row: style of the menu bar icon",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menüleistensymbol"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icono de la barra de menús"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icône de la barre des menus"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Icona della barra dei menu"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "メニューバーのアイコン"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Menubalksymbool"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ícone da barra de menus"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "菜单栏图标"
           }
         }
       }
@@ -7309,6 +6771,59 @@
           "stringUnit": {
             "state": "translated",
             "value": "在 %@ 左右最多。"
+          }
+        }
+      }
+    },
+    "My days off": {
+      "comment": "Settings row: weekdays that are days off",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meine freien Tage"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mis días libres"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mes jours off"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "I miei giorni liberi"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "休日の曜日"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Mijn vrije dagen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Meus dias de folga"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "我的休息日"
           }
         }
       }
@@ -7896,58 +7411,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "确定"
-          }
-        }
-      }
-    },
-    "ON DAYS OFF": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AN FREIEN TAGEN"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "LOS DÍAS LIBRES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "LES JOURS OFF"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NEI GIORNI LIBERI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休日の設定"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OP VRIJE DAGEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "NOS DIAS DE FOLGA"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休息日设置"
           }
         }
       }
@@ -8955,65 +8418,6 @@
         }
       }
     },
-    "QUICK PRESETS": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SCHNELLVOREINSTELLUNGEN"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "QUICK PRESETS"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PRESETS RÁPIDOS"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "VERRES RAPIDES"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PRESET RAPIDI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "クイックプリセット"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "SNELLE VOORINSTELLINGEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PREDEFINIÇÕES RÁPIDAS"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "快速预设"
-          }
-        }
-      }
-    },
     "Quit": {
       "extractionState": "manual",
       "localizations": {
@@ -9173,65 +8577,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "最近的深层链接"
-          }
-        }
-      }
-    },
-    "REMINDERS": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ERINNERUNGEN"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "REMINDERS"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "RECORDATORIOS"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "RAPPELS"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "PROMEMORIA"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "リマインダー"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HERINNERINGEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "LEMBRETES"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "提醒"
           }
         }
       }
@@ -10714,6 +10059,59 @@
         }
       }
     },
+    "Shortcuts": {
+      "comment": "Settings tab: keyboard shortcuts and integrations",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Kurzbefehle"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atajos"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Raccourcis"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Scorciatoie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "ショートカット"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Sneltoetsen"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Atalhos"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "快捷键"
+          }
+        }
+      }
+    },
     "Show HydroBar reminders as a menu bar badge instead of notifications during this Focus.": {
       "localizations": {
         "de": {
@@ -11095,110 +10493,6 @@
           "stringUnit": {
             "state": "translated",
             "value": "系统"
-          }
-        }
-      }
-    },
-    "TIME OFF": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FREIE ZEIT"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "DÍAS LIBRES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "CONGÉS"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FERIE"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休暇"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "VRIJE TIJD"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "FOLGA"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "休假"
-          }
-        }
-      }
-    },
-    "TODAY": {
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HEUTE"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HOY"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AUJOURD'HUI"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "OGGI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今日"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "VANDAAG"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "HOJE"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "今天"
           }
         }
       }
@@ -11714,6 +11008,59 @@
         }
       }
     },
+    "Time off": {
+      "comment": "Settings section title: leave period",
+      "localizations": {
+        "de": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Freie Zeit"
+          }
+        },
+        "es": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Días libres"
+          }
+        },
+        "fr": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Congés"
+          }
+        },
+        "it": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Ferie"
+          }
+        },
+        "ja": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "休暇"
+          }
+        },
+        "nl": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Vrije tijd"
+          }
+        },
+        "pt": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Folga"
+          }
+        },
+        "zh-Hans": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "休假"
+          }
+        }
+      }
+    },
     "Time to hydrate!": {
       "extractionState": "manual",
       "localizations": {
@@ -12146,118 +11493,6 @@
     },
     "UK fl oz": {
       "shouldTranslate": false
-    },
-    "UNITS": {
-      "extractionState": "manual",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "EINHEITEN"
-          }
-        },
-        "en": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UNITS"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UNIDADES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UNITÉS"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UNITÀ"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "単位"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "EENHEDEN"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UNIDADES"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "单位"
-          }
-        }
-      }
-    },
-    "UPDATES": {
-      "comment": "Settings section title for updates",
-      "localizations": {
-        "de": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UPDATES"
-          }
-        },
-        "es": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ACTUALIZACIONES"
-          }
-        },
-        "fr": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "MISES À JOUR"
-          }
-        },
-        "it": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "AGGIORNAMENTI"
-          }
-        },
-        "ja": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "アップデート"
-          }
-        },
-        "nl": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "UPDATES"
-          }
-        },
-        "pt": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "ATUALIZAÇÕES"
-          }
-        },
-        "zh-Hans": {
-          "stringUnit": {
-            "state": "translated",
-            "value": "更新"
-          }
-        }
-      }
     },
     "US fl oz": {
       "shouldTranslate": false

@@ -5,8 +5,13 @@ La landing page de HydroBar : une seule page statique, sans build ni dépendance
 ```
 website/
 ├── index.html        la page (HTML, CSS et JS dans le même fichier)
-└── assets/           icônes, polices, fond d'écran, image Open Graph (1200 × 630)
+└── assets/           icônes, polices, fond d'écran (net et flouté), image Open Graph (1200 × 630)
 ```
+
+`wallpaper-blur.jpg` est `wallpaper.jpg` flouté et saturé une fois pour toutes : le verre
+des fenêtres l'affiche au lieu de recalculer un flou à chaque image du défilement. Si le
+fond d'écran change, il faut le refaire (même cadrage, `blur(24px) saturate(1.7)` sur une
+image de 1280 × 800).
 
 ## Héberger sur hydrobar.adx.cool
 
@@ -74,11 +79,12 @@ Pour les mises à jour suivantes, seule l'étape 1 est à refaire.
 ## À mettre à jour
 
 - **Lien Mac App Store** : en bas du fichier, `const APP_STORE_URL = ''`. Tant qu'il
-  est vide, le bouton affiche « Mac App Store · soon » et le DMG est le téléchargement
-  principal. Une fois l'app publiée, colle le lien de la fiche et, idéalement, remplace
-  le bouton par le badge officiel « Download on the Mac App Store »
+  est vide, le badge affiche « Coming soon to the Mac App Store » sans être un lien, et
+  le DMG est le téléchargement principal. Une fois l'app publiée, colle le lien de la
+  fiche : le badge devient « Download on the Mac App Store » et les boutons principaux
+  y mènent. Idéalement, remplace alors le badge par l'illustration officielle d'Apple
   (developer.apple.com › App Store › Marketing Resources).
-- **Version** : « Version 2.0 » dans la section Download.
+- **Version** : « Version 2.0.1 » dans la section Download, et dans le menu de l'icône (section Everywhere).
 
 ## Choix de design
 

@@ -11,6 +11,7 @@ Usage : python3 fastlane/check_metadata.py
 from __future__ import annotations
 
 import pathlib
+import re
 import sys
 
 ROOT = pathlib.Path(__file__).parent / "metadata"
@@ -50,9 +51,16 @@ def check() -> list[str]:
             errors.append(f"{locale}/keywords : mot-clé vide (virgule en trop)")
         if len(set(words)) != len(words):
             errors.append(f"{locale}/keywords : mot-clé en double")
-        # Le nom est déjà indexé : le répéter dans les mots-clés gâche de la place.
-        if "hydrobar" in words:
-            errors.append(f"{locale}/keywords : « hydrobar » est déjà dans le nom")
+        # Le nom et le sous-titre sont déjà indexés : y répéter un mot dans les
+        # mots-clés gâche de la place. Une expression de plusieurs mots aussi :
+        # l'App Store combine lui-même les mots séparés par des virgules.
+        indexed = f"{read(locale, 'name') or ''} {read(locale, 'subtitle') or ''}".lower()
+        indexed_words = set(re.findall(r"\w+", indexed))
+        for word in words:
+            if " " in word:
+                errors.append(f"{locale}/keywords : « {word} » en plusieurs mots, à séparer par des virgules")
+            elif word in indexed_words or (locale in ("ja", "zh-Hans") and len(word) > 1 and word in indexed):
+                errors.append(f"{locale}/keywords : « {word} » est déjà dans le nom ou le sous-titre")
 
         description = read(locale, "description") or ""
         if "<" in description:

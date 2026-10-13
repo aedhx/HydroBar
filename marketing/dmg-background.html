@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>HydroBar · DMG background</title>
+<!--
+  Fond de la fenêtre du DMG : 660 × 400 points, la taille de la fenêtre Finder
+  réglée dans package-dmg.sh. Rendu en 1x et 2x puis assemblé en TIFF (voir
+  marketing/README.md).
+
+  Deux contraintes viennent du Finder, pas du goût :
+  - il écrit le nom des icônes en noir (apparence claire) ou en blanc
+    (apparence sombre) sans regarder le fond. Le fond reste donc dans des tons
+    moyens (luminance relative 0,16 à 0,21) : les deux se lisent ;
+  - la barre de titre mange 28 points de la hauteur : rien d'utile sous 372.
+  Les icônes sont posées à (180, 170) et (480, 170).
+-->
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; src: url(../website/assets/fonts/bricolage-latin.woff2) format("woff2"); font-weight: 200 800; }
+  * { box-sizing: border-box; margin: 0; }
+  html, body { width: 660px; height: 400px; overflow: hidden; }
+  body {
+    position: relative;
+    /* Le fond d'écran du site, resserré sur ses tons moyens. */
+    background:
+      radial-gradient(520px 300px at 8% 0%, rgba(120, 190, 160, .34), transparent 70%),
+      radial-gradient(560px 360px at 100% 100%, rgba(34, 64, 190, .42), transparent 72%),
+      linear-gradient(118deg, #3f86a6 0%, #3478c2 52%, #2f6fd0 100%);
+  }
+  svg { position: absolute; inset: 0; }
+  p {
+    position: absolute; left: 0; right: 0; top: 304px; text-align: center;
+    font: 700 19px/1 "Bricolage Grotesque", system-ui, sans-serif; letter-spacing: -.01em; color: #fff;
+  }
+</style>
+</head>
+<body>
+<svg width="660" height="400" viewBox="0 0 660 400" fill="none" aria-hidden="true">
+  <!-- L'anneau de HydroBar, en filigrane : la piste, puis l'arc d'eau. -->
+  <circle cx="330" cy="170" r="238" stroke="rgba(255,255,255,.07)" stroke-width="34"/>
+  <path d="M330 -68 A238 238 0 0 1 536 289" stroke="rgba(255,255,255,.09)" stroke-width="34" stroke-linecap="round"/>
+  <!-- Le geste : de l'app vers Applications. -->
+  <path d="M268 170 H384" stroke="rgba(255,255,255,.9)" stroke-width="5" stroke-linecap="round"/>
+  <path d="M368 152 L388 170 L368 188" stroke="rgba(255,255,255,.9)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
+<p>Drag HydroBar into Applications</p>
+</body>
+</html>

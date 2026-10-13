@@ -154,36 +154,54 @@
   .menu .key { color: var(--ink-2); }
   .menu .item.hl .key { color: #fff; }
 
-  /* ---------- Fenêtre de réglages ---------- */
+  /* ---------- Fenêtre de réglages ----------
+     Quatre onglets en barre d'outils, des cartes de verre, un aperçu en tête de
+     page : comme SettingsWindowController, GlassCard et DayTimeline dans l'app. */
   .window {
-    position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); top: 64px; width: 620px; border-radius: 14px; overflow: hidden;
-    background: rgba(36, 38, 46, .92); backdrop-filter: blur(40px);
+    position: absolute; z-index: 4; left: 50%; transform: translateX(-50%); top: 44px; width: 540px; height: 606px; border-radius: 14px; overflow: hidden;
+    background: rgba(40, 42, 50, .7); backdrop-filter: blur(40px) saturate(1.8);
     border: 1px solid rgba(255, 255, 255, .12); box-shadow: 0 30px 90px rgba(0, 0, 0, .5);
   }
-  .titlebar { height: 86px; background: rgba(255, 255, 255, .04); border-bottom: 1px solid var(--hair); position: relative; }
-  .lights { position: absolute; left: 14px; top: 13px; display: flex; gap: 8px; }
+  .titlebar { height: 80px; position: relative; }
+  .titlebar .wtitle { position: absolute; left: 0; right: 0; top: 7px; text-align: center; font-size: 13px; font-weight: 700; color: var(--ink-2); }
+  .lights { position: absolute; left: 14px; top: 10px; display: flex; gap: 8px; }
   .lights i { width: 12px; height: 12px; border-radius: 50%; display: block; }
   .tabs { position: absolute; left: 0; right: 0; bottom: 6px; display: flex; justify-content: center; gap: 2px; }
-  .tab { width: 82px; padding: 5px 0 4px; border-radius: 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 10.5px; color: var(--ink-2); text-align: center; line-height: 1.1; }
-  .tab svg { width: 20px; height: 20px; }
-  .tab.sel { background: rgba(255, 255, 255, .1); color: var(--water); }
-  .wbody { padding: 22px 26px; display: flex; flex-direction: column; gap: 18px; }
-  .st { font-size: 11px; font-weight: 600; color: var(--ink-2); letter-spacing: .02em; margin-bottom: 6px; }
-  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; }
-  .help { font-size: 11px; color: var(--ink-2); line-height: 1.4; margin-top: 4px; }
+  .tab { min-width: 62px; padding: 5px 7px 4px; border-radius: 7px; display: flex; flex-direction: column; align-items: center; gap: 3px; font-size: 11px; color: var(--ink-2); text-align: center; line-height: 1.1; white-space: nowrap; }
+  .tab svg { width: 22px; height: 22px; }
+  .tab.sel { background: rgba(255, 255, 255, .1); color: var(--ink); }
+  .wbody { padding: 16px 20px 0; display: flex; flex-direction: column; gap: 12px; }
+  /* La carte de verre : voile clair, reflet en haut, filet autour, ombre douce. */
+  .group { border-radius: 12px; background: rgba(255, 255, 255, .07); padding: 0 12px;
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 4px 10px rgba(0, 0, 0, .22); }
+  .row { display: flex; align-items: center; gap: 10px; font-size: 13px; font-weight: 500; padding: 8px 0; min-height: 36px; }
+  .row + .row { border-top: 1px solid rgba(255, 255, 255, .12); }
+  .row .lead { flex: 1; min-width: 0; }
+  .help { font-size: 11px; font-weight: 400; color: var(--ink-2); line-height: 1.35; margin-top: 2px; text-wrap: pretty; }
+  .link { font-size: 11px; color: #4da3ff; padding: 9px 0; border-top: 1px solid rgba(255, 255, 255, .12); }
   .switch { width: 32px; height: 19px; border-radius: 10px; background: var(--water); position: relative; flex: none; }
   .switch::after { content: ""; position: absolute; right: 2px; top: 2px; width: 15px; height: 15px; border-radius: 50%; background: #fff; }
-  .seg { display: inline-flex; padding: 2px; border-radius: 7px; background: rgba(255, 255, 255, .08); font-size: 12px; }
-  .seg span { padding: 3px 18px; border-radius: 5px; }
+  .switch.is-off { background: rgba(255, 255, 255, .2); }
+  .switch.is-off::after { right: auto; left: 2px; }
+  .seg { display: inline-flex; padding: 2px; border-radius: 7px; background: rgba(255, 255, 255, .08); font-size: 12px; flex: none; }
+  .seg span { padding: 3px 12px; border-radius: 5px; white-space: nowrap; }
   .seg .on { background: rgba(255, 255, 255, .2); }
-  .chips { display: flex; gap: 6px; }
-  .chips span { width: 46px; height: 26px; border-radius: 6px; display: grid; place-items: center; font-size: 12px; font-weight: 500; background: rgba(255, 255, 255, .06); }
-  .chips .off { background: rgba(10, 132, 255, .3); }
-  .popup { padding: 3px 22px 3px 9px; border-radius: 6px; background: rgba(255, 255, 255, .1); font-size: 12px; position: relative; }
+  .chips { display: flex; gap: 5px; flex: none; }
+  .chips span { min-width: 38px; height: 22px; padding: 0 5px; border-radius: 5px; display: grid; place-items: center; font-size: 12px; font-weight: 500; background: rgba(255, 255, 255, .1); }
+  .chips .off { background: rgba(255, 255, 255, .3); }
+  .popup { padding: 3px 22px 3px 9px; border-radius: 6px; background: rgba(255, 255, 255, .1); font-size: 12px; position: relative; white-space: nowrap; }
   .popup::after { content: "⌃⌄"; position: absolute; right: 6px; top: 1px; font-size: 8px; line-height: 9px; width: 6px; white-space: pre-wrap; color: var(--ink-2); }
-  .field { padding: 3px 8px; width: 70px; border-radius: 5px; background: rgba(0, 0, 0, .25); border: 1px solid rgba(255, 255, 255, .12); font-size: 12px; }
-  .check { width: 14px; height: 14px; border-radius: 4px; background: var(--water); display: grid; place-items: center; }
-  .label { width: 150px; flex: none; }
+  .popup.menu-down::after { content: "⌄"; top: 2px; font-size: 11px; line-height: 14px; }
+  /* La frise de 24 heures : plage active, un trait par rappel, le dernier appel. */
+  .timeline { padding: 12px 12px 8px; display: grid; grid-template-columns: auto 1fr; gap: 9px 12px; align-items: center; font-size: 11px; }
+  .timeline .tl-name { color: var(--ink-2); text-align: right; white-space: nowrap; }
+  .timeline .tl-name.now { color: var(--ink); font-weight: 700; }
+  .timeline .tl-bar { position: relative; height: 16px; border-radius: 8px; background: rgba(255, 255, 255, .1); }
+  .timeline .tl-band { position: absolute; top: 0; bottom: 0; border-radius: 8px; background: linear-gradient(90deg, var(--water), var(--water-light)); }
+  .timeline .tl-tick { position: absolute; top: 4px; width: 1.5px; height: 8px; border-radius: 1px; background: rgba(255, 255, 255, .9); }
+  .timeline .tl-last { position: absolute; top: 3px; width: 10px; height: 10px; margin-left: -5px; border-radius: 50%; background: #ff9f0a; box-shadow: 0 0 0 2px #fff; }
+  .timeline .tl-hours { position: relative; height: 13px; color: var(--ink-2); font-size: 10px; }
+  .timeline .tl-hours span { position: absolute; top: 0; white-space: nowrap; }
 
   /* Widget */
   .widget {
@@ -357,26 +375,43 @@ const screens = {
 
   days() {
     menubar(false);
-    const S = D.settings;
+    const S = D.settings, T = S.timeline;
     const tabs = S.tabs.map((tb) => `<div class="tab ${tb.selected ? 'sel' : ''}">${ICON[tb.icon]}<span>${esc(tb.label)}</span></div>`).join('');
     const chips = S.weekdays.map((d) => `<span class="${d.off ? 'off' : ''}">${esc(d.label)}</span>`).join('');
+    const dim = (text) => `<span style="color:var(--ink-2); font-weight:400">${esc(text)}</span>`;
+    const pct = (h) => `${(h / 24 * 100).toFixed(2)}%`;
+    // Une journée sur la frise : la plage active, un trait par rappel, le dernier appel une heure avant la fin.
+    const bar = (day) => {
+      const ticks = [];
+      for (let m = day.start * 60 + day.every; m < (day.end - 1) * 60 - 5; m += day.every) ticks.push(`<i class="tl-tick" style="left:${pct(m / 60)}"></i>`);
+      return `<div class="tl-bar"><div class="tl-band" style="left:${pct(day.start)}; width:${pct(day.end - day.start)}"></div>${ticks.join('')}<i class="tl-last" style="left:${pct(day.end - 1)}"></i></div>`;
+    };
+    const toggleRow = (label, help, on = true) => `<div class="row"><div class="lead">${esc(label)}${help ? `<div class="help">${esc(help)}</div>` : ''}</div><span class="switch ${on ? '' : 'is-off'}"></span></div>`;
     desk.appendChild(h(`<div class="window">
-      <div class="titlebar"><div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div><div class="tabs">${tabs}</div></div>
+      <div class="titlebar"><div class="lights"><i style="background:#ff5f57"></i><i style="background:#febc2e"></i><i style="background:#28c840"></i></div><div class="wtitle">${esc(S.title)}</div><div class="tabs">${tabs}</div></div>
       <div class="wbody">
-        <div><div class="st">${esc(S.daysOff)}</div>
-          <div class="row"><span class="switch"></span><span>${esc(S.enable)}</span></div>
-          <div class="help">${esc(S.enableHelp)}</div></div>
-        <div><div class="st">${esc(S.today)}</div>
-          <div class="seg"><span class="on">${esc(S.work)}</span><span>${esc(S.off)}</span></div>
-          <div class="help">${esc(S.todayHelp)}</div></div>
-        <div><div class="st">${esc(S.myDays)}</div><div class="chips">${chips}</div></div>
-        <div style="display:flex; flex-direction:column; gap:10px"><div class="st" style="margin:0">${esc(S.onDaysOff)}</div>
-          <div class="row"><span class="label">${esc(S.activeHours)}</span><span class="popup">${esc(S.from)}</span><span style="color:var(--ink-2)">${esc(S.to)}</span><span class="popup">${esc(S.until)}</span></div>
-          <div class="row"><span class="switch"></span><span>${esc(S.reminders)}</span></div>
-          <div class="row"><span class="label">${esc(S.remindMe)}</span><span class="popup">${esc(S.interval)}</span></div>
-          <div class="row"><span class="check">${ICON.check}</span><span style="width:126px">${esc(S.ownGoal)}</span><span class="field">${esc(S.goal)}</span><span style="color:var(--ink-2); font-size:11px">${esc(S.unit)}</span></div></div>
-        <div><div class="st">${esc(S.timeOff)}</div>
-          <div class="row"><span style="color:var(--ink-2)">${ICON.sun.replace('<svg', '<svg width="15" height="15"')}</span><span style="flex:1">${esc(S.leave)}</span><span class="btn">${esc(S.end)}</span></div></div>
+        <div class="group timeline">
+          <span class="tl-name now">${esc(T.work.label)}</span>${bar(T.work)}
+          <span class="tl-name">${esc(T.off.label)}</span>${bar(T.off)}
+          <span></span><div class="tl-hours">${T.hours.map((x) => `<span style="left:${pct(x.at)}">${esc(x.label)}</span>`).join('')}</div>
+        </div>
+        <div class="group">
+          <div class="row"><div class="lead">${esc(S.enableReminders)}</div><span class="popup">${esc(S.cadence)}</span><span class="switch"></span></div>
+          <div class="row"><div class="lead">${esc(S.activeHours)}</div><span class="popup">${esc(S.from)}</span>${dim(S.to)}<span class="popup">${esc(S.until)}</span></div>
+        </div>
+        <div class="group">
+          ${toggleRow(S.adapt, S.adaptHelp)}${toggleRow(S.lastCall, S.lastCallHelp)}${toggleRow(S.calls)}${toggleRow(S.weekly)}
+        </div>
+        <div class="group">
+          <div class="row"><div class="lead">${esc(S.pause)}</div><span class="popup menu-down">${esc(S.pauseMenu)}</span></div>
+          ${toggleRow(S.dnd, '', false)}
+          <div class="link">${esc(S.focusLink)}</div>
+        </div>
+        <div class="group">
+          ${toggleRow(S.enable)}
+          <div class="row"><div class="lead">${esc(S.today)}</div><div class="seg"><span class="on">${esc(S.work)}</span><span>${esc(S.off)}</span></div></div>
+          <div class="row"><div class="lead">${esc(S.myDays)}</div><div class="chips">${chips}</div></div>
+        </div>
       </div></div>`));
   },
 

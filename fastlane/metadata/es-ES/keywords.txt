@@ -1,1 +1,1 @@
-agua,beber,hidratación,recordatorio,barra de menús,salud,hábito,botella,objetivo,vaso,h2o
+beber,hidratación,recordatorio,barra,menús,hábito,botella,objetivo,vaso,h2o,diario,registro,widget

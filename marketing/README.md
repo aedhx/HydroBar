@@ -41,3 +41,22 @@ Avant de les envoyer, compare-les à l'app sur un Mac (règle 2.3 de l'App Store
 fiche doit montrer l'app telle qu'elle est). Si un écran a changé, corrige le gabarit :
 toutes les langues suivent. Sur un Mac, les polices système (SF Pro, Hiragino,
 PingFang) remplacent automatiquement Inter et les polices de secours.
+
+## Fond du DMG
+
+`dmg-background.html` est la source du fond de la fenêtre du DMG (660 × 400 points).
+Après une modification, refais `Resources/DMG-background.tiff`, qui contient le rendu
+en 1x et en 2x :
+
+```sh
+chrome=~/Library/Caches/ms-playwright/chromium_headless_shell-*/chrome-headless-shell-*/chrome-headless-shell
+for scale in 1 2; do
+  $chrome --headless --hide-scrollbars --window-size=660,400 --force-device-scale-factor=$scale \
+    --screenshot=/tmp/dmg-bg@${scale}x.png "file://$PWD/marketing/dmg-background.html"
+done
+tiffutil -cathidpicheck /tmp/dmg-bg@1x.png /tmp/dmg-bg@2x.png -out Resources/DMG-background.tiff
+```
+
+Les positions des icônes sont dans `Resources/dmg-settings.py` : le fond et elles vont
+ensemble. Le workflow Release joint une capture de la fenêtre telle que le Finder
+l'ouvre (`dmg-window.png`).

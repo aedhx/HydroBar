@@ -1,1 +1,1 @@
-eau,boire,hydratation,rappel,barre des menus,santé,habitude,gourde,objectif,verre,suivi,h2o
+eau,rappel,barre,menus,gourde,verre,objectif,habitude,quotidien,soif,journal,compteur,widget,h2o
