@@ -3,8 +3,9 @@
 La landing page de HydroBar : une seule page statique, sans build ni dépendance.
 
 ```
-website/
+src/website/
 ├── index.html        la page (HTML, CSS et JS dans le même fichier)
+├── privacy/          la politique de confidentialité (même texte que PRIVACY.md)
 └── assets/           icônes, polices, fond d'écran (net et flouté), image Open Graph (1200 × 630)
 ```
 
@@ -16,11 +17,11 @@ image de 1280 × 800).
 ## Héberger sur hydrobar.adx.cool
 
 Le sous-domaine pointe sur le VPS (enregistrement A vers 185.97.144.4), servi par nginx.
-Le script `deploy-website.sh`, à la racine du dépôt, fait tout depuis ton Mac :
+Le script `src/scripts/deploy-website.sh` fait tout depuis ton Mac :
 
 ```sh
-./deploy-website.sh --setup   # une seule fois : dossier, site nginx, certificat HTTPS
-./deploy-website.sh           # ensuite, à chaque mise à jour de la page
+./src/scripts/deploy-website.sh --setup   # une seule fois : dossier, site nginx, certificat HTTPS
+./src/scripts/deploy-website.sh           # ensuite, à chaque mise à jour de la page
 ```
 
 Le site est en ligne depuis le 13 octobre 2026 : `--setup` n'est plus à refaire, sauf
@@ -33,7 +34,7 @@ Ce que fait le script, si tu préfères le faire à la main :
 **1. Copier la page.** Depuis la racine du dépôt :
 
 ```sh
-rsync -av --delete --exclude README.md website/ <utilisateur>@185.97.144.4:/var/www/hydrobar.adx.cool/
+rsync -av --delete --exclude README.md src/website/ <utilisateur>@185.97.144.4:/var/www/hydrobar.adx.cool/
 ```
 
 **2. Déclarer le site dans nginx**, dans `/etc/nginx/sites-available/hydrobar.adx.cool` :
@@ -89,4 +90,4 @@ Pour les mises à jour suivantes, seule l'étape 1 est à refaire.
 ## Choix de design
 
 Le système de design (couleurs et verre de l'app, typographie, règles) est décrit dans
-[`DESIGN.md`](../DESIGN.md), à la racine du dépôt.
+[`src/design/DESIGN.md`](../design/DESIGN.md).

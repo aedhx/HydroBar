@@ -42,7 +42,7 @@ The app sits in the macOS menu bar next to the clock, opened by a click, a globa
 
 ## Evidence on Hand
 
-- The app's own interface, reproduced from its SwiftUI views and localized strings (`marketing/`, `website/`).
+- The app's own interface, reproduced from its SwiftUI views and localized strings (`src/marketing/`, `src/website/`).
 - App icon and mascot, `Resources/`.
 - Open source under MIT, code at github.com/aedhx/HydroBar.
 - No testimonials, user counts, ratings, press or awards exist. None may be invented; the page proves by demonstration.

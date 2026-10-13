@@ -6,14 +6,16 @@
 # force_try qui arrive) sans exiger de tout réécrire d'un coup ; les seuils
 # d'avertissement indiquent la cible.
 
+# Les chemins partent du dossier de ce fichier (src/HydroBar). La CI le passe
+# avec `swiftlint lint --config src/HydroBar/.swiftlint.yml`.
 included:
-  - src/HydroBar/HydroBar
-  - src/HydroBar/HydroBarWidget
-  - src/HydroBar/HydroBarTests
+  - HydroBar
+  - HydroBarWidget
+  - HydroBarTests
 
 excluded:
-  - src/HydroBar/HydroBarUITests   # gabarits Xcode, ignorés aussi par la CI
-  - src/HydroBar/build
+  - HydroBarUITests   # gabarits Xcode, ignorés aussi par la CI
+  - build
 
 disabled_rules:
   - todo                # les TODO sont suivis dans docs/, pas bloqués ici

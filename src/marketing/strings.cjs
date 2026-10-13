@@ -4,7 +4,7 @@ const fs = require('fs');
 const path = require('path');
 
 const catalog = JSON.parse(fs.readFileSync(
-  path.join(__dirname, '../src/HydroBar/HydroBar/Localizable.xcstrings'), 'utf8')).strings;
+  path.join(__dirname, '../HydroBar/HydroBar/Localizable.xcstrings'), 'utf8')).strings;
 
 // Langue de la fiche App Store → langue de l'app, locale Intl, unité.
 const LOCALES = {

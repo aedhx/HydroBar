@@ -1,14 +1,14 @@
 name: Release
 
-# Construit le DMG et le ZIP de la version en cours avec build-dmg.sh.
+# Construit le DMG et le ZIP de la version en cours avec src/scripts/build-dmg.sh.
 #
 #   - sur une pull request : le DMG est seulement conservé en artefact, pour
 #     vérifier que le packaging tient avant de poser un tag ;
 #   - sur un tag vX.Y : il est en plus attaché à un BROUILLON de release GitHub,
-#     avec RELEASE_NOTES_vX.Y.md comme notes. Le brouillon reste invisible tant
+#     avec docs/releases/RELEASE_NOTES_vX.Y.md comme notes. Le brouillon reste invisible tant
 #     qu'il n'est pas publié à la main — ni /releases/latest ni le bouton
 #     « Vérifier les mises à jour » des versions installées ne le voient.
-#     Avant de le publier : `UPLOAD=1 ./notarize-release.sh vX.Y`, depuis un Mac
+#     Avant de le publier : `UPLOAD=1 ./src/scripts/notarize-release.sh vX.Y`, depuis un Mac
 #     connecté au compte développeur, remplace ses fichiers par la version
 #     signée et notarisée.
 #
@@ -50,11 +50,11 @@ jobs:
           python3 -m pip install --user dmgbuild \
             || python3 -m pip install --user --break-system-packages dmgbuild
 
-      # Sans SIGNING_IDENTITY, build-dmg.sh signe en ad-hoc. Ce DMG-là sert de
-      # matière première : ./notarize-release.sh reprend son app, la signe en
+      # Sans SIGNING_IDENTITY, src/scripts/build-dmg.sh signe en ad-hoc. Ce DMG-là sert de
+      # matière première : ./src/scripts/notarize-release.sh reprend son app, la signe en
       # Developer ID, la fait notariser, puis remplace les fichiers de la release.
       - name: Build and package
-        run: ./build-dmg.sh
+        run: ./src/scripts/build-dmg.sh
 
       # Ce que le script ne peut pas savoir : que le tag et la version du projet
       # disent la même chose, et que le DMG contient bien ce qu'il annonce.
@@ -70,7 +70,7 @@ jobs:
             echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à MARKETING_VERSION ($version)."
             exit 1
           fi
-          test -f "RELEASE_NOTES_v$version.md"
+          test -f "docs/releases/RELEASE_NOTES_v$version.md"
 
           mount=$(mktemp -d)
           hdiutil attach -nobrowse -readonly -mountpoint "$mount" "$dmg" >/dev/null
@@ -128,5 +128,5 @@ jobs:
             --draft \
             --verify-tag \
             --title "HydroBar $VERSION" \
-            --notes-file "RELEASE_NOTES_v$VERSION.md" \
+            --notes-file "docs/releases/RELEASE_NOTES_v$VERSION.md" \
             "HydroBar-v$VERSION.dmg" "HydroBar-v$VERSION.zip"

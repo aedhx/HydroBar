@@ -3,11 +3,11 @@
 Ce dossier génère :
 
 - les **captures App Store**, 6 écrans × 9 langues, en 2880 × 1800, dans
-  `fastlane/screenshots/<langue>/` ;
-- les **images du README** et l'**aperçu social GitHub** dans `Resources/v2/`.
+  `src/fastlane/screenshots/<langue>/` ;
+- les **images du README** et l'**aperçu social GitHub** dans `Resources/v2/`, à la racine du dépôt.
 
 ```bash
-cd marketing
+cd src/marketing
 npm install
 npx playwright install chromium   # une seule fois
 npm run screenshots               # captures App Store (ou : node render.cjs --only fr-FR)
@@ -45,7 +45,7 @@ PingFang) remplacent automatiquement Inter et les polices de secours.
 ## Fond du DMG
 
 `dmg-background.html` est la source du fond de la fenêtre du DMG (660 × 400 points).
-Après une modification, refais `Resources/DMG-background.tiff`, qui contient le rendu
+Après une modification, refais `src/scripts/dmg/DMG-background.tiff`, qui contient le rendu
 en 1x et en 2x :
 
 ```sh
@@ -54,9 +54,9 @@ for scale in 1 2; do
   $chrome --headless --hide-scrollbars --window-size=660,400 --force-device-scale-factor=$scale \
     --screenshot=/tmp/dmg-bg@${scale}x.png "file://$PWD/marketing/dmg-background.html"
 done
-tiffutil -cathidpicheck /tmp/dmg-bg@1x.png /tmp/dmg-bg@2x.png -out Resources/DMG-background.tiff
+tiffutil -cathidpicheck /tmp/dmg-bg@1x.png /tmp/dmg-bg@2x.png -out src/scripts/dmg/DMG-background.tiff
 ```
 
-Les positions des icônes sont dans `Resources/dmg-settings.py` : le fond et elles vont
+Les positions des icônes sont dans `src/scripts/dmg/dmg-settings.py` : le fond et elles vont
 ensemble. Le workflow Release joint une capture de la fenêtre telle que le Finder
 l'ouvre (`dmg-window.png`).

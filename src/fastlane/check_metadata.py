@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
-"""Vérifie la fiche App Store (fastlane/metadata) avant l'envoi.
+"""Vérifie la fiche App Store (src/fastlane/metadata) avant l'envoi.
 
 App Store Connect refuse une fiche dont un champ dépasse sa limite, mais ne
 le dit qu'au moment de l'envoi, champ par champ. Ce script le dit tout de
 suite, pour toutes les langues.
 
-Usage : python3 fastlane/check_metadata.py
+Usage : python3 src/fastlane/check_metadata.py
 """
 
 from __future__ import annotations

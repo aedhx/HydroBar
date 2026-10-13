@@ -31,7 +31,7 @@ HydroBar 2.0 is the biggest update since the first release, and the first built 
 - A new **monochrome menu bar icon**, livelier animations and a real **Settings window**.
 - **Your data is safer**: one entry per drink, an unlimited history, CSV export and JSON backup. Two bugs that could erase your history are fixed.
 
-Full details in the [release notes](RELEASE_NOTES_v2.0.md); the latest changes are in [2.0.1](RELEASE_NOTES_v2.0.1.md).
+Full details in the [release notes](docs/releases/RELEASE_NOTES_v2.0.md); the latest changes are in [2.0.1](docs/releases/RELEASE_NOTES_v2.0.1.md).
 
 ---
 
@@ -137,7 +137,7 @@ Destructive actions (`reset`, `set-goal`) need `confirm=1` **and** a confirmatio
 
 ### Raycast
 
-The [Raycast extension](raycast-hydrobar/README.md) logs a preset or any amount, undoes, and opens your statistics without leaving the keyboard. It installs from the `raycast-hydrobar` folder with `npm install && npm run dev`; its [README](raycast-hydrobar/README.md) has the details.
+The [Raycast extension](src/raycast-hydrobar/README.md) logs a preset or any amount, undoes, and opens your statistics without leaving the keyboard. It installs from the `raycast-hydrobar` folder with `npm install && npm run dev`; its [README](src/raycast-hydrobar/README.md) has the details.
 
 ---
 
@@ -191,25 +191,33 @@ You need Xcode 16 or later; the Control Center button and the Liquid Glass prese
 
 | Script | What it does |
 |---|---|
-| `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP (ad-hoc signed unless given a certificate) |
-| `./notarize-release.sh v2.0.1` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
-| `./package-dmg.sh` | Puts a signed app in the disk image, with its window layout |
-| `./deploy-website.sh` | Publishes `website/` to hydrobar.adx.cool |
-| `./build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |
-| `node marketing/render.cjs` | App Store screenshots in 9 languages, and the images of this README (`--readme`) |
-| `python3 fastlane/check_metadata.py` | Checks the App Store listing in every language |
+| `./src/scripts/build-dmg.sh` | Release build, packaged as a DMG and a ZIP (ad-hoc signed unless given a certificate) |
+| `./src/scripts/notarize-release.sh v2.0.1` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
+| `./src/scripts/package-dmg.sh` | Puts a signed app in the disk image, with its window layout |
+| `./src/scripts/deploy-website.sh` | Publishes `src/website/` to hydrobar.adx.cool |
+| `./src/scripts/build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |
+| `node src/marketing/render.cjs` | App Store screenshots in 9 languages, and the images of this README (`--readme`) |
+| `python3 src/fastlane/check_metadata.py` | Checks the App Store listing in every language |
 
 ### Repository
 
+The root holds what a visitor needs: this README, the license, the privacy policy, and the images shown here. Everything that gets built lives in `src/`.
+
 ```
-src/HydroBar/
-├── HydroBar/          the app: SwiftUI views, HydrationManager, intake log, reminders
-├── HydroBarWidget/    desktop widget and Control Center button
-└── HydroBarTests/     unit tests (Swift Testing)
-fastlane/              App Store listing in 9 languages, and its screenshots
-marketing/             screenshot and README image generator
-raycast-hydrobar/      Raycast extension
-docs/                  technical audit, roadmap, deep link spec, App Store guide
+README.md  LICENSE  PRIVACY.md
+Resources/             images of this README
+docs/                  release notes, technical audit, roadmap, deep link spec, App Store guide
+src/
+├── HydroBar/          the Xcode project
+│   ├── HydroBar/          the app: SwiftUI views, HydrationManager, intake log, reminders
+│   ├── HydroBarWidget/    desktop widget and Control Center button
+│   └── HydroBarTests/     unit tests (Swift Testing)
+├── raycast-hydrobar/  Raycast extension
+├── website/           landing page, hydrobar.adx.cool
+├── fastlane/          App Store listing in 9 languages, and its screenshots
+├── marketing/         screenshot and README image generator
+├── design/            design system of the web surfaces
+└── scripts/           build, package, notarize, deploy
 ```
 
 Main pieces of the app:

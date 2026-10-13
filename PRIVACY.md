@@ -54,4 +54,4 @@ Questions: open an issue at <https://github.com/aedhx/HydroBar/issues>.
 
 ---
 
-Also on the web: <https://hydrobar.adx.cool/privacy/>. Version française : [PRIVACY.fr.md](PRIVACY.fr.md).
+Also on the web: <https://hydrobar.adx.cool/privacy/>. Version française : [docs/PRIVACY.fr.md](docs/PRIVACY.fr.md).
