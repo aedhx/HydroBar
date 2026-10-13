@@ -1,0 +1,81 @@
+{
+  "$schema": "https://www.raycast.com/schemas/extension.json",
+  "name": "hydrobar",
+  "title": "HydroBar",
+  "description": "Log water in HydroBar, the menu bar hydration tracker, without leaving the keyboard. Requires HydroBar 2.0 or later.",
+  "version": "1.1.1",
+  "icon": "icon.png",
+  "author": "aedhx",
+  "platforms": [
+    "macOS"
+  ],
+  "categories": [
+    "Health",
+    "Productivity"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "@raycast/api": "^1.69.0"
+  },
+  "devDependencies": {
+    "@raycast/eslint-config": "^1.0.0",
+    "typescript": "^5.0.0"
+  },
+  "scripts": {
+    "build": "ray build -e dist",
+    "dev": "ray develop",
+    "lint": "ray lint"
+  },
+  "commands": [
+    {
+      "name": "add-preset-1",
+      "title": "Add Water – Preset 1",
+      "subtitle": "HydroBar",
+      "description": "Log your first HydroBar preset",
+      "mode": "no-view"
+    },
+    {
+      "name": "add-preset-2",
+      "title": "Add Water – Preset 2",
+      "subtitle": "HydroBar",
+      "description": "Log your second HydroBar preset",
+      "mode": "no-view"
+    },
+    {
+      "name": "add-preset-3",
+      "title": "Add Water – Preset 3",
+      "subtitle": "HydroBar",
+      "description": "Log your third HydroBar preset",
+      "mode": "no-view"
+    },
+    {
+      "name": "add-water",
+      "title": "Add Water (Custom)",
+      "subtitle": "HydroBar",
+      "description": "Log a custom amount of water in ml to HydroBar",
+      "mode": "no-view",
+      "arguments": [
+        {
+          "name": "ml",
+          "type": "text",
+          "placeholder": "e.g. 250",
+          "required": true
+        }
+      ]
+    },
+    {
+      "name": "undo",
+      "title": "Undo Last Water",
+      "subtitle": "HydroBar",
+      "description": "Remove the last entry logged in HydroBar",
+      "mode": "no-view"
+    },
+    {
+      "name": "open-stats",
+      "title": "Open HydroBar Statistics",
+      "subtitle": "HydroBar",
+      "description": "Open HydroBar on the statistics view",
+      "mode": "no-view"
+    }
+  ]
+}

@@ -28,14 +28,14 @@ jobs:
           xcodebuild -showsdks | grep macosx || true
 
       # SwiftLint : les erreurs bloquent, les avertissements sont résumés
-      # (cf. .swiftlint.yml). Lancé avant la compilation : c'est l'échec le
+      # (cf. src/HydroBar/.swiftlint.yml). Lancé avant la compilation : c'est l'échec le
       # moins coûteux à détecter.
       - name: SwiftLint
         run: |
           command -v swiftlint >/dev/null || brew install swiftlint
           swiftlint version
           status=0
-          swiftlint lint --quiet --reporter xcode > swiftlint.log 2>&1 || status=$?
+          swiftlint lint --config src/HydroBar/.swiftlint.yml --quiet --reporter xcode > swiftlint.log 2>&1 || status=$?
           warnings=$(grep -c ": warning:" swiftlint.log || true)
           errors=$(grep -c ": error:" swiftlint.log || true)
           {
@@ -65,7 +65,7 @@ jobs:
             2>&1 | tee compile.log
 
       # Étape 1 bis : la variante Mac App Store compile aussi, sans le
-      # vérificateur de mises à jour GitHub (cf. build-appstore.sh).
+      # vérificateur de mises à jour GitHub (cf. src/scripts/build-appstore.sh).
       - name: Compile (App Store variant)
         run: |
           set -o pipefail
@@ -152,14 +152,14 @@ jobs:
       - uses: actions/checkout@v4
       # Longueurs, champs obligatoires, mots-clés : App Store Connect ne le
       # dirait qu'au moment de l'envoi.
-      - run: python3 fastlane/check_metadata.py
+      - run: python3 src/fastlane/check_metadata.py
 
   raycast:
     name: Typecheck the Raycast extension
     runs-on: ubuntu-latest
     defaults:
       run:
-        working-directory: raycast-hydrobar
+        working-directory: src/raycast-hydrobar
 
     steps:
       - uses: actions/checkout@v4
@@ -168,7 +168,7 @@ jobs:
         with:
           node-version: 22
           cache: npm
-          cache-dependency-path: raycast-hydrobar/package-lock.json
+          cache-dependency-path: src/raycast-hydrobar/package-lock.json
 
       - run: npm ci
 

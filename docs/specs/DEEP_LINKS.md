@@ -9,7 +9,7 @@
 
 ## 1. Contexte
 
-L'extension Raycast du dépôt (`raycast-hydrobar/src/*.ts`) ouvre déjà des URLs
+L'extension Raycast du dépôt (`src/raycast-hydrobar/src/*.ts`) ouvre déjà des URLs
 `hydrobar://`, et son README les documente. **L'app ne les gère pas** : aucun
 `CFBundleURLTypes` déclaré, aucun handler implémenté. Cette spec décrit quoi
 implémenter pour que le contrat déjà publié devienne vrai — sans casser l'extension
