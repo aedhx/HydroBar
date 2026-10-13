@@ -21,30 +21,30 @@ struct DataSettingsSection: View {
     }
 
     var body: some View {
-        Section {
-            LabeledContent {
-                Button(String(localized: "Export as CSV…", comment: "Button: export daily totals as CSV"),
-                       action: exportCSV)
-            } label: {
-                Text("Daily totals", comment: "Settings row: what the CSV export contains")
+        SettingsCard(title: Text("Data", comment: "Settings section title for data export and import"),
+                     footer: Text("Restoring adds the entries you don't have yet: importing the same backup twice changes nothing.",
+                                  comment: "Explanation under the data import button")) {
+            // Trois actions, sur une ligne : ce qui sort à gauche, ce qui
+            // rentre à droite. Selon la langue, les boutons passent en petite
+            // taille, puis l'un sous l'autre.
+            ViewThatFits(in: .horizontal) {
+                actions(HStackLayout(spacing: 8))
+                actions(HStackLayout(spacing: 8))
+                    .controlSize(.small)
+                actions(VStackLayout(alignment: .leading, spacing: 6), spread: false)
             }
-            LabeledContent {
-                Button(String(localized: "Back Up (JSON)…", comment: "Button: export the full intake log as JSON"),
-                       action: exportBackup)
-            } label: {
-                Text("Full history", comment: "Settings row: what the JSON backup contains")
-            }
-            LabeledContent {
-                Button(String(localized: "Restore from Backup…", comment: "Button: import a JSON backup"),
-                       action: importBackup)
-            } label: {
-                Text("Existing backup", comment: "Settings row: restore entries from a JSON backup file")
-            }
-        } header: {
-            Text("Data", comment: "Settings section title for data export and import")
-        } footer: {
-            SettingsFooter(Text("Restoring adds the entries you don't have yet: importing the same backup twice changes nothing.",
-                                comment: "Explanation under the data import button"))
+        }
+    }
+
+    private func actions(_ layout: some Layout, spread: Bool = true) -> some View {
+        layout {
+            Button(String(localized: "Export as CSV…", comment: "Button: export daily totals as CSV"),
+                   action: exportCSV)
+            Button(String(localized: "Back Up (JSON)…", comment: "Button: export the full intake log as JSON"),
+                   action: exportBackup)
+            if spread { Spacer(minLength: 0) }
+            Button(String(localized: "Restore from Backup…", comment: "Button: import a JSON backup"),
+                   action: importBackup)
         }
     }
 

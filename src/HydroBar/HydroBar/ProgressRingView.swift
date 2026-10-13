@@ -21,8 +21,11 @@ struct ProgressRingView: View {
     /// Incrémenté quand l'utilisateur passe en retard : le repère pulse.
     @State private var behindPulses = 0
 
-    private let diameter: CGFloat = 180
-    private let lineWidth: CGFloat = 12
+    /// Taille du popover par défaut. Les réglages montrent le même anneau en
+    /// petit (`isMiniature`), sans les légendes ni la célébration de l'objectif.
+    var diameter: CGFloat = 180
+    var lineWidth: CGFloat = 12
+    var isMiniature = false
 
     private var progress: Double {
         guard manager.targetMl > 0 else { return 0 }
@@ -76,13 +79,13 @@ struct ProgressRingView: View {
             if burstVisible { burst }
 
             // Texte au centre
-            VStack(spacing: 4) {
+            VStack(spacing: isMiniature ? 1 : 4) {
                 // Objectif atteint : une coche, pas seulement le passage au vert.
                 // Bleu et vert sont les deux couleurs les plus confondues en
                 // deutéranopie (roadmap F7).
                 if progress >= 1.0 {
                     Image(systemName: "checkmark.circle.fill")
-                        .font(.system(size: 16, weight: .semibold))
+                        .font(.system(size: isMiniature ? 11 : 16, weight: .semibold))
                         .foregroundColor(Theme.goal)
                         .symbolEffect(.bounce, value: celebrations)
                         .transition(.scale.combined(with: .opacity))
@@ -90,17 +93,19 @@ struct ProgressRingView: View {
 
                 // Les chiffres roulent au lieu de sauter.
                 Text("\(percentage)%")
-                    .font(Theme.Font.ringValue)
+                    .font(isMiniature ? .system(size: diameter * 0.22, weight: .bold, design: .rounded) : Theme.Font.ringValue)
                     .foregroundColor(.primary)
                     .contentTransition(.numericText(value: Double(percentage)))
 
-                Text("\(manager.displayValue(for: manager.currentMl)) / \(manager.displayValue(for: manager.targetMl))")
-                    .font(Theme.Font.ringCaption)
-                    .foregroundColor(.secondary)
-                    .contentTransition(.numericText(value: manager.currentMl))
+                if !isMiniature {
+                    Text("\(manager.displayValue(for: manager.currentMl)) / \(manager.displayValue(for: manager.targetMl))")
+                        .font(Theme.Font.ringCaption)
+                        .foregroundColor(.secondary)
+                        .contentTransition(.numericText(value: manager.currentMl))
 
-                if manager.expectedProgress != nil {
-                    paceCaption
+                    if manager.expectedProgress != nil {
+                        paceCaption
+                    }
                 }
             }
             .animation(Theme.motion(Theme.Motion.snappy, reduceMotion: reduceMotion), value: percentage)
@@ -118,7 +123,7 @@ struct ProgressRingView: View {
             withAnimation(Theme.motion(Theme.Motion.ring, reduceMotion: reduceMotion)) {
                 animatedProgress = newValue
             }
-            if oldValue < 1, newValue >= 1 { celebrate() }
+            if oldValue < 1, newValue >= 1, !isMiniature { celebrate() }
         }
         .onChange(of: isBehind) { _, behind in
             if behind { behindPulses += 1 }
