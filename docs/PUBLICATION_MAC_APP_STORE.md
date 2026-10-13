@@ -158,7 +158,7 @@ Apple demande que la fiche montre l'app telle qu'elle est (règle 2.3). Si un
 
 Pour remplacer un écran par une vraie capture, utilise une build **Debug** :
 clique 5 fois sur le numéro de version dans Réglages › Général, puis
-**Generate Fake History Data** dans Réglages › Intégrations › Debug.
+**Generate Fake History Data** dans Réglages › Raccourcis › Debug.
 
 **Aperçu social GitHub** : `Resources/v2/social-preview.jpg` (1280 × 640), à
 déposer dans Settings › General › Social preview du dépôt.
