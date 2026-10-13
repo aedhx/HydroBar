@@ -30,3 +30,12 @@ FORM: Surface structure 2 of 3 dealt (index 3 on my ordered list of seven: the r
 Signature interaction: scroll-scrubbed day. The ring stays pinned while scrolling steps through the day's moments from 8 AM to 9:20 PM; the menu-bar clock, the moment's time and the tick share each moment's time (12-hour, as in English macOS), the arc fills, notification plates arrive at their times, the 2 PM call holds them, and at the goal the ring turns green with a checkmark. Motion grammar: arcs ease, numerals roll, nothing bounces; Reduce Motion shows the day as discrete stops.
 
 FINISH: unreviewed and undocumented is unfinished; this build ends with the finish review, the verdict, DESIGN.md, and every shipping raster carrying its provenance
+
+## Revision · 13 October 2026
+
+Owner feedback on the live page: the app's interface was not shown, scrolling was not smooth, and micro-interactions were missing. The direction keeps its world (desktop, glass, ring) and changes its protagonist:
+
+- THESIS, revised: the page is the Mac's menu bar with HydroBar running in it. The app's real popover hangs from the menu bar ring and works; the page-scale ring stays, behind it, and comes forward with the percentage when the popover closes. The earlier refusal of a product shot is withdrawn; the refusal of a row of equal feature cards stands.
+- Proof by use: one shared day state drives the popover, the menu bar icon, the widget and the icon's menu. The app's keyboard shortcut (⌃⌥1) works on the page.
+- Scroll: the glass no longer blurs live (pre-blurred fixed layer), and the day is scrubbed continuously with eased interpolation instead of nine jumps.
+- Motion grammar, revised: the page eases; the recreated app springs, rolls and celebrates as the app does. DESIGN.md records both.
