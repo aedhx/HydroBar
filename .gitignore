@@ -165,3 +165,6 @@ marketing/node_modules/
 # Impeccable : captures de revue et esquisses, régénérables
 .impeccable/review/
 .impeccable/mocks/
+
+# Couverture de code laissée par xcodebuild test
+*.profraw

@@ -17,6 +17,10 @@
 #   BUILD_NUMBER      numéro de build ; chaque envoi en demande un nouveau
 #                     (défaut : CURRENT_PROJECT_VERSION du projet)
 #   UPLOAD=1          envoie directement sur App Store Connect
+#   REGISTER_DEVICE=1 enregistre ce Mac sur le compte développeur s'il ne l'est
+#                     pas encore (l'archive est signée en développement avant
+#                     d'être re-signée pour le Store, et un profil de
+#                     développement ne couvre que des Mac enregistrés)
 #   ASC_KEY_PATH, ASC_KEY_ID, ASC_ISSUER_ID
 #                     clé d'API App Store Connect (.p8). Sans elle, Xcode
 #                     utilise le compte connecté dans Réglages › Comptes.
@@ -30,6 +34,7 @@ ARCHIVE="$OUT_DIR/HydroBar.xcarchive"
 
 DEVELOPMENT_TEAM="${DEVELOPMENT_TEAM:-S8YKU5RDHK}"
 UPLOAD="${UPLOAD:-0}"
+REGISTER_DEVICE="${REGISTER_DEVICE:-0}"
 
 setting() {
   xcodebuild -project "$PROJECT" -scheme "$SCHEME" -configuration Release -showBuildSettings 2>/dev/null \
@@ -51,6 +56,19 @@ if [ -n "${ASC_KEY_PATH:-}" ]; then
              -authenticationKeyIssuerID "${ASC_ISSUER_ID:?ASC_ISSUER_ID manquant}")
 fi
 
+PROVISIONING_ARGS=(-allowProvisioningUpdates)
+if [ "$REGISTER_DEVICE" = "1" ]; then
+  PROVISIONING_ARGS+=(-allowProvisioningDeviceRegistration)
+fi
+
+# Le bouton du Centre de contrôle et le Liquid Glass ne sont compilés qu'avec
+# le SDK macOS 26 : un Xcode plus ancien produit un paquet valide, mais sans eux.
+XCODE_MAJOR=$(xcodebuild -version | awk '/^Xcode/{split($2, v, "."); print v[1]; exit}')
+if [ "${XCODE_MAJOR:-0}" -lt 26 ]; then
+  echo "⚠  Xcode $XCODE_MAJOR : cette build n'aura ni le bouton du Centre de contrôle"
+  echo "   ni le Liquid Glass. Pour la version du Store, préfère Xcode 26."
+fi
+
 rm -rf "$OUT_DIR"
 mkdir -p "$OUT_DIR"
 
@@ -62,7 +80,7 @@ xcodebuild archive \
   -configuration Release \
   -destination 'generic/platform=macOS' \
   -archivePath "$ARCHIVE" \
-  -allowProvisioningUpdates \
+  "${PROVISIONING_ARGS[@]}" \
   ${AUTH_ARGS[@]+"${AUTH_ARGS[@]}"} \
   DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM" \
   CURRENT_PROJECT_VERSION="$BUILD_NUMBER" \
@@ -72,8 +90,12 @@ xcodebuild archive \
 status=$?
 set -e
 if [ $status -ne 0 ]; then
-  grep -E "error:|BUILD FAILED|ARCHIVE FAILED" "$OUT_DIR/archive.log" | head -40
+  grep -E "error:|BUILD FAILED|ARCHIVE FAILED" "$OUT_DIR/archive.log" | sort -u | head -40
   echo "✗ L'archive a échoué (journal complet : $OUT_DIR/archive.log)"
+  if grep -q "isn't registered in your developer account" "$OUT_DIR/archive.log"; then
+    echo "  Ce Mac n'est pas enregistré sur le compte développeur : relance avec"
+    echo "  REGISTER_DEVICE=1, ou ouvre le projet dans Xcode et laisse-le l'enregistrer."
+  fi
   exit $status
 fi
 
