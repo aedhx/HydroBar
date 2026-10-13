@@ -1,1 +1,1 @@
-wasser,trinken,hydration,menüleiste,gesundheit,gewohnheit,flasche,ziel,glas,tracker,h2o
+wasser,hydration,menüleiste,gewohnheit,flasche,ziel,glas,tracker,h2o,täglich,protokoll,widget,durst

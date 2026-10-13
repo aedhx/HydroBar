@@ -113,7 +113,24 @@ cat > "$WORK/ExportOptions.plist" <<PLIST
 PLIST
 
 # ── 4. Signature Developer ID et envoi à la notarisation ─────────────────────
-echo "→ Signature Developer ID et envoi à Apple"
+# D'abord un export local : il laisse sur le disque l'app signée, dont on aura
+# besoin si l'agrafage par Xcode échoue (voir plus bas). L'envoi signe de la
+# même façon, et produit le même condensé de code.
+echo "→ Signature Developer ID"
+sed 's#<string>upload</string>#<string>export</string>#' "$WORK/ExportOptions.plist" > "$WORK/ExportOptions-local.plist"
+if ! xcodebuild -exportArchive \
+      -archivePath "$ARCHIVE" \
+      -exportOptionsPlist "$WORK/ExportOptions-local.plist" \
+      -exportPath "$WORK/signed" \
+      -allowProvisioningUpdates > "$WORK/sign.log" 2>&1; then
+  grep -E "error:|EXPORT FAILED" "$WORK/sign.log" | sort -u | head -20
+  echo "✗ La signature a échoué (journal complet : $WORK/sign.log)"
+  echo "  Vérifie que ton compte est connecté dans Xcode › Réglages › Comptes."
+  exit 1
+fi
+CDHASH=$(codesign -dvvv "$WORK/signed/HydroBar.app" 2>&1 | awk -F= '/^CDHash=/{print $2}')
+
+echo "→ Envoi à Apple"
 if ! xcodebuild -exportArchive \
       -archivePath "$ARCHIVE" \
       -exportOptionsPlist "$WORK/ExportOptions.plist" \
@@ -131,6 +148,28 @@ deadline=$(( $(date +%s) + TIMEOUT_MIN * 60 ))
 until xcodebuild -exportNotarizedApp \
         -archivePath "$ARCHIVE" \
         -exportPath "$WORK/notarized" > "$WORK/notarized.log" 2>&1; do
+  if grep -q "Ticket not found" "$WORK/notarized.log"; then
+    # Xcode n'a pas pu agrafer : soit Apple a refusé, soit son outil n'a pas
+    # joint le service des tickets (vu derrière certains réseaux, alors que
+    # Gatekeeper, lui, le joint). On demande le ticket directement, pour le
+    # condensé de l'app signée, et on l'agrafe à la main : c'est le fichier
+    # Contents/CodeResources que `stapler` aurait écrit.
+    ticket=$(curl -fsS -m 40 -X POST -H 'Content-Type: application/json' \
+      -d "{\"records\":[{\"recordName\":\"2/2/$CDHASH\"}]}" \
+      https://api.apple-cloudkit.com/database/1/com.apple.gk.ticket-delivery/production/public/records/lookup \
+      | python3 -c 'import json,sys; print(json.load(sys.stdin)["records"][0].get("fields",{}).get("signedTicket",{}).get("value",""))' 2>/dev/null || true)
+    if [ -z "$ticket" ]; then
+      echo "✗ Aucun ticket pour cette build : Apple a refusé la notarisation, ou ne l'a pas encore publiée."
+      echo "  Journal : $WORK/notarized.log"
+      exit 1
+    fi
+    echo "  Xcode n'a pas pu agrafer le ticket ; agrafage direct."
+    mkdir -p "$WORK/notarized"
+    rm -rf "$WORK/notarized/HydroBar.app"
+    cp -R "$WORK/signed/HydroBar.app" "$WORK/notarized/HydroBar.app"
+    printf '%s' "$ticket" | base64 -D > "$WORK/notarized/HydroBar.app/Contents/CodeResources"
+    break
+  fi
   if ! grep -q "is processing" "$WORK/notarized.log"; then
     grep -E "error:" "$WORK/notarized.log" | sort -u | head -20
     echo "✗ Apple a refusé la notarisation (journal complet : $WORK/notarized.log)"
@@ -149,7 +188,10 @@ SIGNED="$WORK/notarized/HydroBar.app"
 # ── 6. Vérifier ce qu'un utilisateur vivra ───────────────────────────────────
 echo "→ Vérifications"
 codesign --verify --deep --strict "$SIGNED"
-xcrun stapler validate "$SIGNED" > /dev/null
+if ! codesign -dvvv "$SIGNED" 2>&1 | grep -q "Notarization Ticket=stapled"; then
+  echo "✗ Le ticket de notarisation n'est pas agrafé à l'app."
+  exit 1
+fi
 verdict=$(spctl -a -vv -t exec "$SIGNED" 2>&1 || true)
 if ! grep -q "source=Notarized Developer ID" <<<"$verdict"; then
   echo "$verdict"

@@ -31,7 +31,7 @@ HydroBar 2.0 is the biggest update since the first release, and the first built 
 - A new **monochrome menu bar icon**, livelier animations and a real **Settings window**.
 - **Your data is safer**: one entry per drink, an unlimited history, CSV export and JSON backup. Two bugs that could erase your history are fixed.
 
-Full details in the [release notes](RELEASE_NOTES_v2.0.md).
+Full details in the [release notes](RELEASE_NOTES_v2.0.md); the latest changes are in [2.0.1](RELEASE_NOTES_v2.0.1.md).
 
 ---
 
@@ -164,11 +164,7 @@ Coming soon. The link will be here and on [hydrobar.adx.cool](https://hydrobar.a
 
 1. Download `HydroBar-v2.0.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
 2. Open it and drag **HydroBar** into Applications.
-3. If macOS says the app "is damaged" or "cannot be opened", the build is not notarized. Run this once, then open it normally:
-
-   ```bash
-   xattr -cr /Applications/HydroBar.app
-   ```
+3. Open it. HydroBar is signed with an Apple Developer ID and notarized by Apple.
 
 The direct download checks for updates on GitHub from **Settings › General**. It doesn't include the desktop widget or the Control Center button: macOS only loads them from a build signed by Apple, so they come with the Mac App Store version.
 
