@@ -102,7 +102,7 @@ review parlent du bouton du Centre de contrôle.
 | **Classification par âge** | « Aucun » partout → 4+ |
 | **Catégories** | Principale : Santé et forme. Secondaire : Productivité |
 | **Droits sur le contenu** | Pas de contenu tiers |
-| **Prix et disponibilité** | Ton choix : gratuit, ou un prix fixe. Tous les pays |
+| **Prix et disponibilité** | 1,99 € (pays de référence : France ; Apple convertit pour les autres), réglé le 13 octobre 2026. Une app payante demande que l'accord « Apps payantes » soit actif (Activité › Accords, avec coordonnées bancaires et fiscales). Tous les pays. Le DMG de GitHub reste gratuit ; la fiche du Store n'en parle pas. |
 | **Coordonnées pour la review** | Ton nom, e-mail, téléphone. Pas de compte de démo : l'app n'a pas de connexion |
 
 ### Envoyer la fiche texte
@@ -111,22 +111,19 @@ review parlent du bouton du Centre de contrôle.
 `fastlane/metadata/<langue>/`. Ajoute d'abord les 8 langues en plus de
 l'anglais dans App Store Connect (« Langues de l'app »).
 
-**Option B, fastlane** (plus rapide pour 9 langues) :
+**Option B, fastlane** (plus rapide pour 9 langues) : `./upload-listing.sh` envoie
+les textes et les captures de toutes les langues en une commande.
 
 ```bash
 brew install fastlane
 # Clé d'API App Store Connect : Utilisateurs et accès › Intégrations › Clés.
-fastlane deliver \
-  --api_key_path ~/hydrobar-asc-key.json \
-  --app_identifier com.adxcool.HydroBar \
-  --platform osx \
-  --skip_binary_upload --skip_screenshots \
-  --metadata_path fastlane/metadata \
-  --force
+# Le fichier .p8 se range dans ~/.appstoreconnect/private_keys/ ; l'identifiant
+# de l'émetteur (Issuer ID) est affiché en haut de la page des clés.
+ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ./upload-listing.sh
 ```
 
-`hydrobar-asc-key.json` contient `key_id`, `issuer_id` et `key` (le contenu
-du `.p8`) ; voir la documentation fastlane « App Store Connect API ».
+Le script n'envoie pas de build et ne soumet rien : il remplit la fiche de la
+version en préparation.
 
 ---
 

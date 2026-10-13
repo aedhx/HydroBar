@@ -4,13 +4,13 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>HydroBar · Drink enough water, right from your menu bar</title>
-<meta name="description" content="HydroBar is a free hydration tracker for the Mac menu bar. One click logs a glass, a ring shows where your day stands, and reminders come only when they make sense. No account, nothing leaves your Mac.">
+<meta name="description" content="HydroBar is a hydration tracker for the Mac menu bar. One click logs a glass, a ring shows where your day stands, and reminders come only when they make sense. Free and open source as a direct download, €1.99 on the Mac App Store.">
 <link rel="canonical" href="https://hydrobar.adx.cool/">
 <meta name="theme-color" content="#3a6fc4">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://hydrobar.adx.cool/">
 <meta property="og:title" content="HydroBar · Drink enough water, right from your menu bar">
-<meta property="og:description" content="A free Mac menu bar app: one click logs a glass, reminders that respect your day, and nothing leaves your Mac.">
+<meta property="og:description" content="A Mac menu bar app: one click logs a glass, reminders that respect your day, and nothing leaves your Mac. Free direct download, €1.99 on the Mac App Store.">
 <meta property="og:image" content="https://hydrobar.adx.cool/assets/og.jpg">
 <meta name="twitter:card" content="summary_large_image">
 <link rel="icon" type="image/png" href="assets/favicon-64.png">
@@ -25,7 +25,10 @@
   "name": "HydroBar",
   "operatingSystem": "macOS 15.1 or later",
   "applicationCategory": "HealthApplication",
-  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "offers": [
+    { "@type": "Offer", "name": "Direct download", "price": "0", "priceCurrency": "EUR", "url": "https://github.com/aedhx/HydroBar/releases/latest" },
+    { "@type": "Offer", "name": "Mac App Store", "price": "1.99", "priceCurrency": "EUR" }
+  ],
   "description": "A hydration tracker for the Mac menu bar.",
   "url": "https://hydrobar.adx.cool/",
   "author": { "@type": "Person", "name": "Antoine Deshoux", "url": "https://adx.cool/" }
@@ -564,7 +567,8 @@
   .close h2 { font-size: clamp(44px, 6vw, 92px); }
   .close .lede { color: var(--label-on-dark-2); }
   .close .ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 40px; }
-  .close .meta { margin-top: 20px; color: var(--label-on-dark-2); font-size: 15px; }
+  .close .meta { margin-top: 20px; color: var(--label-on-dark-2); font-size: 15px; max-width: 38em; }
+  .close .meta + .meta { margin-top: 10px; }
   .close .meta a { color: #fff; }
   .close-ring { width: min(100%, 460px); margin-inline: auto; overflow: visible; }
   /* L'anneau se ferme sous les yeux, puis la coche se pose. */
@@ -641,11 +645,11 @@
       <h1 style="--i:0">Drink enough water, right from your menu bar.</h1>
       <p style="--i:1">One click logs a glass, the ring fills, and the light tick shows where your day should be by now. This one works: go on, log a glass.</p>
       <div class="ctas" style="--i:2">
-        <a class="btn btn-light js-primary" href="#download">Get HydroBar free</a>
+        <a class="btn btn-light js-primary" href="#download">Download free</a>
         <a class="mas js-appstore" href="#download"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span><span class="js-mas-line">Download on the</span><b>Mac App Store</b></span></a>
         <a class="link-arrow" href="#day">See how a day fills it <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4v12M4.5 10.5 10 16l5.5-5.5"/></svg></a>
       </div>
-      <p class="meta" style="--i:3">Free · macOS 15.1 or later · Apple silicon and Intel · 9 languages</p>
+      <p class="meta" style="--i:3">Free direct download · €1.99 on the Mac App Store · macOS 15.1 or later · 9 languages</p>
     </div>
 
     <div class="event-panel" id="day">
@@ -923,7 +927,7 @@
   <div class="wrap">
     <h2 data-reveal>Questions</h2>
     <div class="faq" data-reveal style="--i:1">
-      <details><summary>Is it really free?</summary><p>Yes. HydroBar is free, with no subscription, no in-app purchase and no ads. Its code is open source under the MIT license.</p></details>
+      <details><summary>Is it free?</summary><p>The direct download is free, with no subscription, no in-app purchase and no ads, and its code is open source under the MIT license. On the Mac App Store, HydroBar costs €1.99, once. That version adds the desktop widget, the Control Center button and automatic updates, and it supports the app's development.</p></details>
       <details><summary>Which Macs does it run on?</summary><p>Any Mac with macOS 15.1 Sequoia or later, Apple silicon or Intel. The Control Center button needs macOS 26.</p></details>
       <details><summary>How much water should I drink?</summary><p>It depends on you, your activity and the weather. HydroBar can suggest a starting point of about 30 ml per kilogram, and you can set a different goal for each day of the week. HydroBar isn't a medical device: ask a doctor about your own needs.</p></details>
       <details><summary>Will the reminders bother me all day?</summary><p>No. They stay within your active hours, stop once you reach your goal, wait during calls and while your screen is asleep, and you can pause them for an hour, until this evening or until tomorrow.</p></details>
@@ -944,9 +948,10 @@
       <p class="lede" data-reveal style="--i:1">Set your goal in a minute. HydroBar takes care of the rest, quietly, from the corner of your menu bar.</p>
       <div class="ctas" data-reveal style="--i:2">
         <a class="mas js-appstore" href="#download"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span><span class="js-mas-line">Download on the</span><b>Mac App Store</b></span></a>
-        <a class="btn btn-dark js-dmg" href="https://github.com/aedhx/HydroBar/releases/latest">Download the DMG</a>
+        <a class="btn btn-light js-dmg" href="https://github.com/aedhx/HydroBar/releases/latest">Download free (DMG)</a>
       </div>
-      <p class="meta" data-reveal style="--i:3">Version 2.0.1 · macOS 15.1 or later · <a href="https://github.com/aedhx/HydroBar/blob/main/RELEASE_NOTES_v2.0.md">What's new in 2.0</a></p>
+      <p class="meta" data-reveal style="--i:3">Two ways to get the same app. The direct download is free and open source. The Mac App Store version is €1.99, once, and adds the desktop widget, the Control Center button and automatic updates.</p>
+      <p class="meta" data-reveal style="--i:4">Version 2.0.1 · macOS 15.1 or later · <a href="https://github.com/aedhx/HydroBar/blob/main/RELEASE_NOTES_v2.0.md">What's new in 2.0</a></p>
     </div>
     <svg class="close-ring" viewBox="0 0 500 500" aria-hidden="true" data-reveal>
       <circle cx="250" cy="250" r="200" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="56"/>
@@ -973,8 +978,8 @@
 </footer>
 
 <script>
-  // Lien de la fiche Mac App Store, une fois l'app publiée. Vide : le DMG sert
-  // de téléchargement, et le bouton App Store dit qu'il arrive bientôt.
+  // Lien de la fiche Mac App Store, une fois l'app publiée. Vide : le badge
+  // annonce son arrivée et ne mène nulle part.
   const APP_STORE_URL = '';
   const DMG_URL = 'https://github.com/aedhx/HydroBar/releases/latest';
 
@@ -986,20 +991,17 @@
   const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
 
   // ---------- Liens de téléchargement ----------
+  // Deux façons d'avoir la même app : le téléchargement direct, gratuit, et le
+  // Mac App Store, payant. Les boutons « free » mènent toujours au premier ; le
+  // badge mène au second dès que la fiche existe.
   (() => {
-    const target = APP_STORE_URL || DMG_URL;
-    $$('.js-primary, .js-get').forEach((a) => { a.href = target; });
+    $$('.js-primary, .js-get, .js-dmg').forEach((a) => { a.href = DMG_URL; });
     $$('.js-appstore').forEach((a) => {
       if (APP_STORE_URL) { a.href = APP_STORE_URL; return; }
       $('.js-mas-line', a).textContent = 'Coming soon to the';
       a.setAttribute('aria-disabled', 'true');
       a.setAttribute('role', 'link');
       a.removeAttribute('href');
-    });
-    if (!APP_STORE_URL) $$('.js-dmg').forEach((a) => {
-      a.textContent = 'Get HydroBar free (DMG)';
-      a.classList.replace('btn-dark', 'btn-light');
-      a.parentElement.prepend(a);
     });
   })();
 
