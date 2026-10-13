@@ -1,18 +1,7 @@
-import { open, showToast, Toast } from "@raycast/api";
+import { send } from "./lib/hydrobar";
 
 // Preset 2 tel que configuré dans HydroBar — la quantité suit les réglages de
 // l'utilisateur, elle n'est pas figée ici.
-const PRESET_NUMBER = 2;
-
 export default async function Command() {
-  try {
-    await open(`hydrobar://add?preset=${PRESET_NUMBER}`);
-    await showToast({ style: Toast.Style.Success, title: `Added preset ${PRESET_NUMBER}` });
-  } catch (e) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Could not reach HydroBar",
-      message: "Make sure HydroBar 2.0 or later is installed and has been opened once.",
-    });
-  }
+  await send("hydrobar://add?preset=2", "Preset 2 logged");
 }

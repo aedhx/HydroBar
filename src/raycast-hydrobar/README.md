@@ -11,17 +11,21 @@ Type a command, press Return: the ring in your menu bar moves and a small "+250 
 | **Add Water – Preset 1** | Logs your first preset |
 | **Add Water – Preset 2** | Logs your second preset |
 | **Add Water – Preset 3** | Logs your third preset |
-| **Add Water (Custom)** | Logs the amount you type, in milliliters, from 1 to 5000 |
+| **Add Water (Custom)** | Logs the amount you type: `250`, `33cl`, `0.5l` or `8oz` |
 | **Undo Last Water** | Removes the last drink you logged |
+| **Open HydroBar** | Opens HydroBar on today's view |
 | **Open HydroBar Statistics** | Opens HydroBar on its statistics |
+| **Open HydroBar Settings** | Opens the settings window |
 
 The preset commands use the amounts set in HydroBar › Settings › Hydration. Change a preset there and the command follows.
+
+**Add Water (Custom)** takes milliliters when you give no unit, and understands `ml`, `cl`, `l` and `oz` (US fluid ounces), with a dot or a comma: `0,5 l` works. One drink is between 1 ml and 5 L.
 
 ## Requirements
 
 - **HydroBar 2.0 or later**, from the [direct download](https://github.com/aedhx/HydroBar/releases/latest) or the Mac App Store. It doesn't need to be running: macOS launches it when a command needs it.
 - **[Raycast](https://www.raycast.com/)**.
-- **[Node.js](https://nodejs.org/) 22 or later**, to install the extension. It isn't on the Raycast Store yet.
+- **[Node.js](https://nodejs.org/) 22 or later** (the current 22 release), to install the extension. It isn't on the Raycast Store yet.
 
 ## Install
 
@@ -55,7 +59,7 @@ HydroBar has its own global shortcuts too (Settings › Shortcuts). Use whicheve
 
 **"Could not reach HydroBar".** Raycast couldn't open the link at all. HydroBar isn't installed, or is older than 2.0.
 
-**The toast says "Added" but the ring didn't move.** The toast confirms that the request was sent, not that it was accepted: these links can't answer back. When HydroBar turns a request down, for example an amount out of range or nothing left to undo, it says so itself in a notification. That needs notifications to be allowed for HydroBar in System Settings.
+**Raycast says "logged" but the ring didn't move.** The message confirms that the request was sent, not that it was accepted: these links can't answer back. When HydroBar turns a request down, for example an amount out of range or nothing left to undo, it says so itself in a notification. That needs notifications to be allowed for HydroBar in System Settings.
 
 **The commands don't show up.** Run `npm run dev` again in the extension's folder, then search for "HydroBar" in Raycast.
 
@@ -66,11 +70,13 @@ Each command opens a `hydrobar://` link, which HydroBar handles:
 | Command | Link |
 |---|---|
 | Add Water – Preset 1, 2, 3 | `hydrobar://add?preset=1`, `2`, `3` |
-| Add Water (Custom) | `hydrobar://add?ml=250` |
+| Add Water (Custom) | `hydrobar://add?ml=250`, `?cl=33`, `?l=0.5` or `?oz=8` |
 | Undo Last Water | `hydrobar://undo` |
+| Open HydroBar | `hydrobar://open` |
 | Open HydroBar Statistics | `hydrobar://open/stats` |
+| Open HydroBar Settings | `hydrobar://open/settings` |
 
-The same links work from Alfred, Keyboard Maestro, a Stream Deck or Terminal (`open "hydrobar://add?ml=250"`), and they accept other units (`?cl=25`, `?l=0.25`, `?oz=8`).
+The same links work from Alfred, Keyboard Maestro, a Stream Deck or Terminal: `open "hydrobar://add?ml=250"`.
 
 Two links are left out on purpose: `reset` and `set-goal` change your day or your goal, so HydroBar asks for a confirmation in the app before running them. They wouldn't save you a step from Raycast.
 
@@ -84,7 +90,7 @@ npm run build   # production build into dist/
 npm run lint    # Raycast's linter (needs a Raycast account)
 ```
 
-Each command is one file in `src/`, named after its entry in `package.json`. The repository's CI type-checks the extension and fails if a command and its file don't match.
+Each command is one file in `src/`, named after its entry in `package.json`; what they share (opening a link, reading an amount) is in `src/lib/hydrobar.ts`. The repository's CI type-checks the extension and fails if a command and its file don't match.
 
 To build the zip attached to releases, run `./src/scripts/package-raycast-extension.sh`. It leaves out `node_modules` and `dist`.
 
