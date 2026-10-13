@@ -21,10 +21,8 @@ struct YearChartView: View {
         let goal = manager.selectedUnit.fromMl(manager.defaultTargetMl)
 
         if months.allSatisfy({ $0.trackedDays == 0 }) {
-            Text("Your year will fill in as you log.", comment: "Year chart empty state")
-                .font(Theme.Font.callout)
-                .foregroundColor(.secondary)
-                .frame(maxWidth: .infinity, minHeight: 60)
+            StatsEmptyState(systemImage: "calendar",
+                            message: Text("Your year will fill in as you log.", comment: "Year chart empty state"))
         } else {
             Chart {
                 ForEach(months) { month in
@@ -42,7 +40,8 @@ struct YearChartView: View {
             }
             .chartXAxis {
                 AxisMarks(values: .stride(by: .month)) { value in
-                    AxisValueLabel {
+                    // Centré sous la barre, comme les jours de la semaine.
+                    AxisValueLabel(centered: true) {
                         if let date = value.as(Date.self) {
                             Text(date.formatted(.dateTime.month(.narrow)))
                                 .font(Theme.Font.footnote)
@@ -56,7 +55,6 @@ struct YearChartView: View {
                 }
             }
             .frame(height: 110)
-            .padding(.horizontal, 16)
             .accessibilityElement()
             .accessibilityLabel(Text("Average daily intake for each of the last 12 months",
                                      comment: "VoiceOver label of the year chart"))
@@ -74,11 +72,11 @@ struct MonthlyRecapView: View {
             let card = MonthlyRecapCard(summary: month,
                                         streak: manager.currentStreak,
                                         format: manager.displayValue(for:))
-            VStack(alignment: .leading, spacing: 8) {
+            VStack(alignment: .leading, spacing: Theme.Spacing.title) {
                 card
                     .frame(maxWidth: .infinity)
 
-                HStack(spacing: 8) {
+                HStack(spacing: Theme.Spacing.title) {
                     if let image = render(card) {
                         ShareLink(item: Image(nsImage: image),
                                   preview: SharePreview(String(localized: "My month with HydroBar",
@@ -98,7 +96,6 @@ struct MonthlyRecapView: View {
                 }
                 .controlSize(.small)
             }
-            .padding(.horizontal, 20)
         }
     }
 
