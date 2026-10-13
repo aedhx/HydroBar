@@ -2,8 +2,8 @@
   "$schema": "https://www.raycast.com/schemas/extension.json",
   "name": "hydrobar",
   "title": "HydroBar",
-  "description": "Log water intake to HydroBar from Raycast. Requires HydroBar (macOS menu bar app) to be installed and running.",
-  "version": "1.1.0",
+  "description": "Log water in HydroBar, the menu bar hydration tracker, without leaving the keyboard. Requires HydroBar 2.0 or later.",
+  "version": "1.1.1",
   "icon": "icon.png",
   "author": "aedhx",
   "platforms": [

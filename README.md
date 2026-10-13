@@ -137,7 +137,7 @@ Destructive actions (`reset`, `set-goal`) need `confirm=1` **and** a confirmatio
 
 ### Raycast
 
-The [Raycast extension](raycast-hydrobar/README.md) logs a preset or any amount, undoes, and opens your statistics without leaving the keyboard. Download `hydrobar-raycast-extension.zip` from the [Releases](https://github.com/aedhx/HydroBar/releases) page, or run `./package-raycast-extension.sh`, then add the folder in Raycast › Settings › Extensions.
+The [Raycast extension](raycast-hydrobar/README.md) logs a preset or any amount, undoes, and opens your statistics without leaving the keyboard. It installs from the `raycast-hydrobar` folder with `npm install && npm run dev`; its [README](raycast-hydrobar/README.md) has the details.
 
 ---
 
