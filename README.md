@@ -65,7 +65,7 @@ Full details in the [release notes](RELEASE_NOTES_v2.0.md).
 
 ### Work days. Days off.
 
-<img src="Resources/v2/days.jpg" alt="The Days tab of HydroBar's settings: days off, today's day type, weekdays and time off" width="560" align="right">
+<img src="Resources/v2/days.jpg" alt="The Days off section of HydroBar's Reminders settings: today's day type, weekdays, hours and time off" width="560" align="right">
 
 - Days off get their own **active hours**, **reminder cadence** (or none at all) and **goal**.
 - Weekends by default, or pick your own days.
@@ -162,7 +162,7 @@ Coming soon. The link will be here and on [hydrobar.adx.cool](https://hydrobar.a
 
 ### Direct download
 
-1. Download `HydroBar-v2.0.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
+1. Download `HydroBar-v2.0.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
 2. Open it and drag **HydroBar** into Applications.
 3. If macOS says the app "is damaged" or "cannot be opened", the build is not notarized. Run this once, then open it normally:
 
@@ -194,7 +194,7 @@ You need Xcode 16 or later; the Control Center button and the Liquid Glass prese
 | Script | What it does |
 |---|---|
 | `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP (ad-hoc signed unless given a certificate) |
-| `./notarize-release.sh v2.0` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
+| `./notarize-release.sh v2.0.1` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
 | `./package-dmg.sh` | Puts a signed app in the disk image, with its window layout |
 | `./deploy-website.sh` | Publishes `website/` to hydrobar.adx.cool |
 | `./build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |

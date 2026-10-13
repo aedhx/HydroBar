@@ -187,7 +187,7 @@ struct GeneralSettingsPage: View {
         }
     }
 
-    /// Version affichée, avec le numéro de build : « 2.0 (4) ».
+    /// Version affichée, avec le numéro de build : « 2.0.1 (5) ».
     private static var appVersion: String {
         let info = Bundle.main.infoDictionary
         let version = info?["CFBundleShortVersionString"] as? String ?? "?"
