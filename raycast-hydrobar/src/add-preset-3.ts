@@ -12,7 +12,7 @@ export default async function Command() {
     await showToast({
       style: Toast.Style.Failure,
       title: "Could not reach HydroBar",
-      message: "Make sure HydroBar 1.3 or later is installed and has been opened once.",
+      message: "Make sure HydroBar 2.0 or later is installed and has been opened once.",
     });
   }
 }

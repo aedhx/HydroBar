@@ -23,4 +23,4 @@ zip -r "$OUTPUT_ZIP" raycast-hydrobar \
 echo "Created: $OUTPUT_ZIP"
 echo ""
 echo "Distribution: Upload $OUTPUT_ZIP to GitHub Releases (e.g. as a release asset)."
-echo "Users: unzip → cd raycast-hydrobar → npm install → Raycast: Add from folder → npm run dev"
+echo "Users: unzip → cd raycast-hydrobar → npm install → npm run dev (see raycast-hydrobar/README.md)"

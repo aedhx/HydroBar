@@ -1,86 +1,93 @@
-# HydroBar – Raycast Extension
+# HydroBar for Raycast
 
-Control [HydroBar](https://github.com/aedhx/HydroBar) (macOS menu bar hydration app) from Raycast.
+Log a glass of water without leaving the keyboard. This extension drives [HydroBar](https://hydrobar.adx.cool/), the hydration tracker that lives in your Mac's menu bar.
 
-## Requirements
-
-- **macOS**
-- [HydroBar](https://github.com/aedhx/HydroBar) installed and running (menu bar)
-- [Raycast](https://www.raycast.com/)
+Type a command, press Return: the ring in your menu bar moves and a small "+250 ml" appears under it. HydroBar's window never opens.
 
 ## Commands
 
-| Command | Description |
-|--------|-------------|
-| **Add Water – Preset 1** | Log your first preset amount (e.g. small glass) |
-| **Add Water – Preset 2** | Log your second preset amount |
-| **Add Water – Preset 3** | Log your third preset amount |
-| **Add Water (Custom)** | Log a custom amount in ml, between 1 and 5000 |
-| **Undo Last Water** | Remove the last entry logged in HydroBar |
-| **Open HydroBar Statistics** | Open HydroBar directly on the statistics view |
+| Command | What it does |
+|---|---|
+| **Add Water – Preset 1** | Logs your first preset |
+| **Add Water – Preset 2** | Logs your second preset |
+| **Add Water – Preset 3** | Logs your third preset |
+| **Add Water (Custom)** | Logs the amount you type, in milliliters, from 1 to 5000 |
+| **Undo Last Water** | Removes the last drink you logged |
+| **Open HydroBar Statistics** | Opens HydroBar on its statistics |
 
-The preset commands log whatever amount is configured in HydroBar's settings — change a preset in the app and the Raycast command follows it.
+The preset commands use the amounts set in HydroBar › Settings › Hydration. Change a preset there and the command follows.
 
-**Requires HydroBar 1.3 or later**, which registers the `hydrobar://` URL scheme. On older versions macOS has no handler for the scheme and the commands silently do nothing. HydroBar does not need to be running: macOS launches it on demand.
+## Requirements
 
-## Install in Raycast
+- **HydroBar 2.0 or later**, from the [direct download](https://github.com/aedhx/HydroBar/releases/latest) or the Mac App Store. It doesn't need to be running: macOS launches it when a command needs it.
+- **[Raycast](https://www.raycast.com/)**.
+- **[Node.js](https://nodejs.org/) 22 or later**, to install the extension. It isn't on the Raycast Store yet.
 
-1. Clone or copy this folder and run `npm install` in it.
-2. In Raycast: **Settings → Extensions → Add Extension → Add from folder** → select the `raycast-hydrobar` folder.
-3. **Important:** Open a terminal, go to the `raycast-hydrobar` folder and run:
-   ```bash
-   npm run dev
-   ```
-   This imports the extension into Raycast and makes the commands appear. Leave this terminal open while you use the extension (or stop it with Ctrl+C — the commands stay available).
-4. In Raycast, search for **"HydroBar"** or **"Add Water"** to see the commands.
+## Install
 
-## Icons
+```bash
+git clone https://github.com/aedhx/HydroBar.git
+cd HydroBar/raycast-hydrobar
+npm install
+npm run dev
+```
 
-Extension: `assets/icon.png`. Commands: `preset-0.3.png`, `preset-0.5.png`, `preset-1.png`, `custom.png` in `assets/` (each 512×512 PNG). **If icons don’t show:** Quit Raycast completely (Quit Raycast from menu bar), then reopen; run `npm run build` then `npm run dev` again.
+`npm run dev` adds the extension to Raycast. Once the commands show up when you search for "HydroBar", stop it with Control-C: the extension stays installed.
 
-Place a 512×512 PNG as `assets/icon.png` (optional). You can use [HydroBar’s icon](https://github.com/aedhx/HydroBar/blob/main/Resources/HydroBar-icon.png) resized to 512×512.
+Prefer not to clone? Download `hydrobar-raycast-extension.zip` from the [Releases](https://github.com/aedhx/HydroBar/releases) page, unzip it, and run the last two commands in the `raycast-hydrobar` folder.
+
+**To update**, pull or download the new version and run `npm install && npm run dev` again.
+
+**To remove it**, open Raycast › Settings › Extensions, right-click HydroBar and choose Uninstall Extension.
+
+## Make it faster
+
+In Raycast › Settings › Extensions › HydroBar, each command can have:
+
+- an **alias**, such as `w1`, so that typing `w1` and Return logs your first preset;
+- a **hotkey**, to log a glass from anywhere without opening Raycast at all.
+
+HydroBar has its own global shortcuts too (Settings › Shortcuts). Use whichever you prefer; they do the same thing.
+
+## If something doesn't work
+
+**Nothing happens.** Check that HydroBar is version 2.0 or later (Settings › General) and that you've opened it at least once since installing it: macOS only learns about its links on first launch.
+
+**"Could not reach HydroBar".** Raycast couldn't open the link at all. HydroBar isn't installed, or is older than 2.0.
+
+**The toast says "Added" but the ring didn't move.** The toast confirms that the request was sent, not that it was accepted: these links can't answer back. When HydroBar turns a request down, for example an amount out of range or nothing left to undo, it says so itself in a notification. That needs notifications to be allowed for HydroBar in System Settings.
+
+**The commands don't show up.** Run `npm run dev` again in the extension's folder, then search for "HydroBar" in Raycast.
 
 ## How it works
 
-The extension opens URLs that HydroBar handles:
+Each command opens a `hydrobar://` link, which HydroBar handles:
 
-- `hydrobar://add?preset=1` → preset 1 (1-based)
-- `hydrobar://add?preset=2` → preset 2
-- `hydrobar://add?preset=3` → preset 3
-- `hydrobar://add?ml=250` → custom amount in ml
+| Command | Link |
+|---|---|
+| Add Water – Preset 1, 2, 3 | `hydrobar://add?preset=1`, `2`, `3` |
+| Add Water (Custom) | `hydrobar://add?ml=250` |
+| Undo Last Water | `hydrobar://undo` |
+| Open HydroBar Statistics | `hydrobar://open/stats` |
 
-The older 0-based path form (`hydrobar://add/preset/0`) is still accepted by the app.
+The same links work from Alfred, Keyboard Maestro, a Stream Deck or Terminal (`open "hydrobar://add?ml=250"`), and they accept other units (`?cl=25`, `?l=0.25`, `?oz=8`).
 
-Plus `hydrobar://undo` and `hydrobar://open/stats`, used by the two commands above.
+Two links are left out on purpose: `reset` and `set-goal` change your day or your goal, so HydroBar asks for a confirmation in the app before running them. They wouldn't save you a step from Raycast.
 
-The scheme also accepts other unit parameters (`?cl=25`, `?l=0.25`, `?oz=8`).
-Destructive actions (`reset`, `set-goal`) require an explicit `confirm=1` and a
-confirmation in the app, so they are deliberately **not** exposed as Raycast commands.
+The full grammar, the security model and the error codes are in [the deep links spec](https://github.com/aedhx/HydroBar/blob/main/docs/specs/DEEP_LINKS.md) (in French).
 
-A URL scheme is one-way: it cannot return a value. So the toasts here confirm that the
-request was sent, not that it succeeded — if HydroBar rejects a link (nothing to undo,
-amount out of range), it reports that itself with a local notification.
-
-Full grammar, security model and error codes:
-[docs/specs/DEEP_LINKS.md](https://github.com/aedhx/HydroBar/blob/main/docs/specs/DEEP_LINKS.md).
-
-See [HydroBar](https://github.com/aedhx/HydroBar) for the app and source.
-
----
-
-## Distribution
-
-To package the extension for distribution (e.g. to attach to a GitHub Release):
-
-From the **repository root** (parent of `raycast-hydrobar`), run:
+## Development
 
 ```bash
-./package-raycast-extension.sh
+npm run dev     # load the extension in Raycast, with live reload
+npm run build   # production build into dist/
+npm run lint    # Raycast's linter (needs a Raycast account)
 ```
 
-This creates `hydrobar-raycast-extension.zip` in the repo root, excluding `node_modules` and build artifacts. Recipients should:
+Each command is one file in `src/`, named after its entry in `package.json`. The repository's CI type-checks the extension and fails if a command and its file don't match.
 
-1. Unzip the archive
-2. `cd raycast-hydrobar && npm install`
-3. In Raycast: **Settings → Extensions → Add Extension → Add from folder** → select the `raycast-hydrobar` folder
-4. Run `npm run dev` in the extension folder so Raycast picks up the commands
+To build the zip attached to releases, run `./package-raycast-extension.sh` from the repository root. It leaves out `node_modules` and `dist`.
+
+## License
+
+MIT, like [HydroBar](https://github.com/aedhx/HydroBar).
