@@ -1,0 +1,93 @@
+# hydrobar.adx.cool
+
+La landing page de HydroBar : une seule page statique, sans build ni dépendance.
+
+```
+src/website/
+├── index.html        la page (HTML, CSS et JS dans le même fichier)
+├── privacy/          la politique de confidentialité (même texte que PRIVACY.md)
+└── assets/           icônes, polices, fond d'écran (net et flouté), image Open Graph (1200 × 630)
+```
+
+`wallpaper-blur.jpg` est `wallpaper.jpg` flouté et saturé une fois pour toutes : le verre
+des fenêtres l'affiche au lieu de recalculer un flou à chaque image du défilement. Si le
+fond d'écran change, il faut le refaire (même cadrage, `blur(24px) saturate(1.7)` sur une
+image de 1280 × 800).
+
+## Héberger sur hydrobar.adx.cool
+
+Le sous-domaine pointe sur le VPS (enregistrement A vers 185.97.144.4), servi par nginx.
+Le script `src/scripts/deploy-website.sh` fait tout depuis ton Mac :
+
+```sh
+./src/scripts/deploy-website.sh --setup   # une seule fois : dossier, site nginx, certificat HTTPS
+./src/scripts/deploy-website.sh           # ensuite, à chaque mise à jour de la page
+```
+
+Le site est en ligne depuis le 13 octobre 2026 : `--setup` n'est plus à refaire, sauf
+pour changer la config nginx. Par défaut le script se connecte en `root@185.97.144.4` ;
+un autre compte se règle avec `DEPLOY_HOST=utilisateur@185.97.144.4`. Il faut nginx et
+certbot sur le VPS (`sudo apt install nginx certbot python3-certbot-nginx`).
+
+Ce que fait le script, si tu préfères le faire à la main :
+
+**1. Copier la page.** Depuis la racine du dépôt :
+
+```sh
+rsync -av --delete --exclude README.md src/website/ <utilisateur>@185.97.144.4:/var/www/hydrobar.adx.cool/
+```
+
+**2. Déclarer le site dans nginx**, dans `/etc/nginx/sites-available/hydrobar.adx.cool` :
+
+```nginx
+server {
+    listen 80;
+    listen [::]:80;
+    server_name hydrobar.adx.cool;
+    root /var/www/hydrobar.adx.cool;
+    index index.html;
+
+    location / {
+        try_files $uri $uri/ =404;
+    }
+    # Images, polices : versionnées par leur nom, cache long.
+    location /assets/ {
+        expires 30d;
+        add_header Cache-Control "public";
+    }
+
+    gzip on;
+    gzip_types text/css application/javascript image/svg+xml;
+}
+```
+
+puis :
+
+```sh
+sudo ln -s /etc/nginx/sites-available/hydrobar.adx.cool /etc/nginx/sites-enabled/
+sudo nginx -t && sudo systemctl reload nginx
+```
+
+**3. Le certificat HTTPS.** Tant qu'il manque, le navigateur reçoit celui d'adx.cool
+et affiche une erreur. Certbot l'ajoute et règle la redirection HTTP → HTTPS :
+
+```sh
+sudo certbot --nginx -d hydrobar.adx.cool
+```
+
+Pour les mises à jour suivantes, seule l'étape 1 est à refaire.
+
+## À mettre à jour
+
+- **Lien Mac App Store** : en bas du fichier, `const APP_STORE_URL = ''`. Tant qu'il
+  est vide, le badge affiche « Coming soon to the Mac App Store » sans être un lien, et
+  le DMG est le téléchargement principal. Une fois l'app publiée, colle le lien de la
+  fiche : le badge devient « Download on the Mac App Store ». Les boutons « free » continuent
+  de mener au DMG de GitHub, gratuit ; le Store, lui, est à 1,99 €. Idéalement, remplace alors le badge par l'illustration officielle d'Apple
+  (developer.apple.com › App Store › Marketing Resources).
+- **Version** : « Version 2.0.1 » dans la section Download, et dans le menu de l'icône (section Everywhere).
+
+## Choix de design
+
+Le système de design (couleurs et verre de l'app, typographie, règles) est décrit dans
+[`src/design/DESIGN.md`](../design/DESIGN.md).

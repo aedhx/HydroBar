@@ -8,7 +8,7 @@ HydroBar a deux distributions :
 
 | | Mac App Store | DMG GitHub |
 |---|---|---|
-| Script | `./build-appstore.sh` | `./build-dmg.sh` |
+| Script | `./src/scripts/build-appstore.sh` | `./src/scripts/build-dmg.sh` |
 | Mises à jour | par le Store | bouton « Vérifier les mises à jour » (GitHub) |
 | Accès réseau | aucun | GitHub uniquement |
 | Synchro Concentration (ancienne) | masquée | disponible |
@@ -20,7 +20,7 @@ les deux variantes à chaque push.
 
 ## 0. Où on en est (13 octobre 2026)
 
-`./build-appstore.sh` va au bout sur un vrai Mac : archive, vérifications
+`./src/scripts/build-appstore.sh` va au bout sur un vrai Mac : archive, vérifications
 (sandbox, pas de réseau, pas de vérificateur GitHub) et export de
 `build/appstore/export/HydroBar.pkg`, signé pour le Store.
 
@@ -56,18 +56,18 @@ review parlent du bouton du Centre de contrôle.
 - **Catégorie** Health & Fitness, copyright, équipe de signature `S8YKU5RDHK`
   sur l'app et le widget.
 - Les **options de debug** n'existent que dans les builds Debug.
-- **Fiche App Store** en 9 langues dans `fastlane/metadata/` : nom,
+- **Fiche App Store** en 9 langues dans `src/fastlane/metadata/` : nom,
   sous-titre, mots-clés, texte promotionnel, description, notes de version,
   URL de support et de confidentialité. Vérification des longueurs :
-  `python3 fastlane/check_metadata.py`.
-- **Notes pour l'équipe de review** : `fastlane/metadata/review_information/notes.txt`.
+  `python3 src/fastlane/check_metadata.py`.
+- **Notes pour l'équipe de review** : `src/fastlane/metadata/review_information/notes.txt`.
 - **Politique de confidentialité** : [`PRIVACY.md`](../PRIVACY.md), en anglais, publiée
-  à `https://hydrobar.adx.cool/privacy/` (`website/privacy/index.html` reprend son texte :
+  à `https://hydrobar.adx.cool/privacy/` (`src/website/privacy/index.html` reprend son texte :
   les deux se mettent à jour ensemble). Version française : `PRIVACY.fr.md`.
 - **URL marketing** de la fiche : `https://hydrobar.adx.cool/`, la landing
-  (`website/`, publiée par `./deploy-website.sh`). Une fois l'app en vente,
+  (`src/website/`, publiée par `./src/scripts/deploy-website.sh`). Une fois l'app en vente,
   colle le lien de la fiche dans `APP_STORE_URL`, en bas de
-  `website/index.html`, et relance le script.
+  `src/website/index.html`, et relance le script.
 
 ---
 
@@ -86,7 +86,7 @@ review parlent du bouton du Centre de contrôle.
 3. **Fiche dans App Store Connect** › Apps › « + » › Nouvelle app :
    - plateforme **macOS** ;
    - nom : `HydroBar – Water Tracker`. S'il est pris, essaie
-     `HydroBar – Hydration`, puis mets à jour `fastlane/metadata/*/name.txt` ;
+     `HydroBar – Hydration`, puis mets à jour `src/fastlane/metadata/*/name.txt` ;
    - langue principale : **English (U.S.)** ;
    - identifiant de lot : `com.adxcool.HydroBar` ;
    - SKU : `hydrobar-mac`.
@@ -108,10 +108,10 @@ review parlent du bouton du Centre de contrôle.
 ### Envoyer la fiche texte
 
 **Option A, copier-coller.** Chaque champ est un fichier texte dans
-`fastlane/metadata/<langue>/`. Ajoute d'abord les 8 langues en plus de
+`src/fastlane/metadata/<langue>/`. Ajoute d'abord les 8 langues en plus de
 l'anglais dans App Store Connect (« Langues de l'app »).
 
-**Option B, fastlane** (plus rapide pour 9 langues) : `./upload-listing.sh` envoie
+**Option B, fastlane** (plus rapide pour 9 langues) : `./src/scripts/upload-listing.sh` envoie
 les textes et les captures de toutes les langues en une commande.
 
 ```bash
@@ -119,7 +119,7 @@ brew install fastlane
 # Clé d'API App Store Connect : Utilisateurs et accès › Intégrations › Clés.
 # Le fichier .p8 se range dans ~/.appstoreconnect/private_keys/ ; l'identifiant
 # de l'émetteur (Issuer ID) est affiché en haut de la page des clés.
-ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ./upload-listing.sh
+ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx ./src/scripts/upload-listing.sh
 ```
 
 Le script n'envoie pas de build et ne soumet rien : il remplit la fiche de la
@@ -130,7 +130,7 @@ version en préparation.
 ## 4. Captures d'écran
 
 **Déjà générées** : 6 écrans × 9 langues, en 2880 × 1800, dans
-`fastlane/screenshots/<langue>/`. Elles s'envoient avec
+`src/fastlane/screenshots/<langue>/`. Elles s'envoient avec
 `fastlane deliver --skip_metadata --skip_binary_upload`, ou se glissent dans
 App Store Connect.
 
@@ -143,12 +143,12 @@ App Store Connect.
 | 5 | Mode gourde | |
 | 6 | Menu de l'icône et widget | Partout sur le Mac, rien ailleurs |
 
-Elles sont produites par `marketing/` à partir des textes de l'app (voir
-[marketing/README.md](../marketing/README.md)). Ce sont des **recréations
+Elles sont produites par `src/marketing/` à partir des textes de l'app (voir
+[src/marketing/README.md](../src/marketing/README.md)). Ce sont des **recréations
 fidèles** de l'interface : avant l'envoi, compare-les à l'app sur un Mac.
 Apple demande que la fiche montre l'app telle qu'elle est (règle 2.3). Si un
-écran diffère, corrige `marketing/template.html` et relance
-`node marketing/render.cjs` : les 9 langues suivent.
+écran diffère, corrige `src/marketing/template.html` et relance
+`node src/marketing/render.cjs` : les 9 langues suivent.
 
 Pour remplacer un écran par une vraie capture, utilise une build **Debug** :
 clique 5 fois sur le numéro de version dans Réglages › Général, puis
@@ -164,14 +164,14 @@ déposer dans Settings › General › Social preview du dépôt.
 ```bash
 # Archive, vérifie (sandbox, pas de réseau, pas de vérificateur GitHub)
 # et exporte un .pkg :
-./build-appstore.sh
+./src/scripts/build-appstore.sh
 
 # Ou envoie directement sur App Store Connect :
-UPLOAD=1 ./build-appstore.sh
+UPLOAD=1 ./src/scripts/build-appstore.sh
 ```
 
 - Chaque envoi demande un **numéro de build nouveau** :
-  `BUILD_NUMBER=5 UPLOAD=1 ./build-appstore.sh`. Pense à reporter le numéro
+  `BUILD_NUMBER=5 UPLOAD=1 ./src/scripts/build-appstore.sh`. Pense à reporter le numéro
   dans le projet (`CURRENT_PROJECT_VERSION`) après coup.
 - Le script utilise le compte connecté dans Xcode (Réglages › Comptes). Sur
   une machine sans Xcode connecté, passe la clé d'API : `ASC_KEY_PATH`,
@@ -219,7 +219,7 @@ distribution. À vérifier sur un Mac propre, ou une session utilisateur neuve :
 Dans App Store Connect, version 2.0 :
 
 1. sélectionne la build ;
-2. colle les notes de review (`fastlane/metadata/review_information/notes.txt`)
+2. colle les notes de review (`src/fastlane/metadata/review_information/notes.txt`)
    si fastlane ne l'a pas fait ;
 3. **Ajouter pour vérification**, puis **Soumettre**.
 
@@ -242,8 +242,8 @@ La review prend en général 1 à 3 jours.
 
 - **Mises à jour** : incrémente `MARKETING_VERSION` (2.0.1, 2.1…) et
   `CURRENT_PROJECT_VERSION`, mets à jour
-  `fastlane/metadata/*/release_notes.txt`, puis `UPLOAD=1 ./build-appstore.sh`.
-- **DMG GitHub** : `./build-dmg.sh` continue de fonctionner comme avant,
+  `src/fastlane/metadata/*/release_notes.txt`, puis `UPLOAD=1 ./src/scripts/build-appstore.sh`.
+- **DMG GitHub** : `./src/scripts/build-dmg.sh` continue de fonctionner comme avant,
   pour ceux qui préfèrent l'installer hors du Store.
 - **Passer du DMG au Store** : les deux versions ont le même identifiant,
   donc le même conteneur sandbox, et la version App Store devrait retrouver

@@ -55,7 +55,7 @@ struct ShortcutsSettingsPage: View {
         SettingsCard(title: Text("Integrations", comment: "Settings section title for integrations")) {
             LabeledContent {
                 Button(String(localized: "View Repository", comment: "Menu item to open GitHub repository")) {
-                    if let url = URL(string: "https://github.com/aedhx/HydroBar/tree/main/raycast-hydrobar") {
+                    if let url = URL(string: "https://github.com/aedhx/HydroBar/tree/main/src/raycast-hydrobar") {
                         NSWorkspace.shared.open(url)
                     }
                 }
