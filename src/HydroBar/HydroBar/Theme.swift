@@ -85,6 +85,29 @@ enum Theme {
         static let popover: CGFloat = 16
     }
 
+    // MARK: - Espacements
+    //
+    // Une marge et un rythme vertical, d'abord pour les statistiques : leurs
+    // blocs avaient chacun leur retrait (16 ou 20 pt) et leurs écarts (de 2 à
+    // 16 pt), et rien ne tombait sur la même ligne.
+
+    enum Spacing {
+        /// Marge du contenu : tout bloc commence et finit là.
+        static let inset: CGFloat = 20
+        /// Entre deux sections.
+        static let section: CGFloat = 20
+        /// Entre un titre de section et son contenu, ou entre deux éléments
+        /// d'un même bloc (grille et légende, phrase et graphique).
+        static let title: CGFloat = 8
+        /// Entre deux tuiles côte à côte.
+        static let tile: CGFloat = 12
+        /// Entre les cases de la heatmap. Avec la marge ci-dessus, le contenu
+        /// fait 280 pt : 7 cases de 34 pt et 6 écarts de 7 pt, au pixel près
+        /// même sur un écran non Retina. À 4 pt, la largeur ne se divisait pas :
+        /// les cases faisaient 36 ou 37 pt selon la colonne.
+        static let cell: CGFloat = 7
+    }
+
     // MARK: - Animations
     //
     // Toutes passent par `motion(_:reduceMotion:)` : avec « Réduire les

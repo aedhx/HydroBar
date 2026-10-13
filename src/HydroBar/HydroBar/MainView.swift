@@ -191,10 +191,8 @@ struct MainView: View {
                 case .statistics:
                     // Défilante : avec la vue sur l'année et le bilan du mois, les
                     // statistiques dépassent la hauteur maximale du popover.
-                    ScrollView {
-                        StatisticsView(manager: manager, currentView: $currentView)
-                    }
-                    .frame(maxHeight: 620)
+                    StatisticsScrollView(manager: manager, currentView: $currentView)
+                        .frame(maxHeight: 620)
                 }
             }
             // Hauteur idéale = hauteur du contenu : le popover s'y ajuste seul

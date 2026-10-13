@@ -27,19 +27,16 @@ struct HourlyPatternView: View {
     var body: some View {
         let data = pattern
 
-        VStack(alignment: .leading, spacing: 8) {
+        VStack(alignment: .leading, spacing: Theme.Spacing.title) {
             if data.dayCount < Self.minimumDays {
-                Text("Log a few days to see when you drink.",
-                     comment: "Hourly pattern empty state")
-                    .font(Theme.Font.callout)
-                    .foregroundColor(.secondary)
-                    .frame(maxWidth: .infinity, minHeight: 60)
+                StatsEmptyState(systemImage: "clock",
+                                message: Text("Log a few days to see when you drink.",
+                                              comment: "Hourly pattern empty state"))
             } else {
                 insight(for: data.averages)
                 chart(for: data.averages)
             }
         }
-        .padding(.horizontal, 16)
     }
 
     // MARK: Phrase de synthèse
@@ -74,6 +71,10 @@ struct HourlyPatternView: View {
                 .cornerRadius(2)
             }
         }
+        // Une demi-colonne de retrait de chaque côté (280 pt / 24 h / 2) : les
+        // barres de 0 h et de 23 h, centrées sur les bords du tracé, débordaient
+        // de moitié sur la marge.
+        .chartXScale(range: .plotDimension(padding: 6))
         .chartXAxis {
             AxisMarks(values: [0, 6, 12, 18]) { value in
                 AxisValueLabel {
@@ -116,9 +117,7 @@ struct HourlyPatternView: View {
                         .font(Theme.Font.footnote)
                         .foregroundColor(.secondary)
                 }
-                .padding(6)
-                .background(.ultraThinMaterial)
-                .cornerRadius(6)
+                .statsTooltip()
             }
         }
         .frame(height: 110)
