@@ -34,4 +34,4 @@ The desktop widget and the Control Center button are not available in the direct
 
 **Requirements:** macOS 15.1 or later, on Apple Silicon or Intel.
 
-Everything that arrived in 2.0 is in the [2.0 release notes](RELEASE_NOTES_v2.0.md).
+Everything that arrived in 2.0 is in the [2.0 release notes](https://github.com/aedhx/HydroBar/blob/main/docs/releases/RELEASE_NOTES_v2.0.md).
