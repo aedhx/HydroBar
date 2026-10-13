@@ -491,11 +491,11 @@ clic : l'ajout d'une friction pour chaque verre tuerait l'usage principal.
 > **Avancement (revue n°3).** Cause du retrait identifiée et corrigée :
 > l'entitlement App Group de l'extension était vide, le widget ne voyait donc
 > jamais les données de l'app (audit R3-3). Presets réels, timeline jusqu'à minuit
-> et synchronisation par notification Darwin sont livrés (`ba9c754`). Reste le
+> et synchronisation par notification Darwin sont livrés (`b2de51b`). Reste le
 > `ControlWidget`, et un test sur un Mac signé avec le Team ID.
 
 Le widget est **déjà écrit** (`HydroBarWidget/`, 285 lignes, familles small et medium,
-boutons interactifs via App Intents) mais retiré de la v1.2 (commit `c84b203`).
+boutons interactifs via App Intents) mais retiré de la v1.2 (commit `0b2f096`).
 Avant de le réactiver, traiter
 [P0-6](AUDIT_TECHNIQUE.md#p0-6--cible-de-déploiement-du-widget--macos-262) (cible
 macOS 26.2 contre 15.1 pour l'app) et **identifier la vraie cause du retrait** : la
