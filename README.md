@@ -158,9 +158,11 @@ Read the [privacy policy](PRIVACY.md).
 ### Mac App Store
 
 <!-- Replace with the App Store link once the app is live: https://apps.apple.com/app/idXXXXXXXXXX -->
-Coming soon. The link will be here and on [hydrobar.adx.cool](https://hydrobar.adx.cool/). Updates will come through the App Store.
+Coming soon, for €1.99 (one-time). The link will be here and on [hydrobar.adx.cool](https://hydrobar.adx.cool/). This version adds the desktop widget, the Control Center button and automatic updates, and buying it supports HydroBar's development.
 
 ### Direct download
+
+Free, and the same app.
 
 1. Download `HydroBar-v2.0.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
 2. Open it and drag **HydroBar** into Applications.

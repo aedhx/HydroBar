@@ -102,7 +102,7 @@ review parlent du bouton du Centre de contrôle.
 | **Classification par âge** | « Aucun » partout → 4+ |
 | **Catégories** | Principale : Santé et forme. Secondaire : Productivité |
 | **Droits sur le contenu** | Pas de contenu tiers |
-| **Prix et disponibilité** | Ton choix : gratuit, ou un prix fixe. Tous les pays |
+| **Prix et disponibilité** | 1,99 € (pays de référence : France ; Apple convertit pour les autres), réglé le 13 octobre 2026. Une app payante demande que l'accord « Apps payantes » soit actif (Activité › Accords, avec coordonnées bancaires et fiscales). Tous les pays. Le DMG de GitHub reste gratuit ; la fiche du Store n'en parle pas. |
 | **Coordonnées pour la review** | Ton nom, e-mail, téléphone. Pas de compte de démo : l'app n'a pas de connexion |
 
 ### Envoyer la fiche texte
