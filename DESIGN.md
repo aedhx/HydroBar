@@ -172,17 +172,17 @@ components:
 
 **Creative North Star: "The Ring on the Desktop"**
 
-HydroBar's web surfaces are the Mac itself, magnified. A macOS wallpaper, green at the top left and deep blue at the bottom right with soft waves, is the ground of every page. Each section is a window of frosted glass set on that desktop with a visible gap around it, the way the app's popover sits over whatever is behind it. The menu bar ring, a few pixels wide in the real menu bar, is the hero object, blown up until it overflows its window and carries the whole story.
+HydroBar's web surfaces are the Mac itself, magnified. A macOS wallpaper, green at the top left and deep blue at the bottom right with soft waves, is the ground of every page. Each section is a window of frosted glass set on that desktop with a visible gap around it, the way the app's popover sits over whatever is behind it. The hero is the app itself: HydroBar's popover hangs from the ring in the site's menu bar and works (presets, Hold to Add, today's log, undo). Behind it, the menu bar ring is blown up to page scale; when the popover closes, the ring comes forward with the day's percentage.
 
 The palette and the material are the app's, not an interpretation of it: macOS systemBlue to systemCyan for water, systemGreen to systemMint for a reached goal, a 30% gray for the unfilled track, and translucent dark or light material with a bright rim. Bricolage Grotesque gives the headlines a warm, slightly irregular voice; Instrument Sans does the explaining. Interface pieces such as notifications, preset buttons, the menu bar and the monthly recap card are recreated faithfully from the app's SwiftUI views and strings, so the page proves the product by showing it.
 
-Density is calm: large type, generous section padding, one idea per window. Motion is eased and quiet: arcs fill, numbers change, nothing bounces. Both light and dark color schemes are first-class.
+Density is calm: large type, generous section padding, one idea per window. Motion has two registers. The page eases: content rises in once, arcs fill, a selector's thumb slides. The recreated app moves the way the app does: its ring settles with a small spring, numbers roll, a preset flashes when hit, and reaching the goal bursts once. Both light and dark color schemes are first-class.
 
 **Key Characteristics:**
 - A fixed macOS wallpaper behind everything; every section is a glass pane over it.
 - Water is blue to cyan, the goal is green to mint, the empty track is neutral gray.
 - Rings, arcs and dials are the primary graphic language, from the 22px brand mark to a ring larger than the viewport.
-- Real macOS interface recreated, never illustrated or described.
+- Real macOS interface recreated, never illustrated or described, and working wherever it can: one shared day state drives the popover, the menu bar icon, the widget and the icon's menu.
 - Bricolage Grotesque headlines over Instrument Sans text, in light and dark.
 
 ## Colors
@@ -250,7 +250,7 @@ The build's numeral stack currently names a rounded system face ahead of Bricola
 
 The page is a desktop with windows on it. A fixed 44px menu bar runs across the top. Below it, each section is a pane set 14px in from the viewport and from its neighbours (8px under 760px), so the wallpaper shows in every gap. Content inside a pane is held to 1240px and padded inline by clamp(20px, 4vw, 56px). Light panes breathe with clamp(96px, 13vw, 176px) of block padding; dark bands use clamp(96px, 12vw, 160px), and the close goes up to clamp(110px, 14vw, 190px).
 
-The story is a pinned stage: a dark window 58px below the top (52px on phones), as tall as the viewport minus 72px, which stays put while about nine viewports of scroll step through the day. Its ring is 108% of the window's height (at least 760px), offset right and up so the window's edges crop it. Copy sits in a column of min(540px, 42vw) on the left. Under 760px the ring becomes 124vw wide, dropping below the call to action and cropping at the bottom right.
+The story is a pinned stage: a dark window 58px below the top (52px on phones), as tall as the viewport minus 72px, which stays put while about six and a half viewports of scroll move through the day. Scrolling sets a target and the display eases toward it frame by frame, so the clock and the pace ticks glide from one moment to the next instead of jumping. The popover hangs from the menu bar icon, scaled to the window's height; the big ring is centered on it and sized so its hole contains the popover. In notification moments the popover closes, the ring scales down to fit the window and shows the percentage, and the notification sits top right, where macOS puts it. Copy sits in a column of min(520px, 36vw) on the left. Under 760px the popover moves to the bottom of the window and the notification below the ring.
 
 Inside panes, content is two columns with a clamp(40px, 6vw, 96px) gap, collapsing to one column at 900px (860px or 760px for some grids). Feature lists are rows divided by hairlines rather than grids of cards. Twelve month rings sit in a 12-column row, wrapping to 6 under 760px.
 
@@ -258,7 +258,9 @@ Breakpoints: 560px, 760px, 860px, 900px.
 
 ## Elevation & Depth
 
-Depth is material, not shadow stacking. A single raster wallpaper (2560×1600, rendered from an authored SVG; a CSS gradient from #6aa98f through #3f86a6 and #3060c0 to #22389e stands in while it loads) is fixed behind everything. Every pane is translucent material blurred with `backdrop-filter: blur(28px) saturate(170%)`, so the wallpaper's waves and colors move through it. Each glass pane carries a rim: a bright 1px top highlight, a 1px inner hairline and one wide soft drop.
+Depth is material, not shadow stacking. A single raster wallpaper (2560×1600, rendered from an authored SVG; a CSS gradient from #6aa98f through #3f86a6 and #3060c0 to #22389e stands in while it loads) is fixed behind everything. Every pane shows that wallpaper blurred and saturated (`blur(28px) saturate(170%)`) under its material tint, so the waves and colors move through it as the page scrolls. The blur is not computed live: `wallpaper-blur.jpg` is the wallpaper blurred once, drawn on a fixed layer that each pane reveals through a rounded `clip-path` (`.pane > .glass`). The result is the same picture as a backdrop filter, without re-blurring a window-sized area on every scroll frame. Live `backdrop-filter` is kept for small surfaces over moving content: the popover, notifications, the widget and the menu. Each glass pane carries a rim: a bright 1px top highlight, a 1px inner hairline and one wide soft drop.
+
+A **desk** (`.desk`) is the opposite cut: an opening in a pane that shows the sharp wallpaper, where app interface is set down as it would be on the desktop.
 
 ### Shadow Vocabulary
 - **Rim, dark glass** (`inset 0 1px 0 rgba(255,255,255,.26), inset 0 0 0 1px rgba(255,255,255,.12), 0 24px 60px rgba(0,0,0,.22)`): every dark pane and the story stage.
@@ -307,8 +309,14 @@ A 44px bar fixed to the top: the app icon and "HydroBar" in Bricolage 760 17px, 
 ### Notification plate (signature)
 A faithful macOS notification: 400px wide, Plate material with the plate shadow, 18px corners, a 38px app icon, a bold 14px title, a 14px body, a 12px "now", and action chips (white at 12%, 8px corners) carrying the user's presets. Its type follows the Mac's own system text face (falling back to Instrument Sans) because it reproduces macOS.
 
+### The app popover (signature)
+HydroBar's popover at its real 320px, scaled with `zoom`: dark glass with the plate rim, a header with the chart and gear icons, the 180px ring (12px stroke, pace tick, percentage, amounts, pace caption), the day chip, three preset keys, the Hold to Add button, today's log and Reset my day. Its type is the Mac's system face. In the hero it is live; the chart icon switches it to Statistics. The Statistics view (two tiles, the monthly recap card, twelve year bars with the goal line, the streak) is also shown on a desk in the Progress section.
+
 ### The ring (signature)
-A thick-stroked circle: Track Gray underneath, a round-capped water-gradient arc on top, a light pace tick, and the Numeral percentage in the middle. At the goal the arc switches to the goal gradient, the window takes Goal Glass and a green check disc appears. The same anatomy scales from the 18px menu bar mini ring to the dial and the twelve month rings.
+A thick-stroked circle: Track Gray underneath, a round-capped water-gradient arc on top, a light pace tick, and the Numeral percentage in the middle. At the goal the arc switches to the goal gradient, the window takes a green tint and a green check disc appears; past 100% a second, darker lap starts. The same anatomy scales from the 18px menu bar mini ring to the popover, the widget, the dial and the page-scale ring behind the popover.
+
+### Mac App Store badge
+A black, 14px-rounded badge with the Apple mark, a small line and "Mac App Store". While the listing is not live it reads "Coming soon to the" and is not a link; setting `APP_STORE_URL` turns it into "Download on the" and links it. At launch, replace it with Apple's official badge artwork.
 
 ### Recap card
 The app's monthly recap card: the Recap Blue gradient at 135°, 22px corners, 30px padding, a 64px Numeral total and white text at 88% for secondary lines.
@@ -316,11 +324,13 @@ The app's monthly recap card: the Recap Blue gradient at 135°, 22px corners, 30
 ## Do's and Don'ts
 
 ### Do:
-- **Do** set every section as a glass pane over the wallpaper: 14px gaps (8px under 760px), 30px corners (24px), the matching rim, `blur(28px) saturate(170%)`.
+- **Do** set every section as a glass pane over the wallpaper: 14px gaps (8px under 760px), 30px corners (24px), the matching rim, and the pre-blurred fixed layer (`.pane` with a `.glass` child).
+- **Do** keep anything that holds a `.glass` or a `.desk` free of `transform`, `filter` and `backdrop-filter` on itself and its ancestors: they would capture the fixed layer.
 - **Do** use dark material for the story, the bottle band, privacy, the close and the footer, and light material for explanatory sections; in dark mode the light material becomes rgba(36, 38, 46, .7) with the dark rim.
 - **Do** recreate macOS interface from the app's own views and strings (notifications, presets, menu bar, recap card) instead of illustrating it.
 - **Do** let the site menu bar follow the ground beneath it: dark glass over dark panes, the light bar over light panes.
-- **Do** ease every transition with cubic-bezier(.16, 1, .3, 1): 0.2s for buttons, 0.45–0.6s for content, 0.8–0.9s for arcs and ticks.
+- **Do** ease the page's transitions with cubic-bezier(.16, 1, .3, 1): 0.2s for buttons, 0.45–0.9s for content, around 1s for arcs.
+- **Do** give every control an answer to hover, press and focus, and make recreated interface respond like the app.
 - **Do** collapse every transition to 0.01ms under Reduce Motion, so the day reads as discrete stops.
 
 ### Don't:
@@ -329,4 +339,5 @@ The app's monthly recap card: the Recap Blue gradient at 135°, 22px corners, 30
 - **Don't** tint a ring's empty track blue; it stays Track Gray or Fill.
 - **Don't** replace the raster wallpaper with a flat color or a plain CSS gradient: the glass needs its soft forms to act on. The gradient is only a loading fallback.
 - **Don't** lay features out as a row of equal cards; use hairline-divided rows inside a pane.
-- **Don't** bounce or overshoot: arcs ease, numbers change, nothing springs.
+- **Don't** put a live `backdrop-filter` on a pane-sized surface: that is what made scrolling stutter.
+- **Don't** spring the page itself. The small overshoot (`--spring`) belongs to the recreated app: its ring, its checkmark, a key being pressed.

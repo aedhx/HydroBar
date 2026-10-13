@@ -17,6 +17,7 @@
 <link rel="apple-touch-icon" href="assets/icon-256.png">
 <link rel="preload" href="assets/fonts/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="preload" href="assets/fonts/instrument-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/wallpaper-blur.jpg" as="image">
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -48,13 +49,19 @@
     --action: #0068d6;        /* bleu des boutons portant du texte : contraste AA */
     /* Le bureau et ses matières, comme le popover de l'app. */
     --wallpaper: url(assets/wallpaper.jpg) center / cover no-repeat, linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e);
+    /* Le même fond d'écran, flouté et saturé une fois pour toutes (blur 28px,
+       saturate 170 %) : le verre des fenêtres le montre au lieu de le recalculer
+       à chaque image du défilement. */
+    --wallpaper-blur: url(assets/wallpaper-blur.jpg) center / cover no-repeat, linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e);
     --mat-dark: rgba(24, 26, 33, .62);
     --mat-deep: rgba(14, 16, 22, .72);
     --mat-light: rgba(250, 250, 252, .72);
     --glass: blur(28px) saturate(170%);
     /* Le liseré du verre de l'app : un reflet en haut, un filet tout autour. */
-    --rim-dark: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22);
-    --rim-light: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .55), 0 24px 60px rgba(0, 0, 0, .14);
+    --rim-dark: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12);
+    --rim-light: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .55);
+    --drop-dark: 0 24px 60px rgba(0, 0, 0, .22);
+    --drop-light: 0 24px 60px rgba(0, 0, 0, .14);
     --label-on-dark: #ffffff;
     --label-on-dark-2: #c9d6ee;   /* secondaire teinté du bleu des fenêtres */
     --ink: #1d1d1f;
@@ -64,17 +71,22 @@
     --bar-light: rgba(250, 250, 252, .97);
     --blue: var(--water);
     --green: var(--goal);
-    --navy: #1c1d22;
     --display: "Bricolage Grotesque", ui-rounded, system-ui, sans-serif;
     --rounded: "SF Pro Rounded", ui-rounded, "Bricolage Grotesque", system-ui, sans-serif;
     --text: "Instrument Sans", system-ui, -apple-system, sans-serif;
+    --mac: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Instrument Sans", system-ui, sans-serif;
     --ease-out: cubic-bezier(.16, 1, .3, 1);
+    /* Le ressort de l'app : l'anneau dépasse un peu, puis se pose. */
+    --spring: cubic-bezier(.34, 1.4, .5, 1);
+    --r: 30px;
     color-scheme: light;
   }
+  @media (max-width: 760px) { :root { --r: 24px; } }
   @media (prefers-color-scheme: dark) {
     :root:not([data-theme="light"]) {
       --mat-light: rgba(36, 38, 46, .7);
       --rim-light: var(--rim-dark);
+      --drop-light: var(--drop-dark);
       --bar-light: rgba(36, 38, 46, .97);
       --ink: #f5f5f7; --ink-2: #c9d6ee;
       --fill: rgba(120, 120, 128, .32); --line: rgba(255, 255, 255, .12);
@@ -84,7 +96,8 @@
 
   /* ---------- Base ---------- */
   *, *::before, *::after { box-sizing: border-box; }
-  html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--water) transparent; background: #3060c0; }
+  html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--water) transparent; background: #3060c0; scroll-padding-top: 58px; interpolate-size: allow-keywords; }
+  @media (prefers-reduced-motion: no-preference) { html { scroll-behavior: smooth; } }
   /* Le bureau : une image fixe derrière toutes les fenêtres de verre. */
   body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); }
   body { margin: 0; color: var(--ink); font: 400 18px/1.6 var(--text); -webkit-font-smoothing: antialiased; caret-color: var(--water); }
@@ -94,103 +107,165 @@
   h3 { font-size: 24px; letter-spacing: -.01em; line-height: 1.2; font-weight: 680; }
   p { margin: 0; text-wrap: pretty; }
   a { color: inherit; text-underline-offset: .22em; text-decoration-thickness: 1.5px; }
+  button { font: inherit; color: inherit; }
   :focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }
   .num { font-variant-numeric: tabular-nums; }
   .wrap { width: min(1240px, 100%); margin-inline: auto; }
   section:not(.story), footer { padding-inline: clamp(20px, 4vw, 56px); }
-  /* Chaque section est une fenêtre de verre posée sur le bureau. */
-  main > section:not(.story), footer { margin: 14px; border-radius: 30px; }
-  main > section:not(.story):not(.light-section), footer, .stage { box-shadow: var(--rim-dark); }
-  .light-section { box-shadow: var(--rim-light); }
-  footer { margin-top: 0; }
-  @media (max-width: 760px) { main > section:not(.story), footer { margin: 8px; border-radius: 24px; } }
   .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
   section { position: relative; }
 
+  /* ---------- Les fenêtres de verre ----------
+     Chaque section est une fenêtre posée sur le bureau. Son verre est une
+     découpe (.glass) qui laisse voir un calque fixe : le fond d'écran déjà
+     flouté, teinté par la matière. Au défilement, rien n'est recalculé — le
+     calque ne bouge pas, seule la découpe se déplace. */
+  .pane { position: relative; isolation: isolate; border-radius: var(--r); --tint: var(--mat-dark); box-shadow: var(--drop-dark); }
+  .pane > .glass { position: absolute; inset: 0; z-index: -1; border-radius: inherit; clip-path: inset(0 round var(--r)); pointer-events: none; }
+  .pane > .glass::before { content: ""; position: fixed; inset: 0; background: linear-gradient(var(--tint), var(--tint)), var(--wallpaper-blur); }
+  .pane > .glass::after { content: ""; position: absolute; inset: 0; border-radius: inherit; box-shadow: var(--rim-dark); transition: background-color .6s; }
+  main > .pane, footer.pane { margin: 14px; }
+  footer.pane { margin-top: 0; }
+  @media (max-width: 760px) { main > .pane, footer.pane { margin: 8px; } footer.pane { margin-top: 0; } }
+  .light-section { --tint: var(--mat-light); box-shadow: var(--drop-light); padding-block: clamp(96px, 13vw, 176px); }
+  .light-section > .glass::after { box-shadow: var(--rim-light); }
+  .deep { --tint: var(--mat-deep); }
+
+  /* Une ouverture dans le verre : le bureau net, pour y poser l'interface de l'app. */
+  .desk { position: relative; isolation: isolate; border-radius: 22px; clip-path: inset(0 round 22px); }
+  .desk::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); }
+  .desk::after { content: ""; position: absolute; inset: 0; border-radius: inherit; pointer-events: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22), inset 0 2px 14px rgba(0, 0, 0, .28); }
+
+  /* Apparition des contenus à leur entrée dans la fenêtre. */
+  .js [data-reveal] { opacity: 0; transform: translateY(20px); transition: opacity .7s var(--ease-out), transform .9s var(--ease-out); transition-delay: calc(var(--i, 0) * 70ms); }
+  .js [data-reveal].in { opacity: 1; transform: none; }
+  /* Un calque fixe ne supporte pas d'ancêtre transformé : le bureau n'apparaît qu'en fondu. */
+  .js .desk[data-reveal] { transform: none; }
+
   /* ---------- Boutons ---------- */
-  .btn { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 28px; border-radius: 14px; font: 650 18px/1 var(--text); text-decoration: none; cursor: pointer; border: 0; transition: transform .2s var(--ease-out), background-color .2s; }
-  .btn:hover { transform: translateY(-1px); }
-  .btn:active { transform: translateY(1px); }
-  .btn-light, .btn-blue { background: var(--action); color: #fff; }
-  .btn-light:hover, .btn-blue:hover { background: #005ec2; }
-  .btn-dark { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); backdrop-filter: var(--glass); }
+  .btn { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 28px; border-radius: 14px; font: 650 18px/1 var(--text); text-decoration: none; cursor: pointer; border: 0; transition: transform .25s var(--ease-out), background-color .2s, box-shadow .25s; }
+  .btn:hover { transform: translateY(-2px); }
+  .btn:active { transform: translateY(0) scale(.97); transition-duration: .08s; }
+  .btn-light, .btn-blue { background: var(--action); color: #fff; box-shadow: 0 0 0 0 rgba(0, 104, 214, 0); }
+  .btn-light:hover, .btn-blue:hover { background: #005ec2; box-shadow: 0 10px 26px rgba(0, 60, 150, .34); }
+  .btn-dark { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); }
   .btn[aria-disabled="true"] { background: transparent; color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .6); cursor: default; transform: none; }
+  /* Le badge du Mac App Store. Tant que l'app n'est pas en ligne, il annonce son
+     arrivée et ne mène nulle part ; avec APP_STORE_URL, il devient le lien. */
+  .mas { display: inline-flex; align-items: center; gap: 12px; min-height: 56px; padding: 0 22px 0 18px; border-radius: 14px; background: #000; color: #fff; text-decoration: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .34); transition: transform .25s var(--ease-out), box-shadow .25s; }
+  .mas svg { width: 26px; height: 26px; flex: none; margin-top: -3px; }
+  .mas span { display: grid; text-align: left; font: 500 11px/1.15 var(--mac); letter-spacing: .01em; }
+  .mas b { font: 600 20px/1.1 var(--mac); letter-spacing: -.01em; }
+  a.mas:hover { transform: translateY(-2px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .5), 0 10px 26px rgba(0, 0, 0, .4); }
+  .mas[aria-disabled="true"] { cursor: default; }
+  .mas[aria-disabled="true"] svg, .mas[aria-disabled="true"] b { opacity: .78; }
   .link-arrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; }
   .link-arrow svg { width: 18px; height: 18px; transition: transform .3s var(--ease-out); }
   .link-arrow:hover svg { transform: translateY(3px); }
 
   /* ---------- Barre de menus du site ---------- */
   .menubar {
-    position: fixed; inset: 0 0 auto; z-index: 30; height: 44px; display: flex; align-items: center; gap: 28px; padding: 0 22px;
-    font: 500 15px var(--text); color: #fff; background: rgba(28, 30, 38, .9); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
+    position: fixed; inset: 0 0 auto; z-index: 30; height: 44px; display: flex; align-items: center; gap: 28px;
+    padding: 0 max(22px, calc((100vw - 1640px) / 2));
+    font: 500 15px var(--text); color: #fff; background: rgba(28, 30, 38, .94);
     transition: background-color .35s, color .35s;
   }
   .menubar.light { color: var(--ink); background: var(--bar-light); box-shadow: 0 1px 0 var(--line); }
   .menubar .brand { display: flex; align-items: center; gap: 9px; font: 760 17px var(--display); text-decoration: none; letter-spacing: -.01em; }
-  .menubar .brand img { width: 22px; height: 22px; border-radius: 5px; }
+  .menubar .brand img { width: 22px; height: 22px; border-radius: 5px; transition: transform .5s var(--spring); }
+  .menubar .brand:hover img { transform: rotate(-8deg) scale(1.1); }
   .menubar nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; }
-  .menubar nav a { text-decoration: none; opacity: .92; }
-  .menubar nav a:hover { opacity: 1; text-decoration: underline; }
+  .menubar nav a { position: relative; text-decoration: none; opacity: .92; padding: 4px 0; }
+  .menubar nav a::after { content: ""; position: absolute; left: 0; right: 0; bottom: 0; height: 1.5px; background: currentColor; transform: scaleX(0); transform-origin: left; transition: transform .35s var(--ease-out); }
+  .menubar nav a:hover { opacity: 1; }
+  .menubar nav a:hover::after, .menubar nav a[aria-current="true"]::after { transform: scaleX(1); }
   .menubar .status { margin-left: auto; display: flex; align-items: center; gap: 14px; }
-  .menubar .mini { display: grid; place-items: center; width: 30px; height: 24px; border-radius: 6px; background: rgba(255, 255, 255, .2); }
-  .menubar.light .mini { background: var(--fill); }
-  .menubar .mini circle { transition: stroke-dasharray .5s var(--ease-out); }
+  /* L'icône de HydroBar : un clic ouvre ou ferme le popover, comme dans la vraie barre. */
+  .menubar .mini { position: relative; display: grid; place-items: center; width: 30px; height: 24px; padding: 0; border: 0; border-radius: 6px; background: transparent; cursor: pointer; transition: background-color .2s; }
+  .menubar .mini:hover, .menubar .mini[aria-expanded="true"] { background: rgba(255, 255, 255, .2); }
+  .menubar.light .mini:hover, .menubar.light .mini[aria-expanded="true"] { background: var(--fill); }
+  .menubar .mini circle { transition: stroke-dashoffset .6s var(--ease-out), stroke .4s; }
+  .menubar .mini.flash svg { animation: flash .5s var(--ease-out); }
+  @keyframes flash { 30% { transform: scale(1.28); } }
+  /* « +250 ml » sous l'icône quand on boit sans ouvrir HydroBar. */
+  .mb-toast { position: absolute; top: 30px; left: 50%; padding: 4px 9px; border-radius: 7px; font: 650 12px/1.2 var(--mac); white-space: nowrap; color: #fff; background: rgba(40, 42, 52, .92); box-shadow: 0 6px 18px rgba(0, 0, 0, .3), inset 0 0 0 1px rgba(255, 255, 255, .14); opacity: 0; transform: translate(-50%, -6px); pointer-events: none; }
+  .mb-toast.show { animation: toast 1.5s var(--ease-out); }
+  @keyframes toast { 0% { opacity: 0; transform: translate(-50%, -6px); } 14%, 72% { opacity: 1; transform: translate(-50%, 0); } 100% { opacity: 0; transform: translate(-50%, 4px); } }
+  /* Le point vert de macOS : une app utilise la caméra. */
+  .menubar .cam { width: 8px; height: 8px; border-radius: 50%; background: var(--goal); opacity: 0; transform: scale(.4); transition: opacity .3s, transform .4s var(--spring); margin-right: -6px; }
+  .menubar.on-call .cam { opacity: 1; transform: none; }
   .menubar .clock { min-width: 8.5em; text-align: right; }
   .menubar .get { min-height: 32px; padding: 0 14px; border-radius: 9px; font-size: 14px; }
   @media (max-width: 900px) { .menubar nav, .menubar .clock { display: none; } }
 
-  /* ---------- L'histoire : l'anneau et la journée ---------- */
+  /* ---------- L'histoire : l'app, puis la journée qui remplit son anneau ---------- */
   .story { color: var(--label-on-dark); }
-  .stage { background: var(--mat-dark); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); transition: background-color .6s; }
-  .story.goal .stage { background: rgba(14, 40, 30, .66); }
-  .js .story { height: 940vh; }
-  .stage { position: relative; min-height: calc(100vh - 72px); margin: 58px 14px 14px; border-radius: 30px; overflow: hidden; }
+  .js .story { height: 660vh; }
+  .stage {
+    --pz: 1.2; --pop-left: 60%; --pop-top: -7px; --arrow: 160px; --pop-cx: 72%; --pop-cy: 42%;
+    --halo-d: max(calc((100vh - 72px) * 1.08), 760px);
+    min-height: calc(100vh - 72px); margin: 58px 14px 14px;
+  }
   .js .stage { position: sticky; top: 58px; height: calc(100vh - 72px); }
+  .story.goal .stage > .glass::after { background-color: rgba(12, 84, 52, .26); }
   @media (max-width: 760px) {
-    .stage { margin: 52px 8px 8px; border-radius: 24px; min-height: calc(100svh - 60px); }
+    .stage { margin: 52px 8px 8px; min-height: calc(100svh - 60px); }
     .js .stage { top: 52px; height: calc(100svh - 60px); }
   }
+  /* Seul le grand anneau est rogné par la fenêtre ; le popover, lui, la dépasse
+     pour toucher la barre de menus. */
+  .stage-clip { position: absolute; inset: 0; border-radius: inherit; overflow: hidden; pointer-events: none; }
 
-  .ring-wrap {
-    --d: max(calc((100vh - 72px) * 1.08), 760px);
-    position: absolute; width: var(--d); height: var(--d);
-    right: calc(var(--d) * -.21); top: calc(var(--d) * -.02);
-  }
-  .ring-wrap > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
-  .ring-wrap .arc { transition: stroke-dasharray .9s var(--ease-out); }
-  .ring-wrap .tick { transition: transform .9s var(--ease-out); }
-  .ring-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
-  .pct { font: 700 calc(var(--d) * .2)/.86 var(--rounded); letter-spacing: -.04em; }
-  .pct-sub { margin-top: calc(var(--d) * .025); font: 600 clamp(17px, 1.7vw, 24px)/1.3 var(--text); color: var(--label-on-dark-2); }
-  .pct-check { display: block; width: calc(var(--d) * .1); height: calc(var(--d) * .1); margin: 0 auto calc(var(--d) * .02); opacity: 0; transform: scale(.6); transition: opacity .4s, transform .5s var(--ease-out); }
-  .story.goal .pct-check { opacity: 1; transform: none; }
-  .tick-label { position: absolute; font: 600 15px/1.25 var(--text); color: #fff; white-space: nowrap; transform: translate(-50%, -50%); transition: left .9s var(--ease-out), top .9s var(--ease-out); }
-  .tick-label small { display: block; font-weight: 500; color: var(--label-on-dark-2); }
+  /* L'anneau de la barre de menus, à l'échelle de la page, derrière le popover. */
+  .halo { position: absolute; width: var(--halo-d); height: var(--halo-d); left: calc(var(--pop-cx) - var(--halo-d) / 2); top: calc(var(--pop-cy) - var(--halo-d) / 2); }
+  .halo { transition: transform 1s var(--ease-out); }
+  .halo svg { width: 100%; height: 100%; overflow: visible; }
+  .scene-closed .halo { transform: translate(var(--halo-dx, 0px), var(--halo-dy, 0px)) scale(var(--halo-scale, 1)); }
+  /* Le pourcentage de l'anneau, quand le popover n'est pas là pour le dire. */
+  .halo-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; opacity: 0; transform: scale(.94); transition: opacity .3s, transform .6s var(--ease-out); }
+  .scene-closed .halo-center { opacity: 1; transform: none; transition: opacity .5s .2s, transform .8s var(--ease-out) .2s; }
+  .halo-pct { font: 700 calc(var(--halo-d) * .2)/.86 var(--rounded); letter-spacing: -.04em; }
+  .halo-sub { margin-top: calc(var(--halo-d) * .025); font: 600 calc(var(--halo-d) * .024)/1.3 var(--text); color: var(--label-on-dark-2); }
+  .halo .arc { transition: stroke-dashoffset 1s var(--ease-out), opacity .3s; }
 
-  .hero-copy, .js .event-panel { position: absolute; left: max(24px, calc((100vw - 1240px) / 2)); width: min(540px, 42vw); }
-  html:not(.js) .event-panel { position: relative; padding: 100vh max(24px, calc((100vw - 1240px) / 2)) 0; }
-  .hero-copy { top: 50%; transform: translateY(-46%); transition: opacity .5s, transform .6s var(--ease-out); }
-  .hero-copy h1 { font-size: clamp(48px, 6.4vw, 96px); letter-spacing: -.035em; }
+  .hero-copy, .event-text { position: absolute; left: max(24px, calc((100vw - 1240px) / 2)); width: min(520px, 36vw); }
+  .hero-copy { top: 50%; transform: translateY(-46%); transition: opacity .5s, transform .7s var(--ease-out); }
+  .hero-copy h1 { font-size: clamp(44px, 5.6vw, 88px); letter-spacing: -.035em; }
   .hero-copy p { margin-top: 26px; font-size: clamp(18px, 1.5vw, 21px); color: var(--label-on-dark-2); max-width: 30em; }
-  .hero-copy .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; margin-top: 40px; }
+  .hero-copy .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 14px 16px; margin-top: 40px; }
+  .hero-copy .link-arrow { flex-basis: 100%; margin-top: 10px; }
   .hero-copy .meta { margin-top: 22px; font-size: 15px; color: var(--label-on-dark-2); }
   .story.past-hero .hero-copy { opacity: 0; transform: translateY(-60%); pointer-events: none; }
+  /* L'entrée : le titre, le texte, les boutons, puis le popover qui s'ouvre. */
+  .js .hero-copy > * { animation: rise .9s var(--ease-out) both; animation-delay: calc(var(--i, 0) * 90ms + 80ms); }
+  @keyframes rise { from { opacity: 0; transform: translateY(22px); } }
 
   /* Sans JS : la journée se lit comme une liste. Avec JS : un seul moment à la fois. */
   .events { list-style: none; margin: 0; padding: 48px 24px 96px; }
-  .js .events { padding: 0; }
   .event { padding: 32px 0; }
-  .js .event { position: absolute; inset: auto 0 auto 0; top: 50%; transform: translateY(-42%); opacity: 0; visibility: hidden; transition: opacity .45s, transform .6s var(--ease-out), visibility 0s .45s; }
-  .js .event.on { opacity: 1; visibility: visible; transform: translateY(-50%); transition: opacity .45s, transform .6s var(--ease-out); }
-  .js .event-panel { top: 0; bottom: 0; }
+  html:not(.js) .event-text { position: static; width: auto; max-width: 34em; }
+  html:not(.js) .hero-copy { top: calc((100vh - 72px) / 2); }
+  html:not(.js) .events { padding: calc(100vh - 40px) max(24px, calc((100vw - 1240px) / 2)) 96px; }
+  .js .events { padding: 0; }
+  .js .event-panel { position: absolute; inset: 0; pointer-events: none; }
+  .js .event { position: absolute; inset: 0; padding: 0; visibility: hidden; transition: visibility 0s .5s; }
+  .js .event.on { visibility: visible; transition: none; }
+  .js .event-text { top: 50%; transform: translateY(-42%); opacity: 0; transition: opacity .45s, transform .7s var(--ease-out); }
+  .js .event.on .event-text { opacity: 1; transform: translateY(-50%); }
   .event time { display: block; font: 700 clamp(56px, 6vw, 92px)/.9 var(--rounded); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
   .event time small { font-size: clamp(21px, 2.3vw, 35px); letter-spacing: 0; margin-left: .2em; color: var(--label-on-dark-2); }
   .event .what { margin-top: 18px; font-size: clamp(18px, 1.5vw, 21px); color: var(--label-on-dark-2); max-width: 28em; }
   .event .what strong { color: #fff; font-weight: 600; }
-  .event .plate { margin-top: 26px; }
+  .event .held { margin-top: 26px; }
+  /* Le fil de la journée : neuf moments, celui en cours plus long. */
+  .day-rail { position: absolute; left: max(24px, calc((100vw - 1240px) / 2)); bottom: 34px; display: flex; gap: 6px; opacity: 0; transition: opacity .4s; }
+  .story.past-hero .day-rail { opacity: 1; }
+  .day-rail i { width: 8px; height: 4px; border-radius: 2px; background: rgba(255, 255, 255, .28); transition: width .5s var(--ease-out), background-color .3s; }
+  .day-rail i.on { width: 30px; background: #fff; }
+  .day-rail i.done { background: rgba(255, 255, 255, .62); }
 
-  /* Plaques macOS : recréations fidèles de l'interface de l'app. */
-  .note { width: min(400px, 100%); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); color: #f5f5f7; box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); font-family: -apple-system, BlinkMacSystemFont, var(--text); }
+  /* Notifications : recréations fidèles de macOS, à leur place en haut à droite. */
+  .note { width: min(400px, 100%); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); color: #f5f5f7; box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); font-family: var(--mac); margin-top: 26px; }
   .note img { width: 38px; height: 38px; border-radius: 9px; }
   .note b { font-size: 14px; font-weight: 650; }
   .note .body { font-size: 14px; line-height: 1.38; margin-top: 1px; }
@@ -199,30 +274,142 @@
   .note .actions span { font-size: 13px; font-weight: 550; padding: 5px 11px; border-radius: 8px; background: rgba(255, 255, 255, .12); }
   .note .actions .typed { background: rgba(0, 0, 0, .28); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); min-width: 110px; display: flex; justify-content: space-between; gap: 18px; }
   .note .actions .typed em { font-style: normal; color: #64d2ff; font-weight: 650; }
-  .presets-plate { display: inline-flex; gap: 8px; padding: 12px; border-radius: 16px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); }
-  .presets-plate span { font: 550 14px -apple-system, var(--text); color: #f5f5f7; padding: 10px 18px; border-radius: 9px; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
-  .presets-plate span.hit { background: var(--action); }
+  .note .actions .typed b::after { content: ""; display: inline-block; width: 1.5px; height: 1em; margin-left: 2px; vertical-align: -2px; background: #64d2ff; animation: caret 1s steps(1) infinite; }
+  @keyframes caret { 50% { opacity: 0; } }
+  .js .event .note { position: absolute; top: 14px; right: 14px; margin: 0; width: 400px; opacity: 0; transform: translateX(46px); transition: opacity .3s, transform .5s var(--ease-out); pointer-events: auto; }
+  .js .event.on .note { opacity: 1; transform: none; transition: opacity .4s .12s, transform .7s var(--ease-out) .12s; }
   .held { display: inline-flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); font-weight: 600; }
   .held svg { width: 22px; height: 22px; }
 
+  /* ---------- Le popover de l'app, recréé à l'identique ---------- */
+  .pop-anchor { position: absolute; left: var(--pop-left); top: var(--pop-top); z-index: 3; transform-origin: 50% 0; transition: opacity .28s, transform .45s var(--ease-out), visibility 0s; }
+  .js .scene:not(.pop-open) .pop-anchor { opacity: 0; transform: scale(.96) translateY(-8px); visibility: hidden; pointer-events: none; transition: opacity .2s, transform .3s var(--ease-out), visibility 0s .3s; }
+  .js .pop-anchor { animation: pop-in .7s var(--ease-out) .55s both; }
+  @keyframes pop-in { from { opacity: 0; transform: scale(.94) translateY(-10px); } }
+  .popover {
+    --p-ink: #f5f5f7; --p-ink-2: rgba(235, 235, 245, .62); --p-hair: rgba(255, 255, 255, .1);
+    position: relative; width: 320px; zoom: var(--pz); border-radius: 16px; color: var(--p-ink); font: 13px/1.3 var(--mac); text-align: left;
+    background: rgba(34, 36, 44, .8); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%);
+    box-shadow: 0 24px 70px rgba(0, 0, 0, .45), inset 0 1px 0 rgba(255, 255, 255, .22), inset 0 0 0 1px var(--p-hair);
+  }
+  /* La flèche vers l'icône de la barre de menus. */
+  .popover.has-arrow::before { content: ""; position: absolute; top: -6px; left: calc(var(--arrow) - 7px); width: 14px; height: 14px; background: rgba(54, 56, 66, .96); transform: rotate(45deg); border-radius: 3px 0 0 0; box-shadow: inset 1px 1px 0 rgba(255, 255, 255, .2); }
+  .popover button { background: none; border: 0; padding: 0; cursor: pointer; font: inherit; color: inherit; }
+  .popover :focus-visible { outline: 2px solid var(--water-light); outline-offset: 2px; border-radius: 6px; }
+  .p-head { position: relative; display: flex; align-items: center; justify-content: space-between; padding: 12px 20px; background: rgba(255, 255, 255, .04); border-bottom: 1px solid var(--p-hair); border-radius: 16px 16px 0 0; }
+  .p-title { font-size: 15px; font-weight: 600; }
+  .p-ic { display: grid; place-items: center; width: 24px; height: 24px; margin: -4px; border-radius: 6px; color: var(--p-ink-2); transition: color .2s, background-color .2s, transform .3s var(--ease-out); }
+  .p-ic svg { width: 15px; height: 15px; }
+  button.p-ic:hover { background: rgba(255, 255, 255, .1); color: var(--p-ink); }
+  button.p-ic:active { transform: scale(.9); }
+  button.p-ic[aria-pressed="true"] { color: var(--water); }
+  .p-body { padding: 16px 0; display: flex; flex-direction: column; align-items: center; gap: 24px; }
+  .p-body[hidden] { display: none; }
+  .p-view { animation: view-in .35s var(--ease-out); }
+  @keyframes view-in { from { opacity: 0; transform: translateY(6px); } }
+  .p-pad { padding: 0 20px; width: 100%; }
+
+  .p-ring { position: relative; width: 180px; height: 180px; margin-top: 20px; }
+  .p-ring svg.r { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .p-ring .arc, .p-ring .lap { transition: stroke-dashoffset .9s var(--spring), opacity .25s; }
+  .p-ring .tick { transform-origin: 90px 90px; }
+  .p-ring .tick.behind rect { animation: pulse .9s ease-in-out 3; }
+  @keyframes pulse { 50% { fill: #fff; transform: scaleX(1.9); } }
+  .p-ring .tick rect { transform-box: fill-box; transform-origin: center; }
+  .p-center { position: absolute; inset: 0; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 4px; }
+  .p-check { width: 24px; height: 24px; margin-bottom: 0; display: none; }
+  .is-goal .p-check { display: block; animation: check-in .7s var(--spring) both; }
+  @keyframes check-in { from { opacity: 0; transform: scale(.2) rotate(-30deg); } }
+  .p-value { font: 700 32px/1 var(--rounded); letter-spacing: -.01em; font-variant-numeric: tabular-nums; }
+  .p-amounts { font-size: 11px; font-weight: 500; color: var(--p-ink-2); font-variant-numeric: tabular-nums; }
+  .p-pace { font-size: 10px; font-weight: 600; color: var(--goal); }
+  .p-pace.behind { color: #ff9f0a; }
+  /* À l'objectif : une couronne de gouttes, une seule fois. */
+  .p-burst { position: absolute; inset: 0; pointer-events: none; }
+  .p-burst i { position: absolute; left: 50%; top: 50%; width: 7px; height: 10px; margin: -5px 0 0 -3.5px; border-radius: 50% 50% 50% 50% / 62% 62% 38% 38%; background: var(--goal-light); opacity: 0; transform: rotate(var(--a)) translateY(-78px); }
+  .celebrate .p-burst i { animation: burst .9s var(--ease-out) both; }
+  @keyframes burst { 0% { opacity: 0; transform: rotate(var(--a)) translateY(-70px) scale(.4); } 25% { opacity: 1; } 100% { opacity: 0; transform: rotate(var(--a)) translateY(-118px) scale(1); } }
+
+  .p-chip { margin-top: -12px; display: inline-flex; align-items: center; gap: 5px; font-size: 11px; color: var(--p-ink-2); }
+  .p-chip svg { width: 12px; height: 12px; }
+  .p-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .popover .p-preset { text-align: center; padding: 10px 0; border-radius: 8px; background: rgba(10, 132, 255, .2); font-size: 13px; font-weight: 500; font-variant-numeric: tabular-nums; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .06); transition: background-color .2s, transform .25s var(--ease-out), box-shadow .2s; }
+  .popover .p-preset:hover { background: rgba(10, 132, 255, .34); transform: translateY(-1px); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14), 0 6px 14px rgba(0, 0, 0, .18); }
+  .popover .p-preset:active { transform: scale(.95); transition-duration: .06s; }
+  .popover .p-preset.hit { animation: hit .6s var(--ease-out); }
+  @keyframes hit { 0% { background: var(--water); transform: scale(.94); } 100% { background: rgba(10, 132, 255, .2); } }
+  /* « Hold to Add » se remplit comme un verre tant qu'on le tient. */
+  .popover .p-hold { position: relative; display: grid; place-items: center; width: 100%; height: 40px; border-radius: 8px; background: var(--water); font-size: 14px; font-weight: 600; color: #fff; overflow: hidden; user-select: none; -webkit-user-select: none; touch-action: none; transition: transform .25s var(--ease-out), filter .2s; }
+  .popover .p-hold:hover { filter: brightness(1.08); }
+  .popover .p-hold.holding { transform: scale(.985); }
+  .p-hold .fill { position: absolute; inset: 0; background: linear-gradient(180deg, #8fe1ff, #4bbcff); transform: scaleY(var(--held, 0)); transform-origin: bottom; transition: transform .25s var(--ease-out); }
+  .p-hold.holding .fill { transition: none; }
+  .p-hold .lbl { position: relative; font-variant-numeric: tabular-nums; }
+  .popover .p-log { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 500; color: var(--p-ink-2); transition: color .2s; }
+  .popover .p-log:hover { color: var(--p-ink); }
+  .p-log svg { width: 9px; height: 9px; transition: transform .3s var(--ease-out); }
+  .p-log[aria-expanded="true"] svg { transform: rotate(90deg); }
+  .p-rows { list-style: none; margin: 10px 0 0; padding: 0; max-height: 118px; overflow-y: auto; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .25) transparent; }
+  .p-rows[hidden] { display: none; }
+  .p-rows li { display: flex; align-items: center; gap: 10px; padding: 5px 0; border-top: 1px solid var(--p-hair); font-size: 12px; font-variant-numeric: tabular-nums; animation: row-in .4s var(--ease-out) both; animation-delay: calc(var(--n, 0) * 35ms); }
+  @keyframes row-in { from { opacity: 0; transform: translateX(-8px); } }
+  .p-rows .t { color: var(--p-ink-2); width: 62px; }
+  .p-rows .a { flex: 1; font-weight: 500; }
+  .popover .p-rows button { width: 18px; height: 18px; border-radius: 50%; color: var(--p-ink-2); font-size: 14px; line-height: 1; transition: background-color .2s, color .2s; }
+  .popover .p-rows button:hover { background: rgba(255, 69, 58, .25); color: #ff6961; }
+  .p-rows .empty { color: var(--p-ink-2); border: 0; }
+  .popover .p-reset { display: inline-flex; gap: 5px; align-items: center; font-size: 11px; color: #a1a1a8; margin: 0 0 4px; transition: color .2s; }
+  .popover .p-reset:hover { color: var(--p-ink); }
+  .p-reset svg { width: 11px; height: 11px; transition: transform .5s var(--ease-out); }
+  .p-reset:hover svg { transform: rotate(-200deg); }
+
+  /* Statistiques */
+  .p-kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+  .p-kpi { border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, .06); }
+  .p-kpi .k { font-size: 11px; color: var(--p-ink-2); }
+  .p-kpi .v { font: 700 22px/1.2 var(--rounded); margin-top: 4px; }
+  .p-section { font-size: 13px; font-weight: 600; align-self: flex-start; padding: 0 20px; margin-bottom: -14px; }
+  /* La carte du bilan de l'app (eau → eau claire), assombrie pour le contraste AA du texte. */
+  .p-recap { border-radius: 12px; padding: 16px; color: #fff; background: linear-gradient(135deg, #0058c4, #0a6cd6); display: flex; flex-direction: column; gap: 10px; }
+  .p-recap .top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; opacity: .92; }
+  .p-recap .big { font: 700 24px/1.1 var(--rounded); }
+  .p-recap .small { font-size: 11px; opacity: .9; }
+  .p-recap .lines { font-size: 12px; line-height: 1.55; }
+  .p-share { display: flex; gap: 8px; margin-top: 8px; }
+  .p-share span { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+  .p-year { height: 110px; display: flex; align-items: flex-end; gap: 7px; position: relative; padding-bottom: 16px; }
+  .p-year .bar { flex: 1; height: calc(var(--v) * 87px); border-radius: 3px 3px 0 0; position: relative; background: var(--water); transform-origin: bottom; transition: filter .2s; }
+  .p-year .bar.met { background: var(--goal); }
+  .p-year .bar:hover { filter: brightness(1.25); }
+  .p-year .bar span { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--p-ink-2); }
+  .p-year .bar b { position: absolute; bottom: calc(100% + 5px); left: 50%; padding: 2px 6px; border-radius: 5px; font-size: 10px; font-weight: 600; white-space: nowrap; background: rgba(20, 22, 28, .92); opacity: 0; transform: translate(-50%, 4px); transition: opacity .2s, transform .25s var(--ease-out); pointer-events: none; z-index: 1; }
+  .p-year .bar:hover b { opacity: 1; transform: translate(-50%, 0); }
+  .p-year .goal-line { position: absolute; left: 0; right: 0; bottom: calc(16px + 87px); border-top: 1px dashed rgba(235, 235, 245, .45); }
+  .js .p-year .bar { transform: scaleY(0); }
+  .js .in .p-year .bar, .js .p-view .p-year .bar { transform: none; transition: transform .8s var(--ease-out) calc(var(--n) * 45ms + 150ms), filter .2s; }
+  .p-streak { text-align: center; }
+  .p-streak b { display: block; font: 700 15px/1.3 var(--rounded); }
+  .p-streak span { font-size: 11px; font-weight: 500; color: var(--goal); }
+
   @media (max-width: 760px) {
-    .ring-wrap { --d: 124vw; right: -26vw; top: auto; bottom: -38vw; }
-    .pct { font-size: calc(var(--d) * .15); }
-    .hero-copy, .js .event-panel { left: 20px; right: 20px; width: auto; }
-    .hero-copy { top: 32px; transform: none; }
-    .hero-copy h1 { font-size: 40px; }
-    .hero-copy p { margin-top: 16px; font-size: 17px; }
-    .hero-copy .ctas { margin-top: 24px; gap: 18px; }
-    .hero-copy .meta { display: none; }
+    .stage { --halo-d: 128vw; }
+    .hero-copy, .event-text { left: 20px; right: 20px; width: auto; }
+    .hero-copy { top: 28px; transform: none; }
+    .hero-copy h1 { font-size: 38px; }
+    .hero-copy p { margin-top: 14px; font-size: 16px; }
+    .hero-copy .ctas { margin-top: 20px; gap: 18px; }
+    .hero-copy .meta, .hero-copy .link-arrow, .hero-copy .mas { display: none; }
     .story.past-hero .hero-copy { transform: translateY(-8%); }
-    .js .event { top: 28px; transform: translateY(8px); }
-    .js .event.on { transform: none; }
-    .tick-label { font-size: 13px; }
-    .pct-sub { font-size: 15px; }
+    .js .event-text { top: 26px; transform: translateY(8px); }
+    .js .event.on .event-text { transform: none; }
+    .event time { font-size: 46px; }
+    .event .what { margin-top: 12px; font-size: 16px; }
+    .js .event .note { top: auto; bottom: 14px; left: 10px; right: 10px; width: auto; transform: translateY(30px); }
+    .day-rail { left: 20px; bottom: auto; top: 8px; }
+    .popover.has-arrow::before { display: none; }
   }
 
   /* ---------- Sections claires ---------- */
-  .light-section { padding-block: clamp(96px, 13vw, 176px); background: var(--mat-light); backdrop-filter: var(--glass); }
   .lede { font-size: clamp(19px, 1.6vw, 22px); color: var(--ink-2); margin-top: 24px; max-width: 34em; }
 
   /* Jours off : un cadran de 24 heures */
@@ -230,14 +417,20 @@
   @media (max-width: 900px) { .days { grid-template-columns: 1fr; } }
   .dial { position: relative; width: min(100%, 560px); aspect-ratio: 1; margin-inline: auto; }
   .dial svg { width: 100%; height: 100%; overflow: visible; }
-  .dial .active { transition: stroke-dasharray .8s var(--ease-out), stroke-dashoffset .8s var(--ease-out); }
-  .dial .dot { transition: opacity .4s, transform .8s var(--ease-out); }
+  .dial .active { transition: stroke-dasharray .9s var(--ease-out), stroke-dashoffset .9s var(--ease-out); }
+  .dial .dot { animation: dot-in .5s var(--spring) both; animation-delay: calc(var(--n) * 28ms + 250ms); transform-box: fill-box; transform-origin: center; }
+  @keyframes dot-in { from { opacity: 0; transform: scale(0); } }
   .dial-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 4px; }
   .dial-center strong { font: 760 clamp(34px, 4vw, 54px)/1 var(--display); letter-spacing: -.03em; }
   .dial-center span { color: var(--ink-2); font-weight: 500; }
-  .seg { display: inline-flex; padding: 5px; border-radius: 14px; background: var(--fill); margin-top: 36px; }
-  .seg button { font: 650 16px var(--text); color: var(--ink-2); background: none; border: 0; padding: 12px 22px; border-radius: 10px; cursor: pointer; }
-  .seg button[aria-pressed="true"] { background: var(--action); color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .14); }
+  .dial-center.swap > * { animation: swap .5s var(--ease-out) both; }
+  @keyframes swap { from { opacity: 0; transform: translateY(8px); } }
+  /* Le sélecteur : la pastille glisse d'un jour à l'autre. */
+  .seg { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 5px; border-radius: 14px; background: var(--fill); margin-top: 36px; }
+  .seg::before { content: ""; position: absolute; top: 5px; bottom: 5px; left: 5px; width: calc(50% - 5px); border-radius: 10px; background: var(--action); box-shadow: 0 2px 6px rgba(0, 0, 0, .14); transition: transform .45s var(--ease-out); }
+  .seg[data-kind="off"]::before { transform: translateX(100%); }
+  .seg button { position: relative; font: 650 16px var(--text); color: var(--ink-2); background: none; border: 0; padding: 12px 22px; border-radius: 10px; cursor: pointer; transition: color .3s; }
+  .seg button[aria-pressed="true"] { color: #fff; }
   .ways { list-style: none; padding: 0; margin: 44px 0 0; display: grid; gap: 22px; }
   .ways li { display: grid; grid-template-columns: 180px 1fr; gap: 20px; padding-top: 22px; border-top: 1px solid var(--line); }
   .ways b { font: 680 19px/1.3 var(--display); }
@@ -245,47 +438,72 @@
   @media (max-width: 560px) { .ways li { grid-template-columns: 1fr; gap: 6px; } }
 
   /* Gourde : bande bleue */
-  .bottle-band { background: var(--mat-dark); backdrop-filter: var(--glass); color: #fff; padding-block: clamp(96px, 12vw, 160px); }
+  .bottle-band { color: #fff; padding-block: clamp(96px, 12vw, 160px); }
   .bottle-grid { display: grid; grid-template-columns: auto 1fr; gap: clamp(48px, 8vw, 128px); align-items: center; }
   @media (max-width: 760px) { .bottle-grid { grid-template-columns: 1fr; } }
   .bottle { width: clamp(170px, 18vw, 240px); aspect-ratio: 150 / 280; }
   .bottle svg { width: 100%; height: 100%; overflow: visible; }
-  .bottle .water { transition: y .8s var(--ease-out), height .8s var(--ease-out); }
+  .bottle .level { transition: transform 1s var(--spring); }
+  /* La surface ondule le temps que l'eau retombe, puis se calme. */
+  .bottle.slosh .wave { animation: wave 1.1s linear 2; }
+  @keyframes wave { to { transform: translateX(-60px); } }
   .bottle-band .lede { color: var(--label-on-dark-2); }
   .marks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
-  .marks button { font: 700 22px var(--rounded); min-width: 72px; height: 60px; padding: 0 20px; border-radius: 14px; border: 0; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); color: #fff; cursor: pointer; transition: background-color .2s; }
-  .marks button:hover { background: rgba(10, 132, 255, .4); }
+  .marks button { font: 700 22px var(--rounded); min-width: 72px; height: 60px; padding: 0 20px; border-radius: 14px; border: 0; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); color: #fff; cursor: pointer; transition: background-color .2s, transform .25s var(--ease-out), color .2s; }
+  .marks button:hover { background: rgba(10, 132, 255, .4); transform: translateY(-2px); }
+  .marks button:active { transform: scale(.95); transition-duration: .06s; }
   .marks button[aria-pressed="true"] { background: rgba(255, 255, 255, .1); color: var(--label-on-dark-2); }
   .bottle-status { margin-top: 20px; min-height: 1.6em; color: var(--label-on-dark-2); font-weight: 500; }
+  .bottle-status.swap { animation: swap .45s var(--ease-out); }
 
-  /* Progrès : douze anneaux */
-  .progress-head { max-width: 46em; }
-  .months { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(8px, 1.4vw, 22px); margin-top: 64px; }
-  .month { text-align: center; }
-  .month svg { width: 100%; aspect-ratio: 1; display: block; }
-  .month span { display: block; margin-top: 10px; font-weight: 600; color: var(--ink-2); font-size: 15px; }
-  @media (max-width: 760px) { .months { grid-template-columns: repeat(6, 1fr); } }
-  .progress-foot { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(40px, 6vw, 96px); margin-top: 72px; align-items: start; }
-  @media (max-width: 900px) { .progress-foot { grid-template-columns: 1fr; } }
-  /* La carte du bilan de l'app (eau → eau claire), assombrie pour le contraste AA du texte. */
-  .recap { border-radius: 22px; padding: 30px; background: linear-gradient(135deg, #0058c4, #0a6cd6); color: #fff; box-shadow: 0 24px 50px rgba(0, 0, 0, .14); }
-  .recap .top { display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; color: rgba(255, 255, 255, .88); }
-  .recap .big { font: 700 64px/1 var(--rounded); letter-spacing: -.035em; margin-top: 30px; }
-  .recap .small { color: rgba(255, 255, 255, .88); margin-top: 6px; }
-  .recap ul { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 6px; }
-  .stat-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; font-size: 19px; color: var(--ink-2); }
+  /* Progrès : la vue Statistiques de l'app */
+  .progress { display: grid; grid-template-columns: 1fr auto; gap: clamp(40px, 6vw, 96px); align-items: center; }
+  @media (max-width: 980px) { .progress { grid-template-columns: 1fr; } }
+  .stat-list { list-style: none; padding: 0; margin: 44px 0 0; display: grid; gap: 18px; font-size: 19px; color: var(--ink-2); max-width: 30em; }
+  .stat-list li { padding-top: 18px; border-top: 1px solid var(--line); }
   .stat-list strong { color: var(--ink); font-weight: 650; }
+  .stats-desk { padding: clamp(28px, 4vw, 56px) clamp(24px, 5vw, 72px); display: grid; place-items: center; }
+  .stats-desk .popover { zoom: 1.12; }
+  @media (max-width: 560px) { .stats-desk { padding: 20px 10px; } .stats-desk .popover { zoom: .95; } }
 
   /* Partout sur le Mac */
-  .everywhere { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 clamp(40px, 6vw, 96px); margin-top: 56px; }
-  @media (max-width: 860px) { .everywhere { grid-template-columns: 1fr; } }
-  .everywhere div { padding: 28px 0; border-top: 1px solid var(--line); }
+  .everywhere { display: grid; grid-template-columns: 1fr minmax(360px, 520px); gap: clamp(40px, 6vw, 96px); align-items: start; margin-top: 56px; }
+  @media (max-width: 980px) { .everywhere { grid-template-columns: 1fr; } }
+  .everywhere .rows > div { padding: 26px 0; border-top: 1px solid var(--line); }
   .everywhere p { color: var(--ink-2); margin-top: 10px; }
-  .everywhere pre { margin: 16px 0 0; padding: 14px 18px; border-radius: 12px; background: var(--fill); overflow-x: auto; font: 500 15px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
-  kbd { font: 650 14px var(--text); padding: 3px 8px; border-radius: 7px; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
+  .code { position: relative; margin: 16px 0 0; padding: 14px 92px 14px 18px; border-radius: 12px; background: var(--fill); overflow-x: auto; font: 500 15px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  .code button { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); padding: 6px 12px; border: 0; border-radius: 8px; font: 650 13px var(--text); background: var(--fill); cursor: pointer; transition: background-color .2s, color .2s; }
+  .code button:hover { background: var(--action); color: #fff; }
+  .code button.done { background: var(--goal); color: #06310f; }
+  kbd { display: inline-block; font: 650 14px var(--text); padding: 3px 8px; border-radius: 7px; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line), 0 2px 0 var(--line); transition: transform .12s, box-shadow .12s, background-color .2s; }
+  kbd.down { transform: translateY(2px); box-shadow: inset 0 0 0 1px var(--line), 0 0 0 var(--line); background: var(--action); color: #fff; }
+  .try { display: inline-flex; align-items: center; gap: 8px; margin-top: 14px; padding: 0; border: 0; background: none; font-weight: 600; color: var(--action); cursor: pointer; }
+  @media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) .try { color: var(--water-light); } }
+  .try:hover { text-decoration: underline; text-underline-offset: .22em; }
+  /* Le bureau : le menu de l'icône et le widget, vivants. */
+  .mac-desk { position: sticky; top: 72px; min-height: 480px; padding: 22px; }
+  @media (max-width: 980px) { .mac-desk { position: relative; top: 0; } }
+  .menu { position: absolute; right: 22px; top: 22px; min-width: 232px; padding: 5px; border-radius: 10px; color: #f5f5f7; font: 13px/1.3 var(--mac); background: rgba(44, 46, 56, .78); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); box-shadow: 0 18px 50px rgba(0, 0, 0, .45), inset 0 0 0 1px rgba(255, 255, 255, .12); }
+  .menu .item { display: flex; justify-content: space-between; gap: 24px; width: 100%; padding: 4px 12px; border: 0; border-radius: 5px; background: none; text-align: left; font: inherit; color: inherit; }
+  .menu button.item { cursor: pointer; }
+  .menu .item:not(.dim):hover { background: var(--water); color: #fff; }
+  .menu .item:not(.dim):hover .key { color: #fff; }
+  .menu .item.dim { color: rgba(235, 235, 245, .35); }
+  .menu .sep { height: 1px; margin: 5px 10px; background: rgba(255, 255, 255, .12); }
+  .menu .key { color: rgba(235, 235, 245, .62); }
+  .widget { position: absolute; left: 22px; bottom: 22px; width: 176px; height: 176px; border-radius: 22px; padding: 14px; color: #f5f5f7; font-family: var(--mac); background: rgba(28, 30, 38, .66); backdrop-filter: blur(40px) saturate(180%); -webkit-backdrop-filter: blur(40px) saturate(180%); box-shadow: 0 16px 50px rgba(0, 0, 0, .35), inset 0 0 0 1px rgba(255, 255, 255, .1); display: flex; flex-direction: column; align-items: center; gap: 10px; transition: transform .5s var(--ease-out); }
+  .widget:hover { transform: translateY(-3px) rotate(-.6deg); }
+  .widget .wr { position: relative; width: 100px; height: 100px; }
+  .widget .wr svg { position: absolute; inset: 0; }
+  .widget .wr circle.arc { transition: stroke-dashoffset .9s var(--spring), stroke .4s; }
+  .widget .wr b { position: absolute; inset: 0; display: grid; place-items: center; font: 700 22px var(--rounded); font-variant-numeric: tabular-nums; }
+  .widget button { width: 100%; padding: 8px 0; border: 0; border-radius: 10px; background: rgba(10, 132, 255, .28); font: 600 13px var(--mac); color: inherit; cursor: pointer; transition: background-color .2s, transform .2s var(--ease-out); }
+  .widget button:hover { background: rgba(10, 132, 255, .45); }
+  .widget button:active { transform: scale(.95); }
+  @media (max-width: 560px) { .mac-desk { min-height: 560px; } .menu { right: 12px; top: 12px; } .widget { left: 12px; bottom: 12px; } }
 
   /* Confidentialité : bande marine */
-  .privacy { background: var(--mat-deep); backdrop-filter: var(--glass); color: #fff; padding-block: clamp(96px, 12vw, 168px); }
+  .privacy { color: #fff; padding-block: clamp(96px, 12vw, 168px); }
   .privacy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 7vw, 112px); }
   @media (max-width: 900px) { .privacy-grid { grid-template-columns: 1fr; } }
   .privacy .lede { color: var(--label-on-dark-2); }
@@ -297,14 +515,18 @@
   .faq { max-width: 860px; margin-top: 48px; }
   .faq details { border-top: 1px solid var(--line); }
   .faq details:last-child { border-bottom: 1px solid var(--line); }
-  .faq summary { list-style: none; cursor: pointer; padding: 26px 48px 26px 0; font: 680 21px/1.3 var(--display); position: relative; }
+  .faq summary { list-style: none; cursor: pointer; padding: 26px 48px 26px 0; font: 680 21px/1.3 var(--display); position: relative; transition: padding-left .35s var(--ease-out); }
+  .faq summary:hover { padding-left: 8px; }
   .faq summary::-webkit-details-marker { display: none; }
-  .faq summary::after { content: ""; position: absolute; right: 8px; top: 50%; width: 12px; height: 12px; border-right: 2.5px solid var(--ink-2); border-bottom: 2.5px solid var(--ink-2); transform: translateY(-70%) rotate(45deg); transition: transform .3s var(--ease-out); }
+  .faq summary::after { content: ""; position: absolute; right: 8px; top: 50%; width: 12px; height: 12px; border-right: 2.5px solid var(--ink-2); border-bottom: 2.5px solid var(--ink-2); transform: translateY(-70%) rotate(45deg); transition: transform .35s var(--ease-out); }
   .faq details[open] summary::after { transform: translateY(-25%) rotate(225deg); }
   .faq details p { color: var(--ink-2); padding: 0 0 28px; max-width: 44em; }
+  /* La réponse se déplie au lieu d'apparaître d'un coup, là où le navigateur le permet. */
+  .faq details::details-content { block-size: 0; overflow: clip; opacity: 0; transition: block-size .45s var(--ease-out), opacity .35s, content-visibility .45s allow-discrete; }
+  .faq details[open]::details-content { block-size: auto; opacity: 1; }
 
   /* Fin : l'anneau plein */
-  .close { background: var(--mat-dark); backdrop-filter: var(--glass); color: #fff; overflow: hidden; padding-block: clamp(110px, 14vw, 190px); }
+  .close { color: #fff; overflow: hidden; padding-block: clamp(110px, 14vw, 190px); }
   .close-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
   @media (max-width: 860px) { .close-grid { grid-template-columns: 1fr; } }
   .close h2 { font-size: clamp(44px, 6vw, 92px); }
@@ -312,16 +534,23 @@
   .close .ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 40px; }
   .close .meta { margin-top: 20px; color: var(--label-on-dark-2); font-size: 15px; }
   .close .meta a { color: #fff; }
-  .close-ring { width: min(100%, 460px); margin-inline: auto; }
+  .close-ring { width: min(100%, 460px); margin-inline: auto; overflow: visible; }
+  /* L'anneau se ferme sous les yeux, puis la coche se pose. */
+  .js .close-ring .ring { stroke-dasharray: 1257; stroke-dashoffset: 1257; }
+  .js .close-ring.in .ring { stroke-dashoffset: 0; transition: stroke-dashoffset 1.6s var(--ease-out) .15s; }
+  .js .close-ring .disc, .js .close-ring .tickmark { opacity: 0; transform: scale(.4); transform-box: fill-box; transform-origin: center; }
+  .js .close-ring.in .disc { opacity: 1; transform: none; transition: opacity .3s 1.2s, transform .7s var(--spring) 1.2s; }
+  .js .close-ring.in .tickmark { opacity: 1; transform: none; transition: opacity .2s 1.45s, transform .6s var(--spring) 1.45s; }
+  .js .close-ring[data-reveal] { opacity: 1; transform: none; }
 
-  footer { background: var(--mat-deep); backdrop-filter: var(--glass); color: var(--label-on-dark-2); padding-block: 34px; font-size: 15px; }
+  footer { color: var(--label-on-dark-2); padding-block: 34px; font-size: 15px; }
   footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
   footer nav { display: flex; flex-wrap: wrap; gap: 22px; margin-left: auto; }
-  footer a { text-decoration: none; }
+  footer a { text-decoration: none; transition: color .2s; }
   footer a:hover { color: #fff; text-decoration: underline; }
 
   @media (prefers-reduced-motion: reduce) {
-    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+    *, *::before, *::after { transition-duration: .01ms !important; transition-delay: 0s !important; animation-duration: .01ms !important; animation-delay: 0s !important; animation-iteration-count: 1 !important; }
   }
 </style>
 </head>
@@ -342,114 +571,180 @@
       <li><a href="#day">A day</a></li>
       <li><a href="#days-off">Days off</a></li>
       <li><a href="#progress">Progress</a></li>
+      <li><a href="#everywhere">Everywhere</a></li>
       <li><a href="#privacy">Privacy</a></li>
       <li><a href="#faq">FAQ</a></li>
     </ul>
   </nav>
   <div class="status">
-    <span class="mini" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="2.4"/><circle class="js-mini" cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="30 44"/></svg></span>
+    <span class="cam" aria-hidden="true"></span>
+    <button class="mini js-mini-btn" type="button" aria-label="HydroBar: open or close the demo popover" aria-expanded="true" aria-controls="app">
+      <svg width="18" height="18" viewBox="0 0 18 18" aria-hidden="true"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="2.4"/><circle class="js-mini" cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="43.98" stroke-dashoffset="14.07"/></svg>
+      <span class="mb-toast js-toast" aria-hidden="true"></span>
+    </button>
     <span class="clock num js-clock" aria-hidden="true">Tue 3:20 PM</span>
     <a class="btn btn-light get js-get" href="#download">Get it free</a>
   </div>
 </header>
+<p class="visually-hidden" aria-live="polite" id="live"></p>
 
 <main id="top">
 
-<!-- L'anneau, puis la journée qui le remplit -->
+<!-- L'app, puis la journée qui remplit son anneau -->
 <section class="story js-story" aria-label="HydroBar, and an example day with it" data-ground="story">
-  <div class="stage">
-    <div class="ring-wrap" aria-hidden="true">
-      <svg viewBox="0 0 1000 1000">
-        <circle cx="500" cy="500" r="440" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="112"/>
-        <circle class="arc js-arc" cx="500" cy="500" r="440" fill="none" stroke="url(#g-water)" stroke-width="112" stroke-linecap="round" transform="rotate(-90 500 500)" stroke-dasharray="1880 2765"/>
-        <g class="tick js-tick" style="transform-origin: 500px 500px; transform: rotate(188deg)"><rect x="491" y="-12" width="18" height="160" rx="9" fill="rgba(245,245,247,.62)"/></g>
-      </svg>
-      <div class="ring-center">
-        <svg class="pct-check" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#30d158"/><path d="M14 24.5 21 31l13-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
-        <div class="pct num js-pct">68%</div>
-        <div class="pct-sub num js-pct-sub">1.36 L of 2 L · on track</div>
+  <div class="stage pane">
+    <div class="glass" aria-hidden="true"></div>
+    <div class="stage-clip" aria-hidden="true">
+      <div class="halo">
+        <svg viewBox="0 0 1000 1000">
+          <circle cx="500" cy="500" r="440" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="112"/>
+          <circle class="arc js-halo-arc" cx="500" cy="500" r="440" fill="none" stroke="url(#g-water)" stroke-width="112" stroke-linecap="round" transform="rotate(-90 500 500)" stroke-dasharray="2764.6" stroke-dashoffset="884.7"/>
+          <g class="js-halo-tick" style="transform-origin: 500px 500px; transform: rotate(188.6deg)"><rect x="491" y="-12" width="18" height="160" rx="9" fill="rgba(245,245,247,.62)"/></g>
+        </svg>
+        <div class="halo-center"><div class="halo-pct num js-halo-pct">68%</div><div class="halo-sub num js-halo-sub">1.36 L of 2 L · on track</div></div>
       </div>
-      <div class="tick-label js-tick-label" style="left: 40%; top: 85%">3:20 PM<small>where you should be</small></div>
     </div>
 
     <div class="hero-copy">
-      <h1>Drink enough water, right from your menu bar.</h1>
-      <p>That little ring next to your clock, up close. One click logs a glass, the ring fills, and the light tick shows where your day should be by now.</p>
-      <div class="ctas">
+      <h1 style="--i:0">Drink enough water, right from your menu bar.</h1>
+      <p style="--i:1">One click logs a glass, the ring fills, and the light tick shows where your day should be by now. This one works: go on, log a glass.</p>
+      <div class="ctas" style="--i:2">
         <a class="btn btn-light js-primary" href="#download">Get HydroBar free</a>
+        <a class="mas js-appstore" href="#download"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span><span class="js-mas-line">Download on the</span><b>Mac App Store</b></span></a>
         <a class="link-arrow" href="#day">See how a day fills it <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4v12M4.5 10.5 10 16l5.5-5.5"/></svg></a>
       </div>
-      <p class="meta">Free · macOS 15.1 or later · Apple silicon and Intel · 9 languages</p>
+      <p class="meta" style="--i:3">Free · macOS 15.1 or later · Apple silicon and Intel · 9 languages</p>
     </div>
 
     <div class="event-panel" id="day">
       <ol class="events" aria-label="A day with HydroBar">
-        <li class="event" data-at="480">
-          <time class="num">8:00<small>AM</small></time>
-          <p class="what"><strong>The day starts at zero.</strong> Your active hours begin, and the tick starts walking around the ring.</p>
+        <li class="event" data-at="480" data-pop="open">
+          <div class="event-text">
+            <time class="num">8:00<small>AM</small></time>
+            <p class="what"><strong>The day starts at zero.</strong> Your active hours begin, and the tick starts walking around the ring.</p>
+          </div>
         </li>
-        <li class="event" data-at="520">
-          <time class="num">8:40<small>AM</small></time>
-          <div class="plate presets-plate" aria-hidden="true"><span class="hit">250 ml</span><span>330 ml</span><span>500 ml</span></div>
-          <p class="what"><strong>One click, one glass.</strong> Your presets sit in the menu bar. A keyboard shortcut works too, from any app.</p>
+        <li class="event" data-at="520" data-pop="open" data-hit="0">
+          <div class="event-text">
+            <time class="num">8:40<small>AM</small></time>
+            <p class="what"><strong>One click, one glass.</strong> Your presets sit in the menu bar. A keyboard shortcut works too, from any app.</p>
+          </div>
         </li>
         <li class="event" data-at="605">
-          <time class="num">10:05<small>AM</small></time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">250 ml of 2 L · 1.75 L to go by 10:00 PM.</div></div><span class="when">now</span><div class="actions"><span>+250 ml</span><span>+330 ml</span><span>+500 ml</span><span>Other Amount…</span><span>Snooze 1 Hour</span></div></div>
-          <p class="what"><strong>A reminder that says where you are.</strong> It's planned from your last glass, and its buttons are your own presets.</p>
+          <div class="event-text">
+            <time class="num">10:05<small>AM</small></time>
+            <p class="what"><strong>A reminder that says where you are.</strong> It's planned from your last glass, and its buttons are your own presets.</p>
+          </div>
+          <div class="note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">250 ml of 2 L · 1.75 L to go by 10:00 PM.</div></div><span class="when">now</span><div class="actions"><span>+250 ml</span><span>+330 ml</span><span>+500 ml</span><span>Other Amount…</span><span>Snooze 1 Hour</span></div></div>
         </li>
         <li class="event" data-at="690">
-          <time class="num">11:30<small>AM</small></time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Other Amount</div></div><span class="when">now</span><div class="actions"><span class="typed">330 <em>Log</em></span></div></div>
-          <p class="what"><strong>Your bottle holds 33 cl?</strong> Type 330 right in the notification. Done, without opening anything.</p>
+          <div class="event-text">
+            <time class="num">11:30<small>AM</small></time>
+            <p class="what"><strong>Your bottle holds 33 cl?</strong> Type 330 right in the notification. Done, without opening anything.</p>
+          </div>
+          <div class="note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Other Amount</div></div><span class="when">now</span><div class="actions"><span class="typed"><b>330</b> <em>Log</em></span></div></div>
         </li>
-        <li class="event" data-at="840">
-          <time class="num">2:00<small>PM</small></time>
-          <div class="plate held"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m2 2 20 20"/></svg>Video call. Reminders wait.</div>
-          <p class="what"><strong>Nothing pops up during your call.</strong> HydroBar only checks that your microphone or camera is in use, and holds the reminder until you hang up.</p>
+        <li class="event" data-at="840" data-call>
+          <div class="event-text">
+            <time class="num">2:00<small>PM</small></time>
+            <p class="what"><strong>Nothing pops up during your call.</strong> HydroBar only checks that your microphone or camera is in use, and holds the reminder until you hang up.</p>
+            <div class="held"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m2 2 20 20"/></svg>Video call. Reminders wait.</div>
+          </div>
         </li>
         <li class="event" data-at="905">
-          <time class="num">3:05<small>PM</small></time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Call's over. Time for a glass?</div></div><span class="when">now</span></div>
-          <p class="what"><strong>A minute after you hang up,</strong> the reminder you missed arrives. And you're back on track.</p>
+          <div class="event-text">
+            <time class="num">3:05<small>PM</small></time>
+            <p class="what"><strong>A minute after you hang up,</strong> the reminder you missed arrives. And you're back on track.</p>
+          </div>
+          <div class="note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Call's over. Time for a glass?</div></div><span class="when">now</span></div>
         </li>
         <li class="event" data-at="1110">
-          <time class="num">6:30<small>PM</small></time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">You're at 1.36 L of 2 L. By now, you'd ideally be at 1.5 L.</div></div><span class="when">now</span></div>
-          <p class="what"><strong>Fall behind and it says so,</strong> with a sound this time. Reminders come a little sooner, never more than every 15 minutes.</p>
+          <div class="event-text">
+            <time class="num">6:30<small>PM</small></time>
+            <p class="what"><strong>Fall behind and it says so,</strong> with a sound this time. Reminders come a little sooner, never more than every 15 minutes.</p>
+          </div>
+          <div class="note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">You're at 1.36 L of 2 L. By now, you'd ideally be at 1.5 L.</div></div><span class="when">now</span></div>
         </li>
         <li class="event" data-at="1260">
-          <time class="num">9:00<small>PM</small></time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>Last Call</b><div class="body">300 ml left to reach your goal today.</div></div><span class="when">now</span></div>
-          <p class="what"><strong>One hour before your day ends,</strong> a single last call. Only if your goal isn't reached yet.</p>
+          <div class="event-text">
+            <time class="num">9:00<small>PM</small></time>
+            <p class="what"><strong>One hour before your day ends,</strong> a single last call. Only if your goal isn't reached yet.</p>
+          </div>
+          <div class="note"><img src="assets/favicon-64.png" alt=""><div><b>Last Call</b><div class="body">300 ml left to reach your goal today.</div></div><span class="when">now</span></div>
         </li>
-        <li class="event" data-at="1280">
-          <time class="num">9:20<small>PM</small></time>
-          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>Goal reached!</b><div class="body">9 days in a row. Well done!</div></div><span class="when">now</span></div>
-          <p class="what"><strong>The ring closes.</strong> No more reminders today. Tomorrow starts at zero, and on Saturday, it starts later.</p>
+        <li class="event" data-at="1280" data-pop="open">
+          <div class="event-text">
+            <time class="num">9:20<small>PM</small></time>
+            <p class="what"><strong>The ring closes.</strong> 9 days in a row. No more reminders today. Tomorrow starts at zero, and on Saturday, it starts later.</p>
+          </div>
         </li>
       </ol>
+    </div>
+    <div class="day-rail js-rail" aria-hidden="true"></div>
+
+    <!-- Le popover de HydroBar. Dans le héros, il fonctionne ; pendant la journée, c'est le défilement qui le pilote. -->
+    <div class="scene pop-open js-scene">
+      <div class="pop-anchor">
+        <div class="popover has-arrow js-popover" id="app" role="group" aria-label="HydroBar popover, a working demo">
+          <div class="p-head">
+            <button class="p-ic js-stats-btn" type="button" aria-label="Statistics" aria-pressed="false"><svg viewBox="0 0 16 16" fill="currentColor" aria-hidden="true"><rect x="1" y="8" width="3.5" height="7" rx="1"/><rect x="6.25" y="4" width="3.5" height="11" rx="1"/><rect x="11.5" y="1" width="3.5" height="14" rx="1"/></svg></button>
+            <span class="p-title js-p-title">Today</span>
+            <span class="p-ic" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></span>
+          </div>
+          <div class="p-body p-view js-view-today">
+            <div class="p-ring js-ring">
+              <svg class="r" viewBox="0 0 180 180" aria-hidden="true">
+                <circle cx="90" cy="90" r="84" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="12"/>
+                <circle class="arc js-p-arc" cx="90" cy="90" r="84" fill="none" stroke="url(#g-water)" stroke-width="12" stroke-linecap="round" transform="rotate(-90 90 90)" stroke-dasharray="527.79" stroke-dashoffset="168.9"/>
+                <circle class="lap js-p-lap" cx="90" cy="90" r="84" fill="none" stroke="#1f9e45" stroke-width="12" stroke-linecap="round" transform="rotate(-90 90 90)" stroke-dasharray="527.79" stroke-dashoffset="527.79" opacity="0"/>
+                <g class="tick js-p-tick" style="transform: rotate(188.6deg)"><rect x="88.5" y="-4" width="3" height="20" rx="1.5" fill="rgba(245,245,247,.6)"/></g>
+              </svg>
+              <div class="p-center">
+                <svg class="p-check" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#30d158"/><path d="M14 24.5 21 31l13-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+                <div class="p-value js-p-pct">68%</div>
+                <div class="p-amounts js-p-amounts">1.36 L / 2 L</div>
+                <div class="p-pace js-p-pace">On track</div>
+              </div>
+              <div class="p-burst" aria-hidden="true"><i style="--a:0deg"></i><i style="--a:45deg"></i><i style="--a:90deg"></i><i style="--a:135deg"></i><i style="--a:180deg"></i><i style="--a:225deg"></i><i style="--a:270deg"></i><i style="--a:315deg"></i></div>
+            </div>
+            <div class="p-chip"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M20 7h-4V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v2H4a2 2 0 0 0-2 2v10a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2zM10 5h4v2h-4z"/></svg><span>Work Day · 8:00 AM–10:00 PM</span></div>
+            <div class="p-pad"><div class="p-presets">
+              <button class="p-preset js-preset" type="button" data-ml="250" aria-label="Log 250 ml">250 ml</button>
+              <button class="p-preset js-preset" type="button" data-ml="330" aria-label="Log 330 ml">330 ml</button>
+              <button class="p-preset js-preset" type="button" data-ml="500" aria-label="Log 500 ml">500 ml</button>
+            </div></div>
+            <div class="p-pad"><button class="p-hold js-hold" type="button" aria-label="Hold to add water, 200 ml per second"><span class="fill"></span><span class="lbl js-hold-lbl">Hold to Add</span></button></div>
+            <div class="p-pad">
+              <button class="p-log js-log-btn" type="button" aria-expanded="false" aria-controls="log"><svg viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" aria-hidden="true"><path d="M3.5 1.5 7 5l-3.5 3.5"/></svg><span class="js-log-lbl">Today's log (5)</span></button>
+              <ul class="p-rows js-log" id="log" hidden></ul>
+            </div>
+            <button class="p-reset js-reset" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6"/><path d="M3 2v3h3"/></svg><span>Reset my day</span></button>
+          </div>
+          <div class="p-body p-view js-view-stats" hidden></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Jours off -->
-<section class="light-section" id="days-off" data-ground="light">
+<section class="pane light-section" id="days-off" data-ground="light">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap days">
     <div>
-      <h2>Your Saturday shouldn't run on Tuesday's clock.</h2>
-      <p class="lede">Days off get their own hours, their own reminder pace, or none at all, and a different goal if you want one.</p>
-      <div class="seg" role="group" aria-label="Day type">
+      <h2 data-reveal>Your Saturday shouldn't run on Tuesday's clock.</h2>
+      <p class="lede" data-reveal style="--i:1">Days off get their own hours, their own reminder pace, or none at all, and a different goal if you want one.</p>
+      <div class="seg js-seg" role="group" aria-label="Day type" data-kind="work" data-reveal style="--i:2">
         <button type="button" aria-pressed="true" data-kind="work">Work day</button>
         <button type="button" aria-pressed="false" data-kind="off">Day off</button>
       </div>
       <ul class="ways">
-        <li><b>Pick your days</b><span>Weekends by default. Four-day week? Choose your own.</span></li>
-        <li><b>One-off days</b><span>A holiday or a sick day: <em>Today Is a Day Off</em>, from the menu bar icon. Tomorrow goes back to normal.</span></li>
-        <li><b>Let your Focus decide</b><span>Add HydroBar's filter to your Work Focus. The schedule you already set tells HydroBar what kind of day it is.</span></li>
+        <li data-reveal style="--i:3"><b>Pick your days</b><span>Weekends by default. Four-day week? Choose your own.</span></li>
+        <li data-reveal style="--i:4"><b>One-off days</b><span>A holiday or a sick day: <em>Today Is a Day Off</em>, from the menu bar icon. Tomorrow goes back to normal.</span></li>
+        <li data-reveal style="--i:5"><b>Let your Focus decide</b><span>Add HydroBar's filter to your Work Focus. The schedule you already set tells HydroBar what kind of day it is.</span></li>
       </ul>
     </div>
-    <div class="dial js-dial" role="img" aria-label="24-hour dial: active hours from 8 AM to 10 PM, reminders every 45 minutes">
+    <div class="dial js-dial" role="img" aria-label="24-hour dial: active hours from 8 AM to 10 PM, reminders every 45 minutes" data-reveal style="--i:1">
       <svg viewBox="0 0 560 560" aria-hidden="true">
         <circle cx="280" cy="280" r="192" fill="none" style="stroke: var(--fill)" stroke-width="52"/>
         <circle class="active js-active" cx="280" cy="280" r="192" fill="none" stroke="url(#g-water)" stroke-width="52" transform="rotate(-90 280 280)"/>
@@ -458,26 +753,30 @@
           <text x="280" y="40" text-anchor="middle">12 AM</text><text x="506" y="286">6 AM</text><text x="280" y="534" text-anchor="middle">12 PM</text><text x="54" y="286" text-anchor="end">6 PM</text>
         </g>
       </svg>
-      <div class="dial-center"><strong class="num js-dial-hours">8 AM–10 PM</strong><span class="js-dial-pace">every 45 min · goal 2 L</span></div>
+      <div class="dial-center js-dial-center"><strong class="num js-dial-hours">8 AM–10 PM</strong><span class="js-dial-pace">every 45 min · goal 2 L</span></div>
     </div>
   </div>
 </section>
 
 <!-- Gourde -->
-<section class="bottle-band" data-ground="blue">
+<section class="pane bottle-band" data-ground="blue">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap bottle-grid">
-    <div class="bottle" aria-hidden="true">
+    <div class="bottle" aria-hidden="true" data-reveal>
       <svg viewBox="0 0 150 280">
         <defs><clipPath id="bottle-clip"><rect x="50" y="0" width="50" height="46" rx="10"/><rect x="0" y="38" width="150" height="242" rx="44"/></clipPath></defs>
-        <g clip-path="url(#bottle-clip)"><rect width="150" height="280" fill="rgba(255,255,255,.12)"/><rect class="water js-water" x="0" y="40" width="150" height="240" fill="url(#g-bottle)"/></g>
+        <g clip-path="url(#bottle-clip)">
+          <rect width="150" height="280" fill="rgba(255,255,255,.12)"/>
+          <g class="level js-level"><path class="wave" d="M-60 54 q15 -6 30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 t30 0 V300 H-60z" fill="url(#g-bottle)"/></g>
+        </g>
         <rect x="51" y="1" width="48" height="44" rx="10" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5"/>
         <rect x="1.25" y="39.25" width="147.5" height="239.5" rx="43" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5"/>
       </svg>
     </div>
     <div>
-      <h2>Drinking from a bottle? Just say how much is gone.</h2>
-      <p class="lede">Turn on bottle mode, set its size, and tap where you're at. HydroBar logs the difference and draws the bottle emptying. Undo puts the water back.</p>
-      <div class="marks" role="group" aria-label="How much of the bottle is gone">
+      <h2 data-reveal>Drinking from a bottle? Just say how much is gone.</h2>
+      <p class="lede" data-reveal style="--i:1">Turn on bottle mode, set its size, and tap where you're at. HydroBar logs the difference and draws the bottle emptying. Undo puts the water back.</p>
+      <div class="marks" role="group" aria-label="How much of the bottle is gone" data-reveal style="--i:2">
         <button type="button" data-f="0.25" aria-pressed="false" aria-label="A quarter">¼</button>
         <button type="button" data-f="0.5" aria-pressed="false" aria-label="Half">½</button>
         <button type="button" data-f="0.75" aria-pressed="false" aria-label="Three quarters">¾</button>
@@ -489,67 +788,100 @@
 </section>
 
 <!-- Progrès -->
-<section class="light-section" id="progress" data-ground="light">
-  <div class="wrap">
-    <div class="progress-head">
-      <h2>Twelve rings make a year.</h2>
-      <p class="lede">Each month's daily average against the goal, here for an example year. The green ones went all the way around.</p>
-    </div>
-    <div class="months js-months" role="img" aria-label="An example year: average daily intake for each month, two months above the goal"></div>
-    <div class="progress-foot">
-      <div class="recap">
-        <div class="top"><span>HydroBar</span><span>October 2026</span></div>
-        <div class="big num">1.9 L</div>
-        <div class="small">a day on average</div>
-        <ul><li>Goal reached 9 of 12 days</li><li>Best day: Oct 7, 2.5 L</li><li>Current streak: 9 days</li></ul>
-      </div>
+<section class="pane light-section" id="progress" data-ground="light">
+  <div class="glass" aria-hidden="true"></div>
+  <div class="wrap progress">
+    <div>
+      <h2 data-reveal>A month on one card. A year at a glance.</h2>
+      <p class="lede" data-reveal style="--i:1">Click the chart icon in HydroBar and this is what opens. Here, an example year: the green months went all the way around.</p>
       <ul class="stat-list">
-        <li><strong>A monthly recap card</strong> you can share or copy as an image, like this example.</li>
-        <li><strong>Your streak</strong> of days on goal, and a summary every week.</li>
-        <li><strong>When you drink</strong> during the day, and your longest dry spell.</li>
-        <li><strong>A goal for each day of the week</strong>, higher on sports days.</li>
-        <li><strong>Presets that learn.</strong> Log 33 cl often, and HydroBar offers to make it a preset.</li>
+        <li data-reveal style="--i:2"><strong>A monthly recap card</strong> you can share or copy as an image.</li>
+        <li data-reveal style="--i:3"><strong>Your streak</strong> of days on goal, and a summary every week.</li>
+        <li data-reveal style="--i:4"><strong>When you drink</strong> during the day, and your longest dry spell.</li>
+        <li data-reveal style="--i:5"><strong>A goal for each day of the week</strong>, higher on sports days.</li>
+        <li data-reveal style="--i:6"><strong>Presets that learn.</strong> Log 33 cl often, and HydroBar offers to make it a preset.</li>
       </ul>
+    </div>
+    <div class="desk stats-desk" data-reveal>
+      <div class="popover" role="img" aria-label="HydroBar's Statistics view: 1.92 L a day on average this month, goal reached 9 of 12 days, a 9-day streak, and twelve monthly bars of which two reach the goal">
+        <div class="p-head"><span class="p-ic" style="color: var(--water)"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="8" width="3.5" height="7" rx="1"/><rect x="6.25" y="4" width="3.5" height="11" rx="1"/><rect x="11.5" y="1" width="3.5" height="14" rx="1"/></svg></span><span class="p-title">Statistics</span><span class="p-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></span></div>
+        <div class="p-body js-stats-src" aria-hidden="true">
+          <div class="p-pad"><div class="p-kpis"><div class="p-kpi"><div class="k">Average</div><div class="v">1.92 L</div></div><div class="p-kpi"><div class="k">Weekly Total</div><div class="v">13.44 L</div></div></div></div>
+          <div class="p-section">This Month</div>
+          <div class="p-pad">
+            <div class="p-recap"><div class="top"><span>● HydroBar</span><span>October 2026</span></div><div><div class="big">1.92 L</div><div class="small">a day on average</div></div><div class="lines">Goal reached 9 of 12 days<br>Best day: Oct 7, 2.48 L<br>Current streak: 9 days.</div></div>
+            <div class="p-share"><span>Share</span><span>Copy Image</span></div>
+          </div>
+          <div class="p-section">Your Year</div>
+          <div class="p-pad"><div class="p-year js-year"></div></div>
+          <div class="p-streak"><b>Current streak: 9 days 🔥</b><span>You're unstoppable!</span></div>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Partout -->
-<section class="light-section" style="padding-top: clamp(64px, 8vw, 112px)" data-ground="light">
+<section class="pane light-section" id="everywhere" style="padding-top: clamp(64px, 8vw, 112px)" data-ground="light">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap">
-    <h2>Log a glass without leaving what you're doing.</h2>
+    <h2 data-reveal>Log a glass without leaving what you're doing.</h2>
     <div class="everywhere">
-      <div><h3>Keyboard shortcuts</h3><p>One per preset, plus Undo and Open HydroBar, from any app or a Stream Deck. <kbd>⌃</kbd> <kbd>⌥</kbd> <kbd>1</kbd> and the glass is logged.</p></div>
-      <div><h3>Shortcuts, Siri and Spotlight</h3><p>Six actions: Log Water, Log a Preset, Get Hydration Status, Undo Last Drink, Set Daily Goal and Set Today's Day Type.</p></div>
-      <div><h3>Widget and Control Center</h3><p>A desktop widget that stays in sync with the app, and on macOS 26, an Add Water button in Control Center.</p></div>
-      <div><h3>Focus filter</h3><p>Any Focus can turn reminders into a quiet badge in the menu bar, and switch between a work day and a day off.</p></div>
-      <div><h3>Raycast and deep links</h3><p>A Raycast extension, and a URL scheme for Alfred, Keyboard Maestro or Terminal.</p><pre><code>open "hydrobar://add?ml=250"</code></pre></div>
-      <div><h3>The icon itself</h3><p>A monochrome ring that matches your menu bar, with a checkmark at your goal. Option-click it to log your first preset.</p></div>
+      <div class="rows">
+        <div data-reveal><h3>Keyboard shortcuts</h3><p>One per preset, plus Undo and Open HydroBar, from any app or a Stream Deck. <kbd>⌃</kbd> <kbd>⌥</kbd> <kbd class="js-k1">1</kbd> and the glass is logged.</p><button class="try js-try" type="button">Press ⌃ ⌥ 1 now, or tap here: the ring in the menu bar moves</button></div>
+        <div data-reveal><h3>The icon itself</h3><p>A monochrome ring that matches your menu bar, with a checkmark at your goal. Right-click it for this menu, or Option-click to log your first preset.</p></div>
+        <div data-reveal><h3>Widget and Control Center</h3><p>A desktop widget that stays in sync with the app, and on macOS 26, an Add Water button in Control Center.</p></div>
+        <div data-reveal><h3>Shortcuts, Siri and Spotlight</h3><p>Six actions: Log Water, Log a Preset, Get Hydration Status, Undo Last Drink, Set Daily Goal and Set Today's Day Type.</p></div>
+        <div data-reveal><h3>Focus filter</h3><p>Any Focus can turn reminders into a quiet badge in the menu bar, and switch between a work day and a day off.</p></div>
+        <div data-reveal><h3>Raycast and deep links</h3><p>A Raycast extension, and a URL scheme for Alfred, Keyboard Maestro or Terminal.</p><div class="code"><code>open "hydrobar://add?ml=250"</code><button class="js-copy" type="button" data-copy='open "hydrobar://add?ml=250"'>Copy</button></div></div>
+      </div>
+      <div class="desk mac-desk" data-reveal>
+        <div class="menu" role="group" aria-label="The menu bar icon's menu, a working demo">
+          <span class="item dim">Version 2.0</span><div class="sep"></div>
+          <button class="item js-menu-add" type="button" data-ml="250"><span>Add 250 ml</span></button>
+          <button class="item js-menu-add" type="button" data-ml="330"><span>Add 330 ml</span></button>
+          <button class="item js-menu-add" type="button" data-ml="500"><span>Add 500 ml</span></button>
+          <button class="item js-menu-undo" type="button"><span>Undo</span><span class="key">⌘Z</span></button><div class="sep"></div>
+          <span class="item" aria-hidden="true"><span>Today Is a Day Off</span></span><div class="sep"></div>
+          <span class="item" aria-hidden="true"><span>Pause Reminders</span><span class="key">›</span></span><div class="sep"></div>
+          <span class="item" aria-hidden="true"><span>Keyboard Shortcuts</span><span class="key">›</span></span>
+          <span class="item" aria-hidden="true"><span>Settings…</span><span class="key">⌘,</span></span>
+          <span class="item" aria-hidden="true"><span>About</span></span>
+          <span class="item" aria-hidden="true"><span>View Repository</span></span><div class="sep"></div>
+          <span class="item" aria-hidden="true"><span>Quit</span><span class="key">⌘Q</span></span>
+        </div>
+        <div class="widget" role="group" aria-label="HydroBar's desktop widget, a working demo">
+          <div class="wr"><svg width="100" height="100" aria-hidden="true"><circle cx="50" cy="50" r="43" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="10"/><circle class="arc js-w-arc" cx="50" cy="50" r="43" fill="none" stroke="#0a84ff" stroke-width="10" stroke-linecap="round" stroke-dasharray="270.18" stroke-dashoffset="86.5" transform="rotate(-90 50 50)"/></svg><b class="js-w-pct">68%</b></div>
+          <button class="js-widget-add" type="button" data-ml="250" aria-label="Log 250 ml from the widget">+250 ml</button>
+        </div>
+      </div>
     </div>
   </div>
 </section>
 
 <!-- Confidentialité -->
-<section class="privacy" id="privacy" data-ground="navy">
+<section class="pane deep privacy" id="privacy" data-ground="navy">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap privacy-grid">
     <div>
-      <h2>Your water is nobody else's business.</h2>
-      <p class="lede">No account, no analytics, no ads. The Mac App Store version can't even connect to the internet.</p>
+      <h2 data-reveal>Your water is nobody else's business.</h2>
+      <p class="lede" data-reveal style="--i:1">No account, no analytics, no ads. The Mac App Store version can't even connect to the internet.</p>
     </div>
     <dl>
-      <div><dt>Everything stays on your Mac</dt><dd>Drinks, goals and settings live in HydroBar's sandbox. Export to CSV or back up to JSON whenever you want.</dd></div>
-      <div><dt>Your weight is never saved</dt><dd>Setup can suggest a goal from your weight, about 30 ml per kilogram. The number is used once, on your Mac, then forgotten.</dd></div>
-      <div><dt>Calls stay private</dt><dd>To hold reminders during a call, HydroBar only checks whether an app is using the microphone or camera. It never turns them on and receives nothing.</dd></div>
-      <div><dt>One permission, asked when it matters</dt><dd>Notifications, when you turn reminders on. Read the <a href="https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md">privacy policy</a>.</dd></div>
+      <div data-reveal style="--i:1"><dt>Everything stays on your Mac</dt><dd>Drinks, goals and settings never leave it. Export to CSV or back up to JSON whenever you want.</dd></div>
+      <div data-reveal style="--i:2"><dt>Your weight is never saved</dt><dd>Setup can suggest a goal from your weight, about 30 ml per kilogram. The number is used once, on your Mac, then forgotten.</dd></div>
+      <div data-reveal style="--i:3"><dt>Calls stay private</dt><dd>To hold reminders during a call, HydroBar only checks whether an app is using the microphone or camera. It never turns them on and receives nothing.</dd></div>
+      <div data-reveal style="--i:4"><dt>One permission, asked when it matters</dt><dd>Notifications, when you turn reminders on. Read the <a href="https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md">privacy policy</a>.</dd></div>
     </dl>
   </div>
 </section>
 
 <!-- FAQ -->
-<section class="light-section" id="faq" data-ground="light">
+<section class="pane light-section" id="faq" data-ground="light">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap">
-    <h2>Questions</h2>
-    <div class="faq">
+    <h2 data-reveal>Questions</h2>
+    <div class="faq" data-reveal style="--i:1">
       <details><summary>Is it really free?</summary><p>Yes. HydroBar is free, with no subscription, no in-app purchase and no ads. Its code is open source under the MIT license.</p></details>
       <details><summary>Which Macs does it run on?</summary><p>Any Mac with macOS 15.1 Sequoia or later, Apple silicon or Intel. The Control Center button needs macOS 26.</p></details>
       <details><summary>How much water should I drink?</summary><p>It depends on you, your activity and the weather. HydroBar can suggest a starting point of about 30 ml per kilogram, and you can set a different goal for each day of the week. HydroBar isn't a medical device: ask a doctor about your own needs.</p></details>
@@ -563,28 +895,31 @@
 </section>
 
 <!-- Fin -->
-<section class="close" id="download" data-ground="green">
+<section class="pane close" id="download" data-ground="green">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap close-grid">
     <div>
-      <h2>Close your ring tomorrow.</h2>
-      <p class="lede">Set your goal in a minute. HydroBar takes care of the rest, quietly, from the corner of your menu bar.</p>
-      <div class="ctas">
-        <a class="btn btn-light js-appstore" href="#download">Get HydroBar free</a>
+      <h2 data-reveal>Close your ring tomorrow.</h2>
+      <p class="lede" data-reveal style="--i:1">Set your goal in a minute. HydroBar takes care of the rest, quietly, from the corner of your menu bar.</p>
+      <div class="ctas" data-reveal style="--i:2">
+        <a class="mas js-appstore" href="#download"><svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.35.987 3.96.948 1.637-.026 2.676-1.48 3.676-2.948 1.156-1.688 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.61 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.559-1.701"/></svg><span><span class="js-mas-line">Download on the</span><b>Mac App Store</b></span></a>
         <a class="btn btn-dark js-dmg" href="https://github.com/aedhx/HydroBar/releases/latest">Download the DMG</a>
       </div>
-      <p class="meta">Version 2.0 · macOS 15.1 or later · <a href="https://github.com/aedhx/HydroBar/blob/main/RELEASE_NOTES_v2.0.md">What's new</a></p>
+      <p class="meta" data-reveal style="--i:3">Version 2.0 · macOS 15.1 or later · <a href="https://github.com/aedhx/HydroBar/blob/main/RELEASE_NOTES_v2.0.md">What's new</a></p>
     </div>
-    <svg class="close-ring" viewBox="0 0 500 500" aria-hidden="true">
-      <circle cx="250" cy="250" r="200" fill="none" stroke="url(#g-goal)" stroke-width="56"/>
-      <circle cx="250" cy="250" r="78" fill="#30d158"/>
-      <path d="M205 252 238 285 298 220" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    <svg class="close-ring" viewBox="0 0 500 500" aria-hidden="true" data-reveal>
+      <circle cx="250" cy="250" r="200" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="56"/>
+      <circle class="ring" cx="250" cy="250" r="200" fill="none" stroke="url(#g-goal)" stroke-width="56" stroke-linecap="round" transform="rotate(-90 250 250)"/>
+      <circle class="disc" cx="250" cy="250" r="78" fill="#30d158"/>
+      <path class="tickmark" d="M205 252 238 285 298 220" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
     </svg>
   </div>
 </section>
 
 </main>
 
-<footer data-ground="navy">
+<footer class="pane deep" data-ground="navy">
+  <div class="glass" aria-hidden="true"></div>
   <div class="wrap">
     <span>Made by <a href="https://adx.cool/">Antoine Deshoux</a></span>
     <nav aria-label="Footer">
@@ -602,137 +937,450 @@
   const APP_STORE_URL = '';
   const DMG_URL = 'https://github.com/aedhx/HydroBar/releases/latest';
 
+  const $ = (s, root = document) => root.querySelector(s);
+  const $$ = (s, root = document) => [...root.querySelectorAll(s)];
+  const clamp = (v, lo, hi) => Math.min(Math.max(v, lo), hi);
+  const calm = matchMedia('(prefers-reduced-motion: reduce)');
+  // Relance une animation CSS portée par une classe.
+  const replay = (el, cls) => { el.classList.remove(cls); void el.offsetWidth; el.classList.add(cls); };
+
   // ---------- Liens de téléchargement ----------
   (() => {
     const target = APP_STORE_URL || DMG_URL;
-    document.querySelectorAll('.js-primary, .js-get').forEach((a) => { a.href = target; });
-    document.querySelectorAll('.js-appstore').forEach((a) => {
+    $$('.js-primary, .js-get').forEach((a) => { a.href = target; });
+    $$('.js-appstore').forEach((a) => {
       if (APP_STORE_URL) { a.href = APP_STORE_URL; return; }
-      a.textContent = 'Mac App Store · soon';
+      $('.js-mas-line', a).textContent = 'Coming soon to the';
       a.setAttribute('aria-disabled', 'true');
+      a.setAttribute('role', 'link');
       a.removeAttribute('href');
     });
-    if (!APP_STORE_URL) document.querySelectorAll('.js-dmg').forEach((a) => {
+    if (!APP_STORE_URL) $$('.js-dmg').forEach((a) => {
       a.textContent = 'Get HydroBar free (DMG)';
       a.classList.replace('btn-dark', 'btn-light');
       a.parentElement.prepend(a);
     });
   })();
 
-  // ---------- L'anneau et la journée ----------
-  (() => {
-    const story = document.querySelector('.js-story');
-    const arc = document.querySelector('.js-arc');
-    const tick = document.querySelector('.js-tick');
-    const tickLabel = document.querySelector('.js-tick-label');
-    const ringWrap = document.querySelector('.ring-wrap');
-    const stage = story.querySelector('.stage');
-    const pct = document.querySelector('.js-pct');
-    const pctSub = document.querySelector('.js-pct-sub');
-    const mini = document.querySelector('.js-mini');
-    const clock = document.querySelector('.js-clock');
-    const events = [...document.querySelectorAll('.event')];
-    const GOAL = 2000, C = 2 * Math.PI * 440, MINI = 2 * Math.PI * 7;
-    const START = 480, END = 1320; // 8:00 → 22:00, la plage active
-
-    // Prises de la journée de démonstration (minutes, ml cumulés).
-    const DRINKS = [[0, 0], [520, 250], [606, 580], [691, 910], [790, 1160], [906, 1360], [1111, 1610], [1150, 1700], [1280, 2000]];
-    const intakeAt = (m) => DRINKS.filter(([t]) => t <= m).pop()[1];
-    const fmtL = (ml) => ml >= 1000 ? `${(ml / 1000).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')} L` : `${ml} ml`;
+  // ---------- HydroBar : l'état d'une journée, et tout ce qui l'affiche ----------
+  // Un seul état, plusieurs vues, comme dans l'app : le popover, l'icône de la
+  // barre de menus, le grand anneau derrière, le widget. Dans le héros, l'état
+  // est celui du visiteur (« live ») ; pendant la journée de démonstration, le
+  // défilement en fournit un autre (« story »).
+  const hydro = (() => {
+    const GOAL = 2000, START = 480, END = 1320, NOW = 920; // 8:00 → 22:00, « maintenant » : 15:20
+    // Prises de la journée de démonstration : [minute, ml].
+    const DAY = [[520, 250], [606, 330], [691, 330], [790, 250], [906, 200], [1111, 250], [1150, 90], [1280, 300]];
+    const entriesUntil = (m) => DAY.filter(([t]) => t <= m).map(([t, ml]) => ({ t, ml }));
+    const fmt = (ml) => (ml >= 1000 ? `${+(ml / 1000).toFixed(2)} L` : `${Math.round(ml)} ml`);
     const fmtTime = (m) => {
       const h = Math.floor(m / 60), mm = String(Math.floor(m % 60)).padStart(2, '0');
       return `${((h + 11) % 12) + 1}:${mm} ${h < 12 ? 'AM' : 'PM'}`;
     };
 
-    let last = '';
-    function render(minutes, intake, { hero = false } = {}) {
-      const frac = Math.min(intake / GOAL, 1);
-      const pace = Math.min(Math.max((minutes - START) / (END - START), 0), 1);
-      const key = `${minutes}|${intake}`;
-      if (key === last) return;
-      last = key;
-      arc.setAttribute('stroke-dasharray', `${Math.max(C * frac, .01)} ${C}`);
-      mini.setAttribute('stroke-dasharray', `${MINI * frac} ${MINI}`);
-      tick.style.transform = `rotate(${pace * 360}deg)`;
-      const done = intake >= GOAL;
-      story.classList.toggle('goal', done);
-      arc.setAttribute('stroke', done ? 'url(#g-goal)' : 'url(#g-water)');
-      paintMenubar();
-      pct.textContent = `${Math.floor(frac * 100 + 1e-9)}%`;
-      const behind = !done && intake < pace * GOAL - 50;
-      pctSub.textContent = done ? `${fmtL(GOAL)} · goal reached`
-        : `${fmtL(intake)} of ${fmtL(GOAL)} · ${behind ? `${fmtL(Math.round((pace * GOAL - intake) / 10) * 10)} behind` : 'on track'}`;
-      clock.textContent = `Tue ${fmtTime(minutes)}`;
-      // L'étiquette du repère, à l'intérieur de l'anneau, face au repère.
-      const a = pace * 2 * Math.PI - Math.PI / 2;
-      // Repère couché (vers 9 h ou 3 h sur le cadran) : l'étiquette passe au-dessus de
-      // lui, entre l'anneau et le pourcentage ; sinon, face à lui vers le centre.
-      const flat = Math.abs(Math.cos(a)) > .7;
-      const rr = flat ? 31 : 30 - 7 * Math.abs(Math.cos(a));
-      const fx = 50 + rr * Math.cos(a), fy = 50 + rr * Math.sin(a);
-      const dy = flat ? -(tickLabel.offsetHeight / 2 + 14) : 0;
-      tickLabel.style.left = `${fx}%`;
-      tickLabel.style.top = `${fy}%`;
-      tickLabel.style.transform = `translate(-50%, calc(-50% + ${dy}px))`;
-      tickLabel.firstChild.textContent = fmtTime(minutes);
-      // Masquée si sa place d'arrivée sort de la fenêtre, avant la journée et à l'objectif.
-      const w = ringWrap.getBoundingClientRect(), box = stage.getBoundingClientRect();
-      const x = w.left + w.width * fx / 100, y = w.top + w.height * fy / 100 + dy;
-      const hw = tickLabel.offsetWidth / 2 + 16, hh = tickLabel.offsetHeight / 2 + 16;
-      const n = pct.getBoundingClientRect();
-      const clearOfNumeral = x + hw - 16 < n.left || x - hw + 16 > n.right || y + hh - 16 < n.top || y - hh + 16 > n.bottom;
-      const inView = clearOfNumeral && x + hw < box.right && x - hw > box.left && y + hh < box.bottom && y - hh > box.top;
-      tickLabel.style.opacity = !done && (hero || pace > 0) && inView ? 1 : 0;
+    const el = {
+      story: $('.js-story'), popover: $('.js-popover'), ring: $('.js-ring'),
+      pArc: $('.js-p-arc'), pLap: $('.js-p-lap'), pTick: $('.js-p-tick'),
+      pct: $('.js-p-pct'), amounts: $('.js-p-amounts'), pace: $('.js-p-pace'),
+      haloArc: $('.js-halo-arc'), haloTick: $('.js-halo-tick'), haloPct: $('.js-halo-pct'), haloSub: $('.js-halo-sub'),
+      mini: $('.js-mini'), miniBtn: $('.js-mini-btn'), toast: $('.js-toast'), clock: $('.js-clock'),
+      wArc: $('.js-w-arc'), wPct: $('.js-w-pct'),
+      log: $('.js-log'), logLbl: $('.js-log-lbl'), live: $('#live'),
+    };
+    const LEN = { p: 527.79, halo: 2764.6, mini: 43.98, w: 270.18 };
+    const setArc = (node, len, frac) => {
+      node.setAttribute('stroke-dashoffset', (len * (1 - clamp(frac, 0, 1))).toFixed(2));
+      node.style.opacity = frac > 0.001 ? 1 : 0; // à zéro, l'extrémité arrondie laisserait un point
+    };
+
+    const live = { minutes: NOW, entries: entriesUntil(NOW), history: [] };
+    let shown = { minutes: -1, total: -1, behind: null, done: null };
+    let pctShown = 68, pctRaf = 0;
+
+    // Les nombres roulent jusqu'à leur valeur au lieu de sauter.
+    function rollPct(to) {
+      cancelAnimationFrame(pctRaf);
+      if (calm.matches) { pctShown = to; el.pct.textContent = el.haloPct.textContent = `${to}%`; return; }
+      const from = pctShown, t0 = performance.now();
+      const step = (now) => {
+        const k = Math.min((now - t0) / 500, 1);
+        pctShown = from + (to - from) * (1 - Math.pow(1 - k, 3));
+        el.pct.textContent = el.haloPct.textContent = `${Math.round(pctShown)}%`;
+        if (k < 1) pctRaf = requestAnimationFrame(step);
+      };
+      pctRaf = requestAnimationFrame(step);
     }
 
-    const menubar = document.getElementById('menubar');
-    function onScroll() {
-      const top = story.offsetTop, span = story.offsetHeight - innerHeight;
-      const p = Math.min(Math.max((scrollY - top) / span, 0), 1);
-      const pastHero = p > .045;
-      story.classList.toggle('past-hero', pastHero);
-      if (!pastHero) {
-        render(920, 1360, { hero: true }); // « maintenant » : 15 h 20, 68 %
-        events.forEach((e) => e.classList.remove('on'));
+    function paintCaption(minutes, total) {
+      const pace = clamp((minutes - START) / (END - START), 0, 1);
+      const done = total >= GOAL;
+      const behind = !done && total < pace * GOAL - 50;
+      if (behind === shown.behind && done === shown.done && total === shown.captionTotal) return;
+      shown.captionTotal = total;
+      el.pace.textContent = done ? 'Goal reached' : behind ? 'Behind your pace' : 'On track';
+      el.haloSub.textContent = `${fmt(total)} of ${fmt(GOAL)} · ${done ? 'goal reached' : behind ? 'behind your pace' : 'on track'}`;
+      el.pace.classList.toggle('behind', behind);
+      // Le repère bat trois fois quand on prend du retard, puis se calme.
+      if (behind && shown.behind === false) replay(el.pTick, 'behind');
+      shown.behind = behind; shown.done = done;
+    }
+
+    // L'heure : les repères et l'horloge. Appelé à chaque image pendant la journée.
+    function paintTime(minutes) {
+      if (minutes === shown.minutes) return;
+      const deg = clamp((minutes - START) / (END - START), 0, 1) * 360;
+      el.pTick.style.transform = `rotate(${deg}deg)`;
+      el.haloTick.style.transform = `rotate(${deg}deg)`;
+      const label = `Tue ${fmtTime(minutes)}`;
+      if (el.clock.textContent !== label) el.clock.textContent = label;
+      shown.minutes = minutes;
+      paintCaption(minutes, shown.total);
+    }
+
+    // Les prises : les arcs, les nombres, le journal.
+    function paintIntake(entries, { celebrate = true } = {}) {
+      const total = entries.reduce((sum, e) => sum + e.ml, 0);
+      const before = shown.total;
+      if (total !== before) {
+        const frac = total / GOAL, done = total >= GOAL;
+        setArc(el.pArc, LEN.p, frac);
+        setArc(el.pLap, LEN.p, frac - 1); // au-delà de 100 % : un second tour, plus sombre
+        setArc(el.haloArc, LEN.halo, frac);
+        setArc(el.mini, LEN.mini, frac);
+        setArc(el.wArc, LEN.w, frac);
+        const stroke = done ? 'url(#g-goal)' : 'url(#g-water)';
+        el.pArc.setAttribute('stroke', stroke);
+        el.haloArc.setAttribute('stroke', stroke);
+        el.wArc.setAttribute('stroke', done ? '#30d158' : '#0a84ff');
+        el.story.classList.toggle('goal', done);
+        el.ring.classList.toggle('is-goal', done);
+        const pct = Math.floor(frac * 100 + 1e-9);
+        rollPct(pct);
+        el.wPct.textContent = `${pct}%`;
+        el.amounts.textContent = `${fmt(total)} / ${fmt(GOAL)}`;
+        if (celebrate && before >= 0 && before < GOAL && done) replay(el.ring, 'celebrate');
+        shown.total = total;
+        paintCaption(shown.minutes, total);
+      }
+      el.logLbl.textContent = `Today's log (${entries.length})`;
+      el.log.innerHTML = entries.length
+        ? entries.map((e, i) => ({ e, i })).reverse().map(({ e, i }, n) =>
+          `<li style="--n:${n}"><span class="t">${fmtTime(e.t)}</span><span class="a">${fmt(e.ml)}</span><button type="button" data-i="${i}" aria-label="Remove ${fmt(e.ml)} logged at ${fmtTime(e.t)}">×</button></li>`).join('')
+        : '<li class="empty">Nothing logged yet today.</li>';
+    }
+
+    function toast(text) {
+      el.toast.textContent = text;
+      replay(el.toast, 'show');
+      replay(el.miniBtn, 'flash');
+    }
+
+    // ----- L'état du visiteur -----
+    let mode = 'live';
+    const scene = $('.js-scene');
+    const popVisible = () => mode === 'live' && scene.classList.contains('pop-open') && scrollY < innerHeight * .6;
+    function commit(next, message, label) {
+      if (mode !== 'live') return;
+      live.history.push(live.entries);
+      live.entries = next;
+      paintIntake(live.entries);
+      el.live.textContent = message;
+      // Comme dans l'app : sans le popover sous les yeux, c'est l'icône qui répond.
+      if (label && !popVisible()) toast(label);
+    }
+    const total = () => live.entries.reduce((s, e) => s + e.ml, 0);
+    const api = {
+      GOAL, START, END, fmt, fmtTime, entriesUntil, live, paintTime, paintIntake, toast,
+      get mode() { return mode; },
+      setMode(next) {
+        if (next === mode) return;
+        mode = next;
+        el.popover.inert = next !== 'live';
+        if (next === 'live') { paintTime(live.minutes); paintIntake(live.entries, { celebrate: false }); }
+      },
+      add(ml) {
+        ml = Math.round(ml);
+        if (ml <= 0) return;
+        commit([...live.entries, { t: live.minutes, ml }], `${fmt(ml)} logged. ${fmt(total() + ml)} of ${fmt(GOAL)} today.`, `+${fmt(ml)}`);
+      },
+      remove(i) { commit(live.entries.filter((_, n) => n !== i), 'Entry removed.', 'Removed'); },
+      reset() { if (live.entries.length) commit([], 'Day reset. Undo with Command Z.', 'Reset'); },
+      undo() {
+        if (mode !== 'live' || !live.history.length) return;
+        live.entries = live.history.pop();
+        paintIntake(live.entries, { celebrate: false });
+        el.live.textContent = 'Undone.';
+        if (!popVisible()) toast('Undone');
+      },
+    };
+    paintTime(live.minutes);
+    paintIntake(live.entries, { celebrate: false });
+    return api;
+  })();
+
+  // ---------- Le popover : presets, Hold to Add, journal, statistiques ----------
+  (() => {
+    const pop = $('.js-popover');
+    $$('.js-preset').forEach((b) => b.addEventListener('click', () => { replay(b, 'hit'); hydro.add(Number(b.dataset.ml)); }));
+
+    // Hold to Add : 200 ml par seconde tant qu'on tient, comme dans l'app.
+    const hold = $('.js-hold'), lbl = $('.js-hold-lbl');
+    let t0 = 0, raf = 0, amount = 0;
+    const tickHold = (now) => {
+      amount = Math.round(((now - t0) / 1000) * 200 / 10) * 10;
+      hold.style.setProperty('--held', Math.min(amount / 600, 1).toFixed(3));
+      lbl.textContent = amount ? `+${hydro.fmt(amount)}` : 'Hold to Add';
+      raf = requestAnimationFrame(tickHold);
+    };
+    const release = (commit) => {
+      if (!t0) return;
+      cancelAnimationFrame(raf);
+      t0 = 0;
+      hold.classList.remove('holding');
+      hold.style.setProperty('--held', 0);
+      lbl.textContent = 'Hold to Add';
+      if (commit && amount > 0) hydro.add(amount);
+      amount = 0;
+    };
+    hold.addEventListener('pointerdown', (e) => {
+      if (e.button) return;
+      hold.setPointerCapture(e.pointerId);
+      t0 = performance.now(); amount = 0;
+      hold.classList.add('holding');
+      raf = requestAnimationFrame(tickHold);
+    });
+    hold.addEventListener('pointerup', () => release(true));
+    hold.addEventListener('pointercancel', () => release(false));
+    // Au clavier ou avec VoiceOver, le bouton vaut une seconde d'appui.
+    hold.addEventListener('click', (e) => { if (e.detail === 0) hydro.add(200); });
+
+    // Journal du jour
+    const logBtn = $('.js-log-btn'), log = $('.js-log');
+    logBtn.addEventListener('click', () => {
+      const open = logBtn.getAttribute('aria-expanded') !== 'true';
+      logBtn.setAttribute('aria-expanded', String(open));
+      log.hidden = !open;
+    });
+    log.addEventListener('click', (e) => {
+      const b = e.target.closest('button[data-i]');
+      if (b) hydro.remove(Number(b.dataset.i));
+    });
+    $('.js-reset').addEventListener('click', () => hydro.reset());
+
+    // L'icône graphique bascule sur les statistiques, comme dans l'app.
+    const statsBtn = $('.js-stats-btn'), today = $('.js-view-today'), stats = $('.js-view-stats'), title = $('.js-p-title');
+    stats.innerHTML = $('.js-stats-src').innerHTML;
+    function showStats(on) {
+      statsBtn.setAttribute('aria-pressed', String(on));
+      today.hidden = on; stats.hidden = !on;
+      title.textContent = on ? 'Statistics' : 'Today';
+    }
+    statsBtn.addEventListener('click', () => showStats(statsBtn.getAttribute('aria-pressed') !== 'true'));
+    pop.showToday = () => showStats(false);
+
+    // Le menu de l'icône et le widget : les mêmes gestes, le même état.
+    $$('.js-menu-add, .js-widget-add').forEach((b) => b.addEventListener('click', () => hydro.add(Number(b.dataset.ml))));
+    $('.js-menu-undo').addEventListener('click', () => hydro.undo());
+
+    // Les raccourcis de l'app fonctionnent sur la page : ⌃⌥1, 2, 3, et ⌘Z.
+    const keys = $$('.everywhere kbd');
+    const pressKeys = () => keys.forEach((k, i) => {
+      setTimeout(() => k.classList.add('down'), i * 70);
+      setTimeout(() => k.classList.remove('down'), 420 + i * 40);
+    });
+    addEventListener('keydown', (e) => {
+      if (e.ctrlKey && e.altKey && /^Digit[123]$/.test(e.code)) {
+        e.preventDefault();
+        if (e.code === 'Digit1') pressKeys();
+        hydro.add([250, 330, 500][Number(e.code.slice(-1)) - 1]);
+      } else if ((e.metaKey || e.ctrlKey) && !e.shiftKey && !e.altKey && e.code === 'KeyZ') {
+        hydro.undo();
+      }
+    });
+    $('.js-try').addEventListener('click', () => { pressKeys(); hydro.add(250); });
+  })();
+
+  // ---------- La scène : le popover sous l'icône, la journée au défilement ----------
+  (() => {
+    const story = $('.js-story'), stage = $('.stage', story), scene = $('.js-scene');
+    const popover = $('.js-popover'), miniBtn = $('.js-mini-btn'), menubar = $('#menubar');
+    const heroCopy = $('.hero-copy'), rail = $('.js-rail');
+    const moments = $$('.event').map((node) => ({ node, at: Number(node.dataset.at), pop: node.dataset.pop === 'open', hit: node.dataset.hit, call: 'call' in node.dataset }));
+    rail.innerHTML = moments.map(() => '<i></i>').join('');
+    const pips = $$('i', rail);
+    const HERO = .075; // part du défilement de l'histoire que garde le héros
+    const POP_W = 320, POP_H = 478; // le popover à l'échelle 1, journal replié
+
+    // Place le popover sous l'icône de la barre de menus, à l'échelle de la fenêtre,
+    // et centre le grand anneau derrière lui.
+    let popOpenLive = true;
+    function layout() {
+      const s = stage.getBoundingClientRect(), icon = miniBtn.getBoundingClientRect();
+      const natural = POP_H;
+      const mobile = innerWidth <= 760;
+      let zoom, left, top;
+      if (mobile) {
+        const room = s.height - (heroCopy.offsetTop + heroCopy.offsetHeight) - 30;
+        zoom = clamp(room / natural, .5, 1);
+        left = (s.width - POP_W * zoom) / 2;
+        top = s.height - natural * zoom - 12;
+      } else {
+        zoom = clamp((s.height - 40) / 640, .9, 1.9);
+        const cx = icon.left + icon.width / 2 - s.left, w = POP_W * zoom;
+        const copyEnd = heroCopy.offsetLeft + heroCopy.offsetWidth + 36;
+        left = clamp(cx - w / 2, Math.min(copyEnd, s.width - w - 14), s.width - w - 14);
+        top = -7;
+        stage.style.setProperty('--arrow', `${clamp((cx - left) / zoom, 22, POP_W - 22)}px`);
+      }
+      stage.style.setProperty('--pz', zoom.toFixed(3));
+      stage.style.setProperty('--pop-left', `${left.toFixed(1)}px`);
+      stage.style.setProperty('--pop-top', `${top.toFixed(1)}px`);
+      // Le grand anneau entoure le popover : son vide intérieur (76,8 % du
+      // diamètre) contient la diagonale du popover, avec un peu d'air.
+      const w = POP_W * zoom, h = natural * zoom;
+      stage.style.setProperty('--pop-cx', `${(left + w / 2).toFixed(1)}px`);
+      stage.style.setProperty('--pop-cy', `${(top + h / 2).toFixed(1)}px`);
+      const d = (Math.hypot(w, h) / 2 + 30) / .384;
+      stage.style.setProperty('--halo-d', `${d.toFixed(0)}px`);
+      // Popover fermé, l'anneau revient au premier plan : entier dans la fenêtre,
+      // avec le pourcentage en son centre.
+      const fit = mobile ? clamp(Math.min(s.width * .9, s.height - 430), 180, 420) : s.height * .92;
+      stage.style.setProperty('--halo-scale', Math.min(fit / d, 1).toFixed(3));
+      stage.style.setProperty('--halo-dx', mobile ? '0px' : `${Math.min(0, s.width - 14 - (left + w / 2) - fit / 2).toFixed(1)}px`);
+      stage.style.setProperty('--halo-dy', `${((mobile ? 210 + (s.height - 410) / 2 : s.height / 2 + 14) - (top + h / 2)).toFixed(1)}px`);
+    }
+
+    // Mesures gardées en mémoire : le défilement ne relit jamais la mise en page.
+    let top = 0, span = 1, grounds = [];
+    function measure() {
+      layout();
+      top = story.offsetTop;
+      span = Math.max(story.offsetHeight - innerHeight, 1);
+      grounds = $$('[data-ground]').map((s) => {
+        const r = s.getBoundingClientRect();
+        return { from: r.top + scrollY, to: r.bottom + scrollY, light: s.dataset.ground === 'light', id: s.id };
+      });
+    }
+
+    // La barre de menus prend la couleur du sol qu'elle survole, et souligne sa section.
+    const navLinks = $$('.menubar nav a');
+    let lightNow = null, sectionNow = null;
+    function paintMenubar() {
+      const y = scrollY + 22;
+      const over = grounds.find((g) => g.from <= y && g.to > y);
+      const light = Boolean(over && over.light);
+      if (light !== lightNow) { menubar.classList.toggle('light', light); lightNow = light; }
+      const probe = scrollY + innerHeight * .4;
+      const here = [...grounds].reverse().find((g) => g.id && g.from <= probe);
+      const id = story.classList.contains('past-hero') && scrollY < top + span ? 'day' : here ? here.id : '';
+      if (id !== sectionNow) {
+        navLinks.forEach((a) => a.toggleAttribute('aria-current', false));
+        const link = navLinks.find((a) => a.getAttribute('href') === `#${id}`);
+        if (link) link.setAttribute('aria-current', 'true');
+        sectionNow = id;
+      }
+    }
+
+    function setPop(open) {
+      scene.classList.toggle('pop-open', open);
+      stage.classList.toggle('scene-closed', !open);
+      miniBtn.setAttribute('aria-expanded', String(open));
+    }
+    let index = -1;
+    function showMoment(i) {
+      if (i === index) return;
+      const forward = i > index;
+      index = i;
+      moments.forEach((m, n) => m.node.classList.toggle('on', n === i));
+      pips.forEach((p, n) => { p.classList.toggle('on', n === i); p.classList.toggle('done', n < i); });
+      const m = moments[i];
+      setPop(m ? m.pop : popOpenLive);
+      menubar.classList.toggle('on-call', Boolean(m && m.call));
+      if (!m) return;
+      const entries = hydro.entriesUntil(m.at);
+      const before = hydro.entriesUntil(i > 0 ? moments[i - 1].at : 0).reduce((s, e) => s + e.ml, 0);
+      const added = entries.reduce((s, e) => s + e.ml, 0) - before;
+      hydro.paintIntake(entries, { celebrate: forward });
+      if (forward && m.hit !== undefined) replay($$('.js-preset')[Number(m.hit)], 'hit');
+      // Une prise faite sans ouvrir HydroBar : c'est l'icône qui le dit.
+      if (forward && added > 0 && !m.pop) hydro.toast(`+${hydro.fmt(added)}`);
+    }
+
+    const ease = (t) => t * t * (3 - 2 * t);
+    function apply(p) {
+      const inHero = p <= HERO;
+      story.classList.toggle('past-hero', !inHero);
+      if (inHero) {
+        hydro.setMode('live');
+        showMoment(-1);
         return;
       }
-      // Le défilement choisit le moment ; l'anneau, l'horloge et le repère en prennent l'heure.
-      const q = Math.min((p - .06) / .9, 1);
-      const scrub = START + Math.max(q, 0) * (END - START);
-      let current = events[0];
-      for (const e of events) if (Number(e.dataset.at) <= scrub) current = e;
-      const minutes = Number(current.dataset.at);
-      render(minutes, intakeAt(minutes));
-      events.forEach((e) => e.classList.toggle('on', e === current));
+      hydro.setMode('story');
+      popover.showToday();
+      const q = clamp((p - HERO) / (1 - HERO), 0, .9999) * moments.length;
+      const i = Math.floor(q), f = q - i, m = moments[i], next = moments[i + 1];
+      showMoment(i);
+      // L'heure tient sur le moment, puis glisse vers le suivant : l'horloge et
+      // les repères avancent sans à-coup.
+      const glide = next && !calm.matches ? ease(clamp((f - .6) / .4, 0, 1)) : 0;
+      hydro.paintTime(Math.round(m.at + (next ? (next.at - m.at) * glide : 0)));
     }
 
-    // La barre de menus prend la couleur du sol qu'elle survole.
-    const grounds = [...document.querySelectorAll('[data-ground]')];
-    function paintMenubar() {
-      const y = 22;
-      const over = grounds.find((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; });
-      const ground = over ? over.dataset.ground : 'story';
-      menubar.classList.toggle('light', ground === 'light');
+    // Le défilement donne une cible ; l'affichage la rejoint en douceur, image par image.
+    let target = 0, current = 0, raf = 0, last = 0;
+    function frame(now) {
+      const dt = Math.min(now - (last || now - 16), 50);
+      last = now;
+      current += (target - current) * (calm.matches ? 1 : 1 - Math.exp(-dt / 120));
+      if (Math.abs(target - current) < .0003) current = target;
+      apply(current);
+      if (current === target) { raf = 0; last = 0; } else raf = requestAnimationFrame(frame);
     }
-    const onScrollMenubar = paintMenubar;
+    function onScroll() {
+      target = clamp((scrollY - top) / span, 0, 1);
+      // Passé la fin de l'histoire, la page retrouve l'état du visiteur.
+      if (scrollY > top + span + innerHeight) { current = target; hydro.setMode('live'); menubar.classList.remove('on-call'); }
+      else if (!raf) raf = requestAnimationFrame(frame);
+      paintMenubar();
+    }
+    addEventListener('scroll', onScroll, { passive: true });
+    let resizeRaf = 0;
+    addEventListener('resize', () => { cancelAnimationFrame(resizeRaf); resizeRaf = requestAnimationFrame(() => { measure(); onScroll(); }); });
+    measure();
+    current = target = clamp((scrollY - top) / span, 0, 1);
+    apply(current);
+    paintMenubar();
+    addEventListener('load', () => { measure(); onScroll(); });
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(() => { measure(); onScroll(); });
 
-    let ticking = false;
-    addEventListener('scroll', () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => { onScroll(); onScrollMenubar(); ticking = false; });
-    }, { passive: true });
-    addEventListener('resize', onScroll);
-
-    // Entrée : l'anneau se remplit jusqu'à 68 %, une fois.
-    arc.setAttribute('stroke-dasharray', `.01 ${C}`);
-    requestAnimationFrame(() => requestAnimationFrame(() => { last = ''; onScroll(); onScrollMenubar(); }));
+    // L'icône de la barre de menus ouvre et ferme le popover, comme la vraie.
+    miniBtn.addEventListener('click', () => {
+      if (hydro.mode !== 'live' || scrollY > innerHeight * .5) {
+        popOpenLive = true;
+        scrollTo({ top: 0, behavior: calm.matches ? 'auto' : 'smooth' });
+      } else {
+        popOpenLive = !popOpenLive;
+      }
+      if (hydro.mode === 'live') setPop(popOpenLive);
+    });
 
     // « Voir une journée » : se place au début de la journée.
-    document.querySelectorAll('a[href="#day"]').forEach((a) => a.addEventListener('click', (e) => {
+    $$('a[href="#day"]').forEach((a) => a.addEventListener('click', (e) => {
       e.preventDefault();
-      scrollTo({ top: story.offsetTop + (story.offsetHeight - innerHeight) * .07, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+      scrollTo({ top: top + span * (HERO + .012), behavior: calm.matches ? 'auto' : 'smooth' });
     }));
+  })();
+
+  // ---------- Apparitions ----------
+  (() => {
+    const items = $$('[data-reveal]');
+    if (!('IntersectionObserver' in window)) { items.forEach((n) => n.classList.add('in')); return; }
+    const io = new IntersectionObserver((entries) => entries.forEach((e) => {
+      if (!e.isIntersecting) return;
+      e.target.classList.add('in');
+      io.unobserve(e.target);
+    }), { rootMargin: '0px 0px -12% 0px', threshold: .12 });
+    items.forEach((n) => io.observe(n));
   })();
 
   // ---------- Cadran des jours ----------
@@ -742,9 +1390,7 @@
       off: { start: 10, end: 23, every: 120, hours: '10 AM–11 PM', pace: 'every 2 hours · goal 1.5 L' },
     };
     const R = 192, C = 2 * Math.PI * R, CX = 280;
-    const active = document.querySelector('.js-active');
-    const dots = document.querySelector('.js-dots');
-    const dial = document.querySelector('.js-dial');
+    const active = $('.js-active'), dots = $('.js-dots'), dial = $('.js-dial'), seg = $('.js-seg'), center = $('.js-dial-center');
     function show(kind) {
       const p = PLANS[kind];
       const len = ((p.end - p.start) / 24) * C;
@@ -753,34 +1399,36 @@
       const times = [];
       for (let m = p.start * 60 + p.every; m < (p.end - 1) * 60 - 10; m += p.every) times.push([m, false]);
       times.push([(p.end - 1) * 60, true]);
-      dots.innerHTML = times.map(([m, last]) => {
+      dots.innerHTML = times.map(([m, last], n) => {
         const a = (m / 1440) * 2 * Math.PI - Math.PI / 2;
         const x = CX + R * Math.cos(a), y = CX + R * Math.sin(a);
         return last
-          ? `<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="13" fill="var(--green)" stroke="#fff" stroke-width="4"/>`
-          : `<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="#fff"/>`;
+          ? `<circle class="dot" style="--n:${n}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="13" fill="var(--green)" stroke="#fff" stroke-width="4"/>`
+          : `<circle class="dot" style="--n:${n}" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="#fff"/>`;
       }).join('');
-      document.querySelector('.js-dial-hours').textContent = p.hours;
-      document.querySelector('.js-dial-pace').textContent = p.pace;
+      $('.js-dial-hours').textContent = p.hours;
+      $('.js-dial-pace').textContent = p.pace;
+      replay(center, 'swap');
       dial.setAttribute('aria-label', `24-hour dial: active hours ${p.hours}, ${p.pace}, last call in green`);
-      document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
+      seg.dataset.kind = kind;
+      $$('button', seg).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
     }
-    document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => show(b.dataset.kind)));
+    $$('button', seg).forEach((b) => b.addEventListener('click', () => show(b.dataset.kind)));
     show('work');
   })();
 
   // ---------- Gourde ----------
   (() => {
-    const CAP = 750, TOP = 40, H = 240;
-    const water = document.querySelector('.js-water'), status = document.querySelector('.js-bottle-status');
-    const buttons = document.querySelectorAll('.marks button');
+    const CAP = 750, H = 240;
+    const level = $('.js-level'), status = $('.js-bottle-status'), bottle = $('.bottle');
+    const buttons = $$('.marks button');
     let drunk = 0;
     function draw(text) {
-      const left = 1 - drunk / CAP;
-      water.setAttribute('y', TOP + H * (1 - left));
-      water.setAttribute('height', H * left);
+      level.style.transform = `translateY(${(H * drunk / CAP).toFixed(1)}px)`;
+      replay(bottle, 'slosh');
       buttons.forEach((b) => b.setAttribute('aria-pressed', String(drunk > 0 && Number(b.dataset.f) * CAP <= drunk)));
       status.textContent = text;
+      replay(status, 'swap');
     }
     buttons.forEach((b) => b.addEventListener('click', () => {
       const f = Number(b.dataset.f);
@@ -791,20 +1439,26 @@
     }));
   })();
 
-  // ---------- Douze anneaux ----------
+  // ---------- Ton année : douze barres ----------
   (() => {
     const values = [.78, .82, .8, .88, .91, .86, .95, 1.02, .97, 1.04, .99, .96];
     const months = ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
-    const r = 40, c = 2 * Math.PI * r;
-    document.querySelector('.js-months').innerHTML = values.map((v, i) => {
-      const met = v >= 1;
-      return `<div class="month"><svg viewBox="0 0 100 100" aria-hidden="true">
-        <circle cx="50" cy="50" r="${r}" fill="none" style="stroke: var(--fill)" stroke-width="13"/>
-        <circle cx="50" cy="50" r="${r}" fill="none" stroke="${met ? 'url(#g-goal)' : 'url(#g-water)'}" stroke-width="13" stroke-linecap="round"
-          stroke-dasharray="${c * Math.min(v, 1)} ${c}" transform="rotate(-90 50 50)"/>
-        ${met ? '<path d="M38 51 47 60 63 42" fill="none" stroke="var(--green)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
-      </svg><span>${months[i]}</span></div>`;
-    }).join('');
+    const max = Math.max(...values) * 1.08;
+    const html = values.map((v, n) =>
+      `<div class="bar${v >= 1 ? ' met' : ''}" style="--v:${(v / max * 1.08).toFixed(3)}; --n:${n}"><b>${months[n]} · ${hydro.fmt(Math.round(v * 200) * 10)}</b><span>${months[n][0]}</span></div>`).join('')
+      + '<div class="goal-line"></div>';
+    $$('.js-year').forEach((node) => { node.innerHTML = html; });
+  })();
+
+  // ---------- Copier le lien profond ----------
+  (() => {
+    const b = $('.js-copy');
+    b.addEventListener('click', async () => {
+      try { await navigator.clipboard.writeText(b.dataset.copy); } catch { return; }
+      b.textContent = 'Copied';
+      b.classList.add('done');
+      setTimeout(() => { b.textContent = 'Copy'; b.classList.remove('done'); }, 1600);
+    });
   })();
 </script>
 </body>
