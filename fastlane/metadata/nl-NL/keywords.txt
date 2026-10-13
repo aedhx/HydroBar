@@ -1,1 +1,1 @@
-water,drinken,hydratatie,herinnering,menubalk,gezondheid,gewoonte,fles,doel,glas,h2o,tracker
+hydratatie,herinnering,menubalk,gewoonte,fles,doel,glas,h2o,tracker,dagelijks,logboek,widget,dorst
