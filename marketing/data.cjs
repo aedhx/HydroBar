@@ -73,22 +73,24 @@ function build(locale, screen) {
         off: d === 0 || d === 6,
       }));
       return { ...common, settings: {
-        tabs: [['General', 'gear'], ['Hydration', 'drop'], ['Reminders', 'bell'], ['Days', 'calendar'],
-          ['Keyboard Shortcuts', 'keyboard'], ['Data', 'drive'], ['Integrations', 'puzzle']]
-          .map(([key, icon]) => ({ label: t(key), icon, selected: key === 'Days' })),
-        title: t('Days'),
-        daysOff: t('DAYS OFF'),
+        // Les quatre onglets de la fenêtre de réglages ; les jours off sont une
+        // section de l'onglet Rappels.
+        tabs: [['General', 'gear'], ['Hydration', 'drop'], ['Reminders', 'bell'], ['Shortcuts', 'keyboard']]
+          .map(([key, icon]) => ({ label: t(key), icon, selected: key === 'Reminders' })),
+        title: t('Reminders'),
+        daysOff: t('Days off'),
         enable: t('Different settings on days off'),
         enableHelp: t('Your usual settings describe a work day. Days off can start later, remind you less often and have their own goal.'),
-        today: t('TODAY'), work: t('Work Day'), off: t('Day Off'),
+        today: t('Today'), work: t('Work Day'), off: t('Day Off'),
         todayHelp: t('Only for today. Tomorrow follows your week again.'),
-        myDays: t('MY DAYS OFF'), weekdays,
-        onDaysOff: t('ON DAYS OFF'),
+        myDays: t('My days off'), weekdays,
+        onDaysOff: t('On days off'),
         activeHours: t('Active hours'), from: time(at(10)), to: t('to'), until: time(at(22)),
         reminders: t('Reminders on days off'),
         remindMe: t('Remind me'), interval: t('Every %@', NINETY_MINUTES[locale]),
         ownGoal: t('Own goal'), goal: fmt(s.offGoal).split(' ')[0], unit: fmt(s.offGoal).split(' ')[1],
-        timeOff: t('TIME OFF'),
+        ownGoalHelp: t('Without its own goal, a day off uses your goal for that day of the week.'),
+        timeOff: t('Time off'),
         leave: t('Days off until %@', new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(2026, 9, 23))),
         end: t('End'),
       } };
@@ -126,7 +128,7 @@ function build(locale, screen) {
     }
     case 'everywhere':
       return { ...common, menu: {
-        version: `${t('Version')} 2.0`,
+        version: `${t('Version')} 2.0.1`,
         add: s.presets.map((p) => t('Add %@', fmt(p))),
         undo: t('Undo'),
         dayOff: t('Today Is a Day Off'),

@@ -140,7 +140,7 @@ App Store Connect.
 |---|---|---|
 | 1 | Popover du jour | Boire assez, sans y penser |
 | 2 | Notification et ses actions | Des rappels utiles |
-| 3 | Onglet Jours des réglages | Jours de travail, jours off |
+| 3 | Réglages › Rappels, section Jours off | Jours de travail, jours off |
 | 4 | Statistiques | Bilan du mois, année |
 | 5 | Mode gourde | |
 | 6 | Menu de l'icône et widget | Partout sur le Mac, rien ailleurs |

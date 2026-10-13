@@ -70,7 +70,7 @@ In the new **Data** tab of Settings:
 - **Restore from Backup** adds only the entries you don't already have, so importing the same backup twice changes nothing. Backups from v1 can be restored too.
 
 ### A Real Settings Window
-Settings now open in their own window, with four toolbar tabs like Safari or Mail: **General** (with your data), **Hydration**, **Reminders** (with days off) and **Shortcuts** (with integrations). Open it from the gear in the popover, from the menu bar icon's context menu (⌘,), or with `hydrobar://open/settings`.
+Settings now open in their own window, organized in tabs: **General**, **Hydration**, **Reminders**, **Days**, **Keyboard Shortcuts**, **Data** and **Integrations**. Open it from the gear in the popover, from the menu bar icon's context menu (⌘,), or with `hydrobar://open/settings`.
 
 ### Feedback Outside the Popover
 When you log a drink without opening HydroBar, the menu bar icon flashes and a "+20 cl" label appears below it. This covers keyboard shortcuts, the Shortcuts app, the widget and deep links. You can also **Option-click** the icon to log your first preset.
