@@ -8,6 +8,9 @@ name: Release
 #     avec RELEASE_NOTES_vX.Y.md comme notes. Le brouillon reste invisible tant
 #     qu'il n'est pas publié à la main — ni /releases/latest ni le bouton
 #     « Vérifier les mises à jour » des versions installées ne le voient.
+#     Avant de le publier : `UPLOAD=1 ./notarize-release.sh vX.Y`, depuis un Mac
+#     connecté au compte développeur, remplace ses fichiers par la version
+#     signée et notarisée.
 #
 # Le tag s'écrit en minuscules (v2.0, pas V2.0) : le vérificateur de mises à
 # jour ne retire qu'un « v » minuscule avant de comparer les versions.
@@ -40,12 +43,16 @@ jobs:
       - name: Show toolchain
         run: xcodebuild -version
 
-      - name: Install create-dmg
-        run: command -v create-dmg >/dev/null || brew install create-dmg
+      # dmgbuild écrit la mise en page du DMG sans passer par le Finder. Le
+      # second essai couvre les Python « gérés par le système » (PEP 668).
+      - name: Install dmgbuild
+        run: |
+          python3 -m pip install --user dmgbuild \
+            || python3 -m pip install --user --break-system-packages dmgbuild
 
-      # Sans SIGNING_IDENTITY, build-dmg.sh signe en ad-hoc : c'est la même
-      # distribution que les versions 1.x, avec la commande `xattr -cr` des
-      # notes d'installation.
+      # Sans SIGNING_IDENTITY, build-dmg.sh signe en ad-hoc. Ce DMG-là sert de
+      # matière première : ./notarize-release.sh reprend son app, la signe en
+      # Developer ID, la fait notariser, puis remplace les fichiers de la release.
       - name: Build and package
         run: ./build-dmg.sh
 
@@ -88,6 +95,18 @@ jobs:
           [ "$bundled" = "$version" ]
           [ "$control" -gt 0 ]
 
+      # La fenêtre telle que le Finder l'ouvre : la seule vérification de la
+      # mise en page qui ne soit pas une lecture du .DS_Store. Facultative, un
+      # runner sans session graphique ne doit pas faire échouer la release.
+      - name: Screenshot the DMG window
+        continue-on-error: true
+        run: |
+          hdiutil attach HydroBar-v*.dmg >/dev/null
+          open /Volumes/HydroBar
+          sleep 6
+          screencapture -x dmg-window.png
+          hdiutil detach /Volumes/HydroBar -force >/dev/null || true
+
       - name: Upload the package
         uses: actions/upload-artifact@v4
         with:
@@ -95,6 +114,7 @@ jobs:
           path: |
             HydroBar-v*.dmg
             HydroBar-v*.zip
+            dmg-window.png
           if-no-files-found: error
           retention-days: 14
 
