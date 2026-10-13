@@ -107,14 +107,24 @@ class HoldButtonNSView: NSView {
 /// réactif au survol ; le fond actuel sur les versions précédentes.
 struct PresetSurface: ViewModifier {
     func body(content: Content) -> some View {
+        // glassEffect n'existe qu'à partir du SDK 26 (Xcode 26, Swift 6.2) : avec
+        // un Xcode plus ancien, seul le fond classique est compilé.
+        #if compiler(>=6.2)
         if #available(macOS 26.0, *) {
             content.glassEffect(.regular.tint(Theme.water.opacity(0.25)).interactive(),
                                 in: .rect(cornerRadius: Theme.Radius.control))
         } else {
-            content
-                .background(Theme.presetFill)
-                .cornerRadius(Theme.Radius.control)
+            classic(content)
         }
+        #else
+        classic(content)
+        #endif
+    }
+
+    private func classic(_ content: Content) -> some View {
+        content
+            .background(Theme.presetFill)
+            .cornerRadius(Theme.Radius.control)
     }
 }
 

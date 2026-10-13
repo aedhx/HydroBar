@@ -10,6 +10,9 @@ import WidgetKit
 import SwiftUI
 import AppIntents
 
+// ControlWidget n'existe sur macOS qu'à partir du SDK 26 (Xcode 26, Swift 6.2).
+// Avec un Xcode plus ancien, le projet compile sans ce bouton plutôt que pas du tout.
+#if compiler(>=6.2)
 @available(macOS 26.0, *)
 struct AddWaterControl: ControlWidget {
     static let kind = "com.adxcool.HydroBar.AddWaterControl"
@@ -27,3 +30,4 @@ struct AddWaterControl: ControlWidget {
         .description("Log your first HydroBar preset.")
     }
 }
+#endif
