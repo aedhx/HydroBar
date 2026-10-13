@@ -1,6 +1,6 @@
 # HydroBar Privacy Policy
 
-*Last updated: October 12, 2026*
+*Last updated: October 13, 2026*
 
 HydroBar is a hydration tracker for the Mac menu bar, made by Antoine Deshoux.
 
@@ -10,7 +10,7 @@ HydroBar collects no data. It has no account, no analytics, no advertising and n
 
 ## What HydroBar stores, and where
 
-HydroBar keeps the following on your Mac only, inside its own sandboxed storage:
+HydroBar keeps the following on your Mac only, in its own storage:
 
 - the drinks you log: amount, date and time;
 - your settings: goal, presets, unit, reminders, active hours, days off;
@@ -18,7 +18,7 @@ HydroBar keeps the following on your Mac only, inside its own sandboxed storage:
 
 The desktop widget reads a copy of today's total and your presets through a storage space shared only between HydroBar and its widget.
 
-Nothing is sent to us or to anyone else. The Mac App Store version of HydroBar does not connect to the internet.
+Nothing is sent to us or to anyone else. The Mac App Store version of HydroBar does not connect to the internet. The direct download contacts GitHub only when you check for updates, to read the latest version number; it sends nothing about you.
 
 ## Weight
 
@@ -54,14 +54,4 @@ Questions: open an issue at <https://github.com/aedhx/HydroBar/issues>.
 
 ---
 
-# Politique de confidentialité de HydroBar
-
-*Dernière mise à jour : 12 octobre 2026*
-
-HydroBar ne collecte aucune donnée : pas de compte, pas de statistiques d'usage, pas de publicité, pas de pistage. Tout ce que vous enregistrez reste sur votre Mac, dans l'espace protégé de l'app : vos prises (quantité, date, heure), vos réglages et vos objectifs quotidiens. Le widget lit une copie du total du jour et de vos presets dans un espace partagé uniquement avec lui.
-
-La version Mac App Store ne se connecte pas à internet. Le poids éventuellement saisi pour suggérer un objectif sert au calcul sur votre Mac et n'est jamais enregistré. L'option **Pas pendant les appels** vérifie seulement si une app utilise le micro ou la caméra ; HydroBar ne les active jamais et ne reçoit ni son ni image.
-
-Désinstaller HydroBar supprime ses données. Les exports CSV et sauvegardes JSON sont écrits là où vous le choisissez.
-
-Questions : <https://github.com/aedhx/HydroBar/issues>.
+Also on the web: <https://hydrobar.adx.cool/privacy/>. Version française : [PRIVACY.fr.md](PRIVACY.fr.md).

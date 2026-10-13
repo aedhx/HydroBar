@@ -135,14 +135,10 @@ History is no longer cut off after 30 days. v1 deleted older data; v2 keeps all 
 2. Open the DMG and drag `HydroBar.app` into your Applications folder.
 3. Open HydroBar.
 
-If macOS says the app "is damaged" or "cannot be opened", the build you downloaded is not notarized. Run this once in Terminal, then open the app normally:
-
-```bash
-xattr -cr /Applications/HydroBar.app
-```
+HydroBar is signed with an Apple Developer ID and notarized by Apple: it opens with a double-click, like any other app.
 
 Coming from 1.x? Replace the old app in Applications: your settings and history are picked up on first launch.
 
-The desktop widget and the Control Center button are not available in the direct download: macOS only loads them from a build signed by Apple. They come with the **Mac App Store** version, which is on its way; the link will be on [hydrobar.adx.cool](https://hydrobar.adx.cool/) once it is live.
+The desktop widget and the Control Center button are not available in the direct download: macOS only loads them from a sandboxed build. They come with the **Mac App Store** version, which is on its way; the link will be on [hydrobar.adx.cool](https://hydrobar.adx.cool/) once it is live.
 
 **Requirements:** macOS 15.1 or later, on Apple Silicon or Intel.

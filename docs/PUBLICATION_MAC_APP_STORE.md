@@ -61,8 +61,9 @@ review parlent du bouton du Centre de contrôle.
   URL de support et de confidentialité. Vérification des longueurs :
   `python3 fastlane/check_metadata.py`.
 - **Notes pour l'équipe de review** : `fastlane/metadata/review_information/notes.txt`.
-- **Politique de confidentialité** : [`PRIVACY.md`](../PRIVACY.md), publiée à
-  `https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md`.
+- **Politique de confidentialité** : [`PRIVACY.md`](../PRIVACY.md), en anglais, publiée
+  à `https://hydrobar.adx.cool/privacy/` (`website/privacy/index.html` reprend son texte :
+  les deux se mettent à jour ensemble). Version française : `PRIVACY.fr.md`.
 - **URL marketing** de la fiche : `https://hydrobar.adx.cool/`, la landing
   (`website/`, publiée par `./deploy-website.sh`). Une fois l'app en vente,
   colle le lien de la fiche dans `APP_STORE_URL`, en bas de
@@ -97,7 +98,7 @@ review parlent du bouton du Centre de contrôle.
 | Rubrique | Réponse |
 |---|---|
 | **Confidentialité de l'app** | « Aucune donnée collectée » (Data Not Collected) |
-| **URL de politique de confidentialité** | `https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md` |
+| **URL de politique de confidentialité** | `https://hydrobar.adx.cool/privacy/` |
 | **Classification par âge** | « Aucun » partout → 4+ |
 | **Catégories** | Principale : Santé et forme. Secondaire : Productivité |
 | **Droits sur le contenu** | Pas de contenu tiers |
