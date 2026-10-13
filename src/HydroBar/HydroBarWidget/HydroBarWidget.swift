@@ -254,9 +254,11 @@ struct HydroBarWidget: Widget {
 struct HydroBarWidgetBundle: WidgetBundle {
     var body: some Widget {
         HydroBarWidget()
+        #if compiler(>=6.2)
         if #available(macOS 26.0, *) {
             AddWaterControl()
         }
+        #endif
     }
 }
 
