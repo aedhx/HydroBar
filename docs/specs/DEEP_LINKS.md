@@ -37,7 +37,7 @@ Format général : `hydrobar://<action>[/<path>][?<params>]`
 | `hydrobar://add?oz=8` | Ajoute 8 oz US | |
 | `hydrobar://add/preset/0` | Ajoute le preset n° 1 (index **0**-based) | **Compat Raycast** |
 | `hydrobar://add?preset=1` | Ajoute le preset n° 1 (index **1**-based) | Forme recommandée, alignée sur l'UI |
-| `hydrobar://undo` | Annule le dernier ajout | Équivalent ⌘Z |
+| `hydrobar://undo` | Annule le dernier ajout ou le dernier reset | Équivalent ⌘Z |
 | `hydrobar://set-goal?ml=2500` | Définit l'objectif du jour | **Sensible** — voir § 4 |
 | `hydrobar://reset` | Remet la journée à zéro | **Destructif** — voir § 4 |
 
@@ -120,7 +120,10 @@ verrous cumulés :
    à ajouter dans l'onglet Intégrations) est activé.
 
 `add` et `undo` ne sont pas destructifs : `add` est annulable par `undo`, et `undo`
-est borné par la pile existante.
+est borné par la pile existante. `reset` est lui aussi annulable par `undo` (la
+quantité effacée est rendue) jusqu'au passage à minuit ; la confirmation reste
+exigée, parce qu'une page web n'a pas à effacer une journée à l'insu de
+l'utilisateur.
 
 ### 4.2 Validation et bornes
 

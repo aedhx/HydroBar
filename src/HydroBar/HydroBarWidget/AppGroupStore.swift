@@ -75,6 +75,17 @@ enum AppUnit: String, CaseIterable, Codable {
         }
     }
 
+    /// Décimales proposées dans un champ de saisie. Plus large qu'à l'affichage
+    /// pour les litres : un objectif de 1,25 L doit se relire tel quel.
+    var inputFractionDigits: ClosedRange<Int> {
+        switch self {
+        case .ml:         return 0...0
+        case .cl:         return 0...1
+        case .liter:      return 0...2
+        case .oz, .ozUK:  return 0...1
+        }
+    }
+
     /// Nombre seul, formaté selon la locale (« 1,5 » en français, « 1.5 » en anglais).
     func formattedNumber(ml: Double, locale: Locale = .current) -> String {
         let value = fromMl(ml)
@@ -101,9 +112,36 @@ struct HydrationSnapshot: Codable {
     let unit: String          // AppUnit.rawValue — String pour rester décodable par les anciens snapshots
     let lastUpdated: Date
     let weekHistory: [HistoryEntrySnapshot]
+    /// Presets de l'utilisateur. Optionnel : absent des instantanés écrits avant
+    /// son ajout, qui doivent rester décodables. Le widget affichait jusqu'ici
+    /// trois valeurs codées en dur, quels que soient les presets de l'app.
+    var presetsMl: [Double]?
 
     var progress: Double { min(currentMl / max(targetMl, 1.0), 1.0) }
     var rawProgress: Double { currentMl / max(targetMl, 1.0) }
+
+    static let defaultPresetsMl: [Double] = [200, 500, 750]
+
+    /// Les trois boutons du widget.
+    var widgetPresetsMl: [Double] {
+        let stored = (presetsMl ?? []).filter { $0 > 0 }
+        return stored.isEmpty ? Self.defaultPresetsMl : Array(stored.prefix(3))
+    }
+
+    /// L'instantané tel qu'il doit s'afficher à `date`. Passé minuit, le total
+    /// enregistré appartient à la veille : le jour repart de zéro, même si l'app
+    /// n'a pas encore tourné pour écrire un nouvel instantané.
+    func asOf(_ date: Date, calendar: Calendar = .current) -> HydrationSnapshot {
+        guard !calendar.isDate(lastUpdated, inSameDayAs: date) else { return self }
+        return HydrationSnapshot(
+            currentMl: 0,
+            targetMl: targetMl,
+            unit: unit,
+            lastUpdated: lastUpdated,
+            weekHistory: weekHistory,
+            presetsMl: presetsMl
+        )
+    }
 
     // Placeholder for widget gallery preview
     static let placeholder = HydrationSnapshot(
@@ -128,13 +166,37 @@ struct AppGroupStore {
     static let suiteName = "group.com.adxcool.HydroBar"
 
     private static var defaults: UserDefaults {
-        UserDefaults(suiteName: suiteName) ?? .standard
+        // Retomber en silence sur .standard masquerait un App Group mal configuré :
+        // l'app et le widget écriraient chacun de leur côté sans jamais se voir.
+        guard let shared = UserDefaults(suiteName: suiteName) else {
+            assertionFailure("App Group \(suiteName) inaccessible — vérifier les entitlements")
+            return .standard
+        }
+        return shared
     }
 
     // MARK: - Keys
     private enum Key {
         static let snapshot = "widget_snapshot_v1"
         static let pendingDelta = "widget_pending_delta_ml"
+    }
+
+    // MARK: - Notification widget → app
+
+    /// Notification Darwin postée par le widget après un ajout. L'app
+    /// observait `UserDefaults.didChangeNotification`, qui n'est jamais émise
+    /// pour une écriture faite par un autre processus — et l'observateur visait
+    /// en plus une instance de UserDefaults distincte de celle qui écrit. Un
+    /// verre ajouté depuis le widget n'était donc pris en compte qu'au lancement
+    /// suivant de l'app, et l'instantané suivant de l'app l'effaçait du widget.
+    static let widgetDidAddWaterNotification = "\(suiteName).widgetDidAddWater"
+
+    static func postWidgetDidAddWater() {
+        CFNotificationCenterPostNotification(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            CFNotificationName(widgetDidAddWaterNotification as CFString),
+            nil, nil, true
+        )
     }
 
     // MARK: - Write (called by main app only)

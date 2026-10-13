@@ -1,0 +1,33 @@
+O HydroBar fica na barra de menus e ajuda você a beber água suficiente, sem atrapalhar.
+
+Registre um copo com um clique, veja seu dia num relance no anel e receba lembretes que fazem sentido.
+
+REGISTRE EM UM SEGUNDO
+• Suas próprias predefinições, um clique cada
+• Mantenha pressionado para qualquer quantidade
+• Modo garrafa: diga quanto da garrafa já foi
+• Atalhos de teclado, app Atalhos, Siri, widget na mesa e Central de Controle
+
+LEMBRETES QUE RESPEITAM SEU DIA
+• Só durante suas horas ativas, e param quando você atinge o objetivo
+• Um pouco mais frequentes quando você está atrás do seu ritmo
+• Mostram como você está: “1,2 L de 2 L · faltam 800 ml até 22:00”
+• Registre um copo ou digite uma quantidade direto na notificação
+• Esperam enquanto você está numa chamada ou videoconferência
+• Seguem seus modos de Foco, e um último aviso chega antes do fim do dia
+
+DIAS DE TRABALHO E DE FOLGA
+Os dias de folga têm horários, lembretes e objetivo próprios. Marque um feriado com um clique, adicione suas férias ou deixe seu Foco Trabalho decidir.
+
+ACOMPANHE SEU PROGRESSO
+• Sequências, resumo semanal e um resumo do mês para compartilhar
+• Seu ano num relance
+• Quando você bebe ao longo do dia, e seu maior período sem beber
+• Um objetivo diferente para cada dia da semana
+
+PRIVADO POR PRINCÍPIO
+Sem conta, sem rastreamento, nenhum dado coletado. Tudo fica no seu Mac. Exporte para CSV ou faça backup em JSON quando quiser.
+
+Disponível em português, inglês, francês, alemão, espanhol, italiano, japonês, holandês e chinês simplificado.
+
+O HydroBar oferece lembretes gerais de hidratação. Não é um dispositivo médico; consulte um médico sobre suas necessidades.

@@ -1,450 +1,266 @@
 <div align="center">
 
-# 💧 HYDROBAR
+![HydroBar: hydration in your menu bar](Resources/v2/hero.jpg)
 
 [![CI](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml/badge.svg)](https://github.com/aedhx/HydroBar/actions/workflows/ci.yml)
+![macOS](https://img.shields.io/badge/macOS-15.1+-black?logo=apple)
+![Swift](https://img.shields.io/badge/SwiftUI-Swift%205-orange?logo=swift)
+![Languages](https://img.shields.io/badge/languages-9-blue)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-![macOS](https://img.shields.io/badge/macOS-12.0+-black?style=for-the-badge&logo=apple)
-![Swift](https://img.shields.io/badge/Swift-5.0-orange?style=for-the-badge&logo=swift)
-![License](https://img.shields.io/badge/License-MIT-green?style=for-the-badge)
+**Drink enough water, without thinking about it.**
+HydroBar lives in your menu bar: one click to log a glass, a ring that shows where you are,
+and reminders that respect your day. No account, no tracking: everything stays on your Mac.
 
-**Native macOS menu bar app for tracking your daily hydration**
-
-[Features](#-features) • [Installation](#-installation) • [Raycast](#raycast-extension) • [Usage](#-usage) • [Building](#-building-from-source)
-
-![Hero Banner](Resources/hero-banner.png)
+[Install](#install) · [What's new in 2.0](#whats-new-in-20) · [Features](#features) · [Automation](#automation) · [Privacy](#privacy) · [Build from source](#build-from-source)
 
 </div>
 
 ---
 
-## ✨ About
+## What's new in 2.0
 
-HydroBar is a native macOS application that helps you stay hydrated throughout the day. Running discreetly in your menu bar, it tracks your water intake, sends reminders, and provides detailed statistics to help you maintain healthy hydration habits.
+HydroBar 2.0 is the biggest update since the first release, and the first built for the Mac App Store.
 
-Built with SwiftUI and following Apple's Human Interface Guidelines, HydroBar offers a smooth, intuitive experience that feels native to macOS.
+- **Reminders you can act on**: they say where you are, offer your presets as buttons, and take any amount you type.
+- **Work days and days off**, each with its own hours, reminders and goal.
+- **No reminders during calls**, and a **last call** before your day ends.
+- **Bottle mode**, **presets that learn** and a **goal for each day of the week**.
+- **Today's log**, **monthly recap** to share, **your year** at a glance, **when you drink** during the day.
+- **Shortcuts, Siri, Spotlight**, a **Control Center** button and a desktop widget that stays in sync.
+- A new **monochrome menu bar icon**, livelier animations and a real **Settings window**.
+- **Your data is safer**: one entry per drink, an unlimited history, CSV export and JSON backup. Two bugs that could erase your history are fixed.
+
+Full details in the [release notes](RELEASE_NOTES_v2.0.md).
 
 ---
 
-## 🎯 Features
+## Features
 
-### 💧 Daily Hydration Tracking
-- **Real-time progress ring** with animated visual feedback and gradient colors
-- **Customizable daily goal** (ml, cl, oz, fl oz)
-- **Quick preset buttons** for common water amounts
-- **Hold-to-Add mode** for continuous water intake with haptic feedback
-- **Automatic daily reset** at midnight
+### Log in a second
 
-### 📊 Advanced Statistics
-- **Weekly bar chart** showing your progress over the last 7 days
-- **30-day heatmap** visualizing your consistency (hover any day to see date and amount, like GitHub’s contribution graph)
-- **Key metrics**: daily average, weekly total, current streak
-- **Color-coded indicators** (green for goal achieved, blue for in progress)
+<img src="Resources/v2/today.jpg" alt="The HydroBar popover: a progress ring at 68 percent, three presets and the Hold to Add button" width="560" align="right">
 
-### 🔔 Smart Notifications
-- **Customizable reminder intervals** (15min to 4 hours)
-- **Focus Mode integration**: automatically respects macOS Do Not Disturb
-- **Visual badge** in menu bar when reminders are active
-- **Quick action buttons** in notifications to add water instantly
+- **Your own presets**, one click each, in ml, cl, L, US or UK fl oz.
+- **Hold to Add** for any amount, with the running total on the button.
+- **The ring** fills with your progress. A tick marks where you should be by now, so 15 % at 9 AM reads as *on track*, not as a failure.
+- **Today's log**: every drink with its time. Remove one, and ⌘Z brings it back. Forgot a glass yesterday? Add an earlier drink.
+- **Option-click** the menu bar icon to log your first preset without opening anything.
 
-### ⌨️ Global Keyboard Shortcuts
-- **Custom shortcuts** for each preset amount
-- **System-wide functionality**: works from any application
-- **Intuitive recorder interface** to set your preferred shortcuts
-- **Accessibility permission** required (one-time setup)
-- **Stream Deck compatible**: Use your configured shortcuts with Elgato Stream Deck for one-click hydration tracking
+<br clear="right">
 
-<div align="center">
+### Reminders you can act on
 
-![Stream Deck Integration](Resources/stream-deck.png)
+<img src="Resources/v2/notification.jpg" alt="A HydroBar notification with its actions: your presets, Other Amount and Snooze 1 Hour" width="560" align="right">
 
-*Configure your Stream Deck buttons to trigger HydroBar shortcuts for instant water intake logging with a single press.*
+- They tell you where you are: *"40 oz of 64 oz · 24 oz to go by 10:00 PM"*. When you're behind, they say where you'd ideally be.
+- Log a preset, or **type any amount**, right from the notification.
+- Only during your **active hours**, and they stop once your goal is reached.
+- A bit more often when you're **behind your pace**, never more than every 15 minutes.
+- They **wait while you're on a call** or in a video meeting, and while your screen is asleep.
+- A **last call** comes an hour before your day ends, and a single notification celebrates your goal.
+- **Pause** them for an hour, until this evening or until tomorrow.
 
-</div>
+<br clear="right">
 
-### ⏱️ Pace Marker
+### Work days. Days off.
 
-The ring shows a tick at where you *should* be at this time of day, based on your
-active hours (8 AM – 10 PM by default, adjustable in Settings). 15 % at 9 AM is on
-track, not a failure — the marker says so instead of leaving you to guess.
+<img src="Resources/v2/days.jpg" alt="The Days tab of HydroBar's settings: days off, today's day type, weekdays and time off" width="560" align="right">
 
-### 🎨 Modern Interface
-- **Clean, minimal design** following macOS design principles
-- **Adaptive dark/light mode** matching system preferences
-- **Smooth animations** and transitions
-- **Customizable menu bar icon**: choose between progress ring or percentage display
+- Days off get their own **active hours**, **reminder cadence** (or none at all) and **goal**.
+- Weekends by default, or pick your own days.
+- **Today Is a Day Off** from the menu bar icon, for a holiday or a sick day.
+- **Time off**: two dates, and every day in between is a day off.
+- **Automatic**: add the HydroBar filter to your Work Focus, and the Focus decides.
 
-### 🌍 Multi-language Support
-- **9 languages available**:
-  - 🇬🇧 English
-  - 🇫🇷 French
-  - 🇪🇸 Spanish
-  - 🇩🇪 German
-  - 🇮🇹 Italian
-  - 🇵🇹 Portuguese
-  - 🇳🇱 Dutch
-  - 🇯🇵 Japanese
-  - 🇨🇳 Simplified Chinese
-- **Automatic language detection** based on system settings
-- **Manual language selection** available in settings
+<br clear="right">
 
-### 🔗 Deep Links & Automation
+### See your progress
 
-HydroBar registers the `hydrobar://` URL scheme, so any tool that can open a URL can
-log water — Raycast, Alfred, Shortcuts, Stream Deck, Keyboard Maestro, Automator, or a
-plain `open` in Terminal:
+<img src="Resources/v2/stats.jpg" alt="HydroBar statistics: averages, a monthly recap card and a 12-month chart" width="560" align="right">
+
+- Daily average, weekly total and your **streak**.
+- A **monthly recap card** to share or copy as an image.
+- **Your year**: your daily average for each of the last 12 months.
+- **When you drink** during the day, and your longest dry spell.
+- A **30-day heatmap** and a weekly chart.
+- A different **goal for each day of the week**.
+
+<br clear="right">
+
+### Bottle mode
+
+<img src="Resources/v2/bottle.jpg" alt="Bottle mode: a bottle half empty, with quarter, half, three quarters and Done buttons" width="560" align="right">
+
+Drinking from a bottle at your desk? Say how much of it is gone, a quarter, half, three quarters or done, and HydroBar logs the difference. The bottle empties on screen, and Undo puts the water back.
+
+<br clear="right">
+
+### Everywhere on your Mac
+
+<img src="Resources/v2/everywhere.jpg" alt="The menu bar icon's context menu and the HydroBar desktop widget" width="560" align="right">
+
+- A **desktop widget**, in sync with the app.
+- An **Add Water** button for Control Center and the menu bar (macOS 26).
+- **Global keyboard shortcuts** for each preset, Undo and Open HydroBar. They work with a Stream Deck too.
+- A **context menu** on the icon: presets, Undo, day off, pause, Settings.
+- A **monochrome icon** that matches your menu bar, with a checkmark when you reach your goal.
+- **9 languages**: English, French, German, Spanish, Italian, Japanese, Dutch, Portuguese and Simplified Chinese.
+- **Accessible**: VoiceOver describes your progress, every animation respects *Reduce motion*, and reaching the goal shows a checkmark, not just a color.
+
+<br clear="right">
+
+---
+
+## Automation
+
+### Shortcuts, Siri and Spotlight
+
+Six actions for the Shortcuts app: **Log Water**, **Log a Preset**, **Get Hydration Status**, **Undo Last Drink**, **Set Daily Goal** and **Set Today's Day Type**. They return values, so you can build on them: log a glass every morning, or switch to a day off when you connect to your home Wi-Fi.
+
+### Focus
+
+In **System Settings › Focus**, add the HydroBar filter to any Focus. It can turn reminders into a discreet menu bar badge, and choose the day type: work day or day off.
+
+### Deep links
+
+HydroBar registers the `hydrobar://` URL scheme, so anything that can open a URL can log water: Raycast, Alfred, Stream Deck, Keyboard Maestro, or `open` in Terminal.
 
 ```bash
 open "hydrobar://add?ml=250"       # add 250 ml (also ?cl= ?l= ?oz=)
-open "hydrobar://add?preset=1"     # add your first configured preset
+open "hydrobar://add?preset=1"     # add your first preset
 open "hydrobar://undo"             # undo the last entry
 open "hydrobar://open/stats"       # open the popover on Statistics
 ```
 
-Destructive actions (`reset`, `set-goal`) require an explicit `confirm=1` **and** a
-confirmation in the app, because any web page can open a URL scheme. Amounts are
-validated and rejected if out of range, and calls are rate limited.
+Destructive actions (`reset`, `set-goal`) need `confirm=1` **and** a confirmation in the app, because any web page can open a URL scheme. Amounts are validated and calls are rate limited. Full grammar, security model and `x-callback-url` support: [docs/specs/DEEP_LINKS.md](docs/specs/DEEP_LINKS.md).
 
-Full grammar, security model, error codes and `x-callback-url` support:
-[docs/specs/DEEP_LINKS.md](docs/specs/DEEP_LINKS.md).
+### Raycast
 
-### 🔄 Additional Features
-- **Check for updates** in Settings: compares with [GitHub Releases](https://github.com/aedhx/HydroBar/releases) and notifies when a new version is available
-- **Undo/Redo support** (Cmd+Z) to correct mistakes
-- **Complete history** saved locally on your Mac
-- **Data persistence** across app restarts and updates
-- **Privacy-first**: all data stays on your device, no cloud sync (only optional outbound request to GitHub API for update check)
+The [Raycast extension](raycast-hydrobar/README.md) logs a preset or any amount, undoes, and opens your statistics without leaving the keyboard. Download `hydrobar-raycast-extension.zip` from the [Releases](https://github.com/aedhx/HydroBar/releases) page, or run `./package-raycast-extension.sh`, then add the folder in Raycast › Settings › Extensions.
 
 ---
 
-## 🚀 Installation
+## Privacy
 
-### Method 1: Direct Download (Recommended)
+- **No data collected.** No account, no analytics, no advertising, no tracking.
+- **Everything stays on your Mac**, in HydroBar's sandbox. The Mac App Store version has no network access at all. The direct download only contacts GitHub when you check for updates.
+- **Your weight**, if you use it for a goal suggestion, is never saved.
+- **Hold during calls** only checks whether an app is using the microphone or camera. HydroBar never turns them on and receives nothing.
+- **Your data is yours**: export to CSV, back up to JSON, restore at any time.
 
-1. Download `HydroBar-v1.2.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page
-2. Mount the DMG and drag `HydroBar.app` into your Applications folder
-3. **First launch** — macOS may block the app because it is not notarized. Use one of the methods below.
+Read the [privacy policy](PRIVACY.md).
 
-**If macOS says "app is damaged" or "cannot be opened":**
+---
 
-> **Method 1 — Terminal (most reliable):**
-> ```bash
-> xattr -cr /Applications/HydroBar.app
-> ```
-> Then double-click the app normally.
+## Install
 
-> **Method 2 — System Settings:**
-> Open the app once (it will be blocked), then go to **System Settings → Privacy & Security** → click **Open Anyway**.
+### Mac App Store
 
-> **Method 3 — Right-click:**
-> Right-click `HydroBar.app` → **Open** → **Open** in the dialog.
+<!-- Replace with the App Store link once the app is live: https://apps.apple.com/app/idXXXXXXXXXX -->
+Coming soon. The link will be here and on [hydrobar.adx.cool](https://hydrobar.adx.cool/). Updates will come through the App Store.
 
-### Required Permissions
+### Direct download
 
-After first launch, grant the following permissions in System Preferences:
+1. Download `HydroBar-v2.0.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
+2. Open it and drag **HydroBar** into Applications.
+3. If macOS says the app "is damaged" or "cannot be opened", the build is not notarized. Run this once, then open it normally:
 
-- **Notifications**: System Preferences > Notifications > Enable for HydroBar
-- **Accessibility**: System Preferences > Security & Privacy > Privacy > Accessibility > Add HydroBar
-  - Required for global keyboard shortcuts to work
+   ```bash
+   xattr -cr /Applications/HydroBar.app
+   ```
 
-### Method 2: Build from Source
+The direct download checks for updates on GitHub from **Settings › General**. It doesn't include the desktop widget or the Control Center button: macOS only loads them from a build signed by Apple, so they come with the Mac App Store version.
+
+### Permissions
+
+HydroBar asks for **notification** permission only when you turn reminders on. Nothing else needs a permission: not the keyboard shortcuts, not the Focus filter, not the call detection.
+
+### Requirements
+
+macOS 15.1 (Sequoia) or later, on Apple Silicon or Intel.
+
+---
+
+## Build from source
 
 ```bash
-# Clone the repository
 git clone https://github.com/aedhx/HydroBar.git
-cd HydroBar/src/HydroBar
-
-# Open in Xcode
-open HydroBar.xcodeproj
-
-# Build and run (Cmd+R in Xcode)
+open HydroBar/src/HydroBar/HydroBar.xcodeproj   # then ⌘R
 ```
 
-**Requirements:**
-- macOS 12.0 (Monterey) or later
-- Xcode 14.0 or later
-- Swift 5.0+
+You need Xcode 16 or later; the Control Center button and the Liquid Glass presets are only compiled with Xcode 26. The CI builds both variants and runs the unit tests on every push, and packages the DMG of each release.
 
----
+| Script | What it does |
+|---|---|
+| `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP, optionally signed and notarized |
+| `./build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |
+| `node marketing/render.cjs` | App Store screenshots in 9 languages, and the images of this README (`--readme`) |
+| `python3 fastlane/check_metadata.py` | Checks the App Store listing in every language |
 
-## Raycast Extension
-
-Control HydroBar from [Raycast](https://www.raycast.com/) with quick commands: log a preset or a custom amount, undo, or jump to your statistics — without leaving your keyboard.
-
-**Requirements:** Raycast, and HydroBar 1.3 or later (earlier versions do not register the `hydrobar://` scheme). HydroBar does not need to be running: macOS launches it on demand.
-
-| Command | Description |
-|--------|-------------|
-| **Add Water – Preset 1** | Log your first preset |
-| **Add Water – Preset 2** | Log your second preset |
-| **Add Water – Preset 3** | Log your third preset |
-| **Add Water (Custom)** | Log a custom amount in ml, between 1 and 5000 |
-| **Undo Last Water** | Remove the last entry |
-| **Open HydroBar Statistics** | Open HydroBar on the statistics view |
-
-The preset commands follow whatever amounts you configure in HydroBar — change a preset in Settings and the Raycast command follows it.
-
-<img width="831" height="530" alt="Raycast - Hydrobar" src="https://github.com/user-attachments/assets/68d8ed4d-19c7-4065-b13f-109b759b1686" />
-
-
-**Install:**
-
-1. Download `hydrobar-raycast-extension.zip` from the [Releases](https://github.com/aedhx/HydroBar/releases) page (or clone the repo and run `./package-raycast-extension.sh` to create the zip).
-2. Unzip, then in a terminal: `cd raycast-hydrobar && npm install`.
-3. In Raycast: **Settings → Extensions → Add Extension → Add from folder** → select the `raycast-hydrobar` folder.
-4. Run `npm run dev` in the `raycast-hydrobar` folder so the commands appear in Raycast (you can leave this running in the background).
-
-Then search for **HydroBar** or **Add Water** in Raycast to use the commands. See [raycast-hydrobar/README.md](raycast-hydrobar/README.md) for details and troubleshooting.
-
----
-
-## 📸 Screenshots
-
-### Main View
-The main interface displays your daily hydration progress with an animated circular progress ring showing your current percentage (68% in this example), quick preset buttons (20cl, 50cl, 75cl), and a Hold-to-Add feature for continuous water intake. The interface shows your current intake (137.5 cl) versus your daily goal (200 cl).
-
-![Main View](Resources/main-view.png)
-
-### Statistics
-View your hydration data with a weekly bar chart showing your progress over 7 days, and a 30-day heatmap visualizing your consistency. Key metrics include daily average (2.0 L) and weekly totals (14.2 L). The chart uses color coding: green bars indicate goal achievement, blue bars show progress.
-
-![Statistics View](Resources/statistics-view.png)
-
-### Settings
-Customize your experience: set daily goals, choose units (ml, cl, L, oz), configure menu bar icon style (Pie Ring or Percentage), set up notifications, assign keyboard shortcuts, **check for updates** (compares with GitHub Releases), and select your preferred language. The settings interface is clean and organized, making it easy to personalize your hydration tracking.
-
-![Settings View](Resources/settings-view.png)
-
-### Notifications
-Smart reminders with customizable intervals. Notifications integrate seamlessly with macOS and respect your Focus Mode settings. The notification displays the app icon and a friendly reminder message to stay hydrated.
-
-![Notifications](Resources/notifications.png)
-
----
-
-## 📖 Usage
-
-### Getting Started
-
-1. **Set your daily goal**: Open HydroBar from the menu bar and adjust your target in Settings
-2. **Choose your unit**: Select ml, cl, L, oz, or fl oz
-3. **Add water**: Click preset buttons or use the Hold-to-Add feature
-4. **Enable reminders**: Configure notification intervals in Settings
-5. **Set shortcuts** (optional): Record global keyboard shortcuts for quick water intake
-
-### Menu Bar Icon
-
-- **Click** the icon to open the main popover
-- **Right-click** for the context menu:
-  - **Version** at the top (current app version)
-  - **Add 25cl / 250ml** quick action
-  - **Keyboard Shortcuts** submenu: view configured shortcuts for each preset
-  - **About** (version and credits)
-  - **View Repository** (open GitHub sources)
-  - **Quit**
-- **Icon styles**: Progress ring (default) or percentage display
-- **Badge indicator**: Red dot appears when reminders are active
-
-### Statistics View
-
-Access detailed statistics by clicking the chart icon in the main view:
-- **Weekly chart**: Bar graph showing daily progress
-- **Monthly heatmap**: Color-coded grid showing 30-day consistency; **hover any day** to see a tooltip with the date and hydration amount (or “No activity”)
-- **Key metrics**: Average daily intake and weekly totals
-
----
-
-## 🛠️ Building from Source
-
-### Prerequisites
-
-- macOS 12.0+ (Monterey or later)
-- Xcode 14.0+
-- Command Line Tools
-
-### Build Steps
-
-1. Clone the repository:
-   ```bash
-   git clone https://github.com/aedhx/HydroBar.git
-   cd HydroBar/src/HydroBar
-   ```
-
-2. Open the project in Xcode:
-   ```bash
-   open HydroBar.xcodeproj
-   ```
-
-3. Select the `HydroBar` scheme and build (Cmd+B) or run (Cmd+R)
-
-### Repository Structure
-
-The repository contains only the essential files:
+### Repository
 
 ```
-HydroBar/
-├── src/
-│   └── HydroBar/
-│       ├── HydroBar/                    # Main app source
-│       │   ├── *.swift                  # Swift source files
-│       │   ├── Assets.xcassets/         # App icons and assets
-│       │   └── Localizable.xcstrings    # Localization (9 languages)
-│       ├── HydroBarWidget/              # Widget extension
-│       │   ├── HydroBarWidget.swift     # Widget views (Small + Medium)
-│       │   └── AppGroupStore.swift      # Shared data bridge (App Group)
-│       ├── HydroBar.xcodeproj/          # Xcode project
-│       └── HydroBarTests/               # Unit tests
-├── Resources/                            # Assets for distribution
-│   ├── HydroBar-icon.png                # Application icon
-│   └── DMG-background.png               # DMG background image
-├── build-dmg.sh                          # DMG packaging script
-└── README.md                             # This file
+src/HydroBar/
+├── HydroBar/          the app: SwiftUI views, HydrationManager, intake log, reminders
+├── HydroBarWidget/    desktop widget and Control Center button
+└── HydroBarTests/     unit tests (Swift Testing)
+fastlane/              App Store listing in 9 languages, and its screenshots
+marketing/             screenshot and README image generator
+raycast-hydrobar/      Raycast extension
+docs/                  technical audit, roadmap, deep link spec, App Store guide
 ```
 
-**Note:** Build scripts and additional documentation have been removed to keep the repository minimal and focused on the source code.
+Main pieces of the app:
+
+- `IntakeLog` / `IntakeLogStore`: the source of truth, one event per drink.
+- `HydrationManager`: state, goals, and app and widget sync. Its extensions handle reminders, days off, bottle mode and suggestions.
+- `ReminderPlanner`, `ReminderContent`, `DayPlan`, `HydrationStats`, `HydrationPace`: pure logic, covered by unit tests.
+- `CallDetector`: whether the microphone or camera is in use.
+- `HydroBarIntents`: Shortcuts, Siri, Spotlight and the Focus filter.
+
+Technical documentation, in French: [audit](docs/AUDIT_TECHNIQUE.md), [roadmap](docs/ROADMAP_FONCTIONNALITES.md), [deep links](docs/specs/DEEP_LINKS.md), [publishing on the Mac App Store](docs/PUBLICATION_MAC_APP_STORE.md).
 
 ---
 
-## 🏗️ Architecture
+## Troubleshooting
 
-HydroBar follows the **MVVM (Model-View-ViewModel)** pattern:
+**No reminders.** Check System Settings › Notifications › HydroBar. In HydroBar, check that reminders are on, not paused, and that you're within your active hours. Reminders stop once your goal is reached, and they wait during calls.
 
-- **Model**: `HydrationManager` - Core data logic and state management
-- **View**: SwiftUI views (`MainView`, `SettingsView`, `StatisticsView`)
-- **ViewModel**: `HydrationManager` as `ObservableObject` binding views to data
+**A keyboard shortcut does nothing.** Another app probably uses it: Settings › Keyboard Shortcuts marks it as inactive. Choose another combination.
 
-### Key Components
-
-- `HydrationManager.swift`: Core business logic, persistence, history management, App Group sync
-- `HydroBarApp.swift`: App lifecycle, menu bar setup, context menu, notifications
-- `MainView.swift`: Main interface with progress ring and quick actions
-- `SettingsView.swift`: Configuration, preferences, and update check (UPDATES section)
-- `StatisticsView.swift`: Weekly and monthly statistics visualization
-- `StatsComponents.swift`: Heatmap with hover tooltips, KPI cards, weekly chart
-- `GitHubUpdateChecker.swift`: Check for new releases via GitHub API
-- `GlobalHotkeyManager.swift`: System-wide keyboard shortcut handling
-- `FocusModeMonitor.swift`: macOS Focus Mode integration
-- `HydroBarWidget/HydroBarWidget.swift`: Widget views (Small + Medium families)
-- `HydroBarWidget/AppGroupStore.swift`: Shared data bridge between app and widget
-- `Localizable.xcstrings`: Multi-language support (9 languages)
-
-### Technical Documentation
-
-In-depth engineering docs live in [`docs/`](docs/README.md):
-
-- [**Technical audit**](docs/AUDIT_TECHNIQUE.md) — code review, 32 findings ranked P0→P4, with a 6-step action plan
-- [**Feature roadmap**](docs/ROADMAP_FONCTIONNALITES.md) — 16 proposals ranked by value/effort, sequenced v1.3→v1.6
-- [**Deep links spec**](docs/specs/DEEP_LINKS.md) — the `hydrobar://` URL scheme: grammar, security model, callbacks, tests
-
-> These documents are written in French.
+**The icon is missing from the menu bar.** With a notch and many icons, macOS hides those that don't fit. Quit a few menu bar apps, or hold ⌘ and drag the HydroBar icon to the right.
 
 ---
 
-## 🔒 Privacy & Security
+## Roadmap
 
-- ✅ **100% local storage**: All data stays on your Mac
-- ✅ **Optional network use**: Only for “Check for updates” in Settings (GitHub API, no tracking)
-- ✅ **No tracking or analytics**
-- ✅ **Open source**: Code is publicly available for review
-- ✅ **No data collection**: We don't collect any personal information
+- [x] Deep links, launch at login, pace marker, desktop widget *(1.3)*
+- [x] Intake log, export and backup, Shortcuts actions, smart reminders *(2.0)*
+- [x] Days off, actionable notifications, bottle mode, year view, Control Center *(2.0)*
+- [ ] Mac App Store *(2.0, in preparation)*
+- [ ] Drink types (coffee, tea…)
+- [ ] Optional iCloud sync
 
-### Gatekeeper Notice
-
-> **Going away soon.** The build script now supports Developer ID signing and
-> notarization; once a signed release ships, this whole section disappears and
-> HydroBar opens on a double-click.
-
-Current releases are signed ad-hoc, so macOS may show a "damaged" or "cannot be opened" warning. This is expected — run the following command in Terminal to remove the quarantine flag, then open normally:
-
-```bash
-xattr -cr /Applications/HydroBar.app
-```
+HydroBar is a macOS app; an iOS version isn't planned for now. Apple Health isn't either: HealthKit isn't available to Mac apps. The [detailed roadmap](docs/ROADMAP_FONCTIONNALITES.md) has the rest.
 
 ---
 
-## 🐛 Troubleshooting
+## Contributing
 
-### App won't open
-- Right-click the app > Open (first launch only)
-- Check System Preferences > Security & Privacy > General for "Open Anyway" option
+Issues and pull requests are welcome. For a large change, open an issue first so we can talk about it.
 
-### Notifications not working
-- Enable notifications in System Preferences > Notifications
-- Check that Do Not Disturb mode is not enabled
-- Verify notification settings in HydroBar Settings
+- 🐛 [Report a bug](https://github.com/aedhx/HydroBar/issues)
+- 💡 [Suggest a feature](https://github.com/aedhx/HydroBar/issues)
 
-### Keyboard shortcuts not working
-- Grant Accessibility permission: System Preferences > Security & Privacy > Privacy > Accessibility
-- Restart the app after granting permission
-- Verify shortcuts are configured in Settings
+## License
 
-### Icon not visible in menu bar
-- Check that the app is running (Activity Monitor)
-- On Retina displays, the icon may appear very small
-- Try restarting the app
-
----
-
-## 📝 Requirements
-
-- **macOS**: 12.0 (Monterey) or later
-- **Architecture**: Universal (Intel and Apple Silicon)
-- **Disk space**: ~15-20 MB
-- **Permissions**: Notifications, Accessibility (for shortcuts)
-
----
-
-## 🛣️ Roadmap
-
-Future improvements planned:
-- [x] Deep links / URL scheme *(v1.3)*
-- [x] Launch at login *(v1.3)*
-- [x] Pace marker on the progress ring *(v1.3)*
-- [ ] Data export functionality
-- [ ] iCloud sync (optional)
-- [ ] Widget support *(planned v1.3)*
-- [ ] Health app integration
-- [ ] Custom preset amounts
-- [ ] Advanced statistics filters
-
----
-
-## 📄 License
-
-This project is licensed under the MIT License - see the LICENSE file for details.
-
----
-
-## 👨‍💻 Developer
-
-**Antoine Deshoux**
-- 🌐 Website: [https://adx.cool/](https://adx.cool/)
-- 💼 LinkedIn: [https://www.linkedin.com/in/deshouxantoine/](https://www.linkedin.com/in/deshouxantoine/)
-
----
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request. For major changes, please open an issue first to discuss what you would like to change.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
----
-
-## 📬 Support
-
-- 🐛 **Bug reports**: [Open an issue](https://github.com/aedhx/HydroBar/issues)
-- 💡 **Feature requests**: [Open an issue](https://github.com/aedhx/HydroBar/issues)
-- ❓ **Questions**: Check existing issues or open a new one
+MIT. See [LICENSE](LICENSE).
 
 ---
 
 <div align="center">
 
-Made with ❤️ for macOS users
+Made by **Antoine Deshoux** · [adx.cool](https://adx.cool/) · [LinkedIn](https://www.linkedin.com/in/deshouxantoine/)
 
 </div>

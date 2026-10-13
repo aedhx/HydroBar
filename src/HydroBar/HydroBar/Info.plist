@@ -15,6 +15,8 @@
 			</array>
 		</dict>
 	</array>
+	<key>ITSAppUsesNonExemptEncryption</key>
+	<false/>
 	<key>NSFocusStatusUsageDescription</key>
 	<string>HydroBar reads your Focus status to pause hydration reminders while you are focused.</string>
 </dict>

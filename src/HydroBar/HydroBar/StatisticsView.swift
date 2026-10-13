@@ -25,23 +25,53 @@ struct StatisticsView: View {
             // Section Cette Semaine
             VStack(alignment: .leading, spacing: 10) {
                 Text("This Week", comment: "Section title for weekly statistics")
-                    .font(.system(size: 13, weight: .semibold))
+                    .font(Theme.Font.bodyEmphasis)
                     .foregroundColor(.primary)
                     .padding(.horizontal, 20)
                 
                 WeeklyChartView(manager: manager)
             }
             
+            // Section Quand je bois (par heure, 30 jours)
+            VStack(alignment: .leading, spacing: 10) {
+                Text("When You Drink (30 days)", comment: "Title for the hourly intake pattern chart")
+                    .font(Theme.Font.bodyEmphasis)
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+
+                HourlyPatternView(manager: manager)
+            }
+
             // Section Activité Mensuelle
             VStack(alignment: .leading, spacing: 10) {
-                Text("Monthly Activity", comment: "Section title for monthly activity")
-                    .font(.system(size: 13, weight: .semibold))
+                Text("Consistency (30 days)", comment: "Title for 30-day consistency heatmap")
+                    .font(Theme.Font.bodyEmphasis)
                     .foregroundColor(.primary)
                     .padding(.horizontal, 20)
                 
                 MonthlyHeatmapView(manager: manager)
             }
             
+            // Section Ce mois-ci : bilan partageable
+            VStack(alignment: .leading, spacing: 10) {
+                Text("This Month", comment: "Title for the monthly recap section")
+                    .font(Theme.Font.bodyEmphasis)
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+
+                MonthlyRecapView(manager: manager)
+            }
+
+            // Section Année : moyenne quotidienne de chaque mois
+            VStack(alignment: .leading, spacing: 10) {
+                Text("Your Year", comment: "Title for the 12-month chart")
+                    .font(Theme.Font.bodyEmphasis)
+                    .foregroundColor(.primary)
+                    .padding(.horizontal, 20)
+
+                YearChartView(manager: manager)
+            }
+
             // Section Streak (mise en valeur)
             VStack(spacing: 4) {
                 Text(String(format: String(localized: "Current streak: %lld days 🔥", comment: "Current streak display with number of days"), streak))
@@ -50,8 +80,8 @@ struct StatisticsView: View {
                 
                 if streak > 3 {
                     Text("You're unstoppable!", comment: "Motivational message for long streaks")
-                        .font(.system(size: 11, weight: .medium))
-                        .foregroundColor(.green)
+                        .font(Theme.Font.captionMedium)
+                        .foregroundColor(Theme.goal)
                 }
             }
             .frame(maxWidth: .infinity)
@@ -62,8 +92,8 @@ struct StatisticsView: View {
                     .fill(
                         LinearGradient(
                             colors: [
-                                Color.green.opacity(0.1),
-                                Color.blue.opacity(0.05)
+                                Theme.goal.opacity(0.1),
+                                Theme.water.opacity(0.05)
                             ],
                             startPoint: .leading,
                             endPoint: .trailing
@@ -73,7 +103,7 @@ struct StatisticsView: View {
             .overlay(
                 RoundedRectangle(cornerRadius: 12)
                     .stroke(
-                        streak > 3 ? Color.green.opacity(0.3) : Color.blue.opacity(0.2),
+                        streak > 3 ? Theme.goal.opacity(0.3) : Theme.water.opacity(0.2),
                         lineWidth: 1.5
                     )
             )

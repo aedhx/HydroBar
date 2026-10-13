@@ -8,18 +8,17 @@
 import SwiftUI
 import UserNotifications
 import AppKit
+import Combine
 
 @main
 struct HydroBarApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
     
     init() {
-        // Configurer la langue de l'application
-        let manager = HydrationManager.shared
-        if manager.appLanguage != "system" {
-            UserDefaults.standard.set([manager.appLanguage], forKey: "AppleLanguages")
-            UserDefaults.standard.synchronize()
-        }
+        // Avant de créer le manager, qui produit déjà des textes localisés.
+        HydrationManager.applyLanguagePreference(
+            UserDefaults.standard.string(forKey: "appLanguage") ?? "system"
+        )
         
         // Configurer le delegate pour les notifications
         UNUserNotificationCenter.current().delegate = appDelegate
@@ -115,7 +114,7 @@ struct MenuBarIconView: View {
                         // Retour au centre pour fermer le camembert
                         path.closeSubpath()
                     }
-                    .fill(isGoalReached ? Color.green : Color.blue)
+                    .fill(isGoalReached ? Theme.goal : Theme.water)
                 }
 
                 // Bordure toujours visible pour ancrer l'icône sur fond transparent
@@ -129,7 +128,7 @@ struct MenuBarIconView: View {
     private var percentageView: some View {
         Text("\(percentage)%")
             .font(.system(size: 12, weight: .bold, design: .rounded))
-            .foregroundColor(isGoalReached ? Color(red: 0.2, green: 0.8, blue: 0.2) : Color(red: 0.2, green: 0.5, blue: 1.0))
+            .foregroundColor(isGoalReached ? Theme.goal : Theme.water)
             .monospacedDigit()
             .frame(minWidth: 45, alignment: .center)
             .padding(.horizontal, 2)
@@ -141,6 +140,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     var statusItem: NSStatusItem?
     var popover: NSPopover?
     var hostingController: NSHostingController<MenuBarIconView>?
+
+    /// L'icône se met à jour quand l'état change, et seulement alors. Remplace un
+    /// minuteur à 2 Hz qui reconstruisait un NSHostingController complet à chaque
+    /// tick, 24 h/24, pour une valeur qui change quelques dizaines de fois par
+    /// jour (cf. AUDIT § P2-1).
+    private var iconSubscription: AnyCancellable?
+
+    /// Style actuellement monté dans le bouton : la vue SwiftUI n'est
+    /// reconstruite que lorsqu'il change.
+    private var renderedIconStyle: MenuBarIconStyle?
     
     // MARK: - Deep links (hydrobar://)
 
@@ -159,7 +168,46 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         urls.forEach { DeepLinkRouter.shared.handle($0) }
     }
 
+    /// L'écriture de l'historique est différée d'une demi-seconde : on la vide à
+    /// la fermeture pour qu'un délai ne coûte jamais une donnée.
+    func applicationWillTerminate(_ notification: Notification) {
+        HydrationManager.shared.flushPendingWrites()
+    }
+
+    /// Raccourci global « Open HydroBar » (F20).
+    func togglePopoverFromShortcut() {
+        guard let button = statusItem?.button else { return }
+        NSApp.activate()
+        togglePopover(for: button)
+    }
+
+    private let intakeToast = IntakeToastController()
+    private var intakeSubscription: AnyCancellable?
+
+    /// Une prise ajoutée popover fermé (raccourci, ⌥-clic, intent, widget,
+    /// deep link) : l'icône clignote comme un élément de menu, et « +20 cl »
+    /// s'affiche dessous. Popover ouvert, l'anneau suffit.
+    private func confirmIntakeOutsidePopover(_ ml: Double) {
+        guard popover?.isShown != true, let button = statusItem?.button else { return }
+        button.highlight(true)
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.18) { button.highlight(false) }
+        intakeToast.show("+" + HydrationManager.shared.displayValue(for: ml), below: button)
+    }
+
+    func closePopover() {
+        if popover?.isShown == true { popover?.performClose(nil) }
+    }
+
+    @objc func openSettingsWindow() {
+        SettingsWindowController.shared.show()
+    }
+
     func presentPopover(showing view: ViewType) {
+        // hydrobar://open/settings : la fenêtre de réglages, plus le popover.
+        if view == .settings {
+            SettingsWindowController.shared.show()
+            return
+        }
         AppNavigation.shared.requestView(view)
         guard let button = statusItem?.button, let popover = popover else { return }
         NSApp.activate()
@@ -169,26 +217,16 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
     }
 
     func applicationDidFinishLaunching(_ notification: Notification) {
-        // Demander l'autorisation pour les notifications uniquement si le statut n'a pas encore été déterminé
+        // L'autorisation des notifications n'est plus demandée ici, au premier
+        // lancement, mais quand l'utilisateur active les rappels (onboarding ou
+        // réglages). On vérifie seulement qu'elle n'a pas été retirée depuis.
         UNUserNotificationCenter.current().getNotificationSettings { settings in
-            switch settings.authorizationStatus {
-            case .notDetermined:
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
-                    if !granted {
-                        DispatchQueue.main.async {
-                            HydrationManager.shared.notificationsEnabled = false
-                        }
-                    }
-                }
-            case .denied:
-                DispatchQueue.main.async {
-                    HydrationManager.shared.notificationsEnabled = false
-                }
-            default:
-                break
+            guard settings.authorizationStatus == .denied else { return }
+            DispatchQueue.main.async {
+                HydrationManager.shared.notificationsEnabled = false
             }
         }
-        
+
         // Initialiser le gestionnaire de raccourcis globaux
         _ = GlobalHotkeyManager.shared
         
@@ -201,6 +239,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         // La barre de menu existe : les deep links reçus pendant le lancement
         // peuvent maintenant être traités.
         DeepLinkRouter.shared.markReady()
+
+        OnboardingWindowController.shared.showIfNeeded()
     }
     
     func setupStatusBar() {
@@ -226,81 +266,117 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         popover?.behavior = .transient
         
         let mainViewController = NSHostingController(rootView: MainView())
-        mainViewController.view.setFrameSize(NSSize(width: 320, height: 400))
+        // Le popover suit la taille idéale de la vue SwiftUI. Avant, une
+        // GeometryReader mesurait le contenu, un PreferenceKey le remontait et
+        // l'AppDelegate redimensionnait le popover à la main : fragile, et
+        // source de sauts quand on dépliait le journal du jour.
+        mainViewController.sizingOptions = .preferredContentSize
         popover?.contentViewController = mainViewController
         
         // Configurer le responder pour Cmd+Z
         setupUndoSupport()
         
-        // Mettre à jour l'icône périodiquement
-        Timer.scheduledTimer(withTimeInterval: 0.5, repeats: true) { [weak self] _ in
-            self?.updateStatusBarIcon()
-        }
+        // objectWillChange est émis AVANT la mutation : receive(on:) diffère la
+        // lecture au tour de boucle suivant, quand la nouvelle valeur est en place.
+        iconSubscription = HydrationManager.shared.objectWillChange
+            .receive(on: RunLoop.main)
+            .sink { [weak self] _ in self?.updateStatusBarIcon() }
+
+        intakeSubscription = HydrationManager.shared.intakeAdded
+            .receive(on: RunLoop.main)
+            .sink { [weak self] ml in self?.confirmIntakeOutsidePopover(ml) }
     }
     
     func updateStatusBarIcon() {
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self,
-                  let button = self.statusItem?.button else { return }
-            
-            let manager = HydrationManager.shared
-            
-            if manager.menuBarIconStyle == .percentage {
-                // Mode pourcentage : utiliser NSImage pour un rendu plus fiable
-                // Retirer les vues SwiftUI
+        guard let button = statusItem?.button else { return }
+        let manager = HydrationManager.shared
+
+        // VoiceOver et info-bulle : l'icône seule n'annonçait rien d'exploitable.
+        let summary = manager.progressAccessibilitySummary
+        button.setAccessibilityLabel("HydroBar")
+        button.setAccessibilityValue(summary)
+        button.toolTip = summary + "\n" + String(localized: "Option-click to log your first preset.",
+                                                 comment: "Menu bar icon tooltip hint")
+
+        let target = manager.targetMl
+        let progress = target > 0 ? manager.currentMl / target : 0
+
+        // Icône monochrome par défaut (v2) : une image template, teintée par
+        // macOS. Redessinée à chaque changement, ce qui ne coûte presque rien.
+        if !manager.coloredMenuBarIcon {
+            if hostingController != nil {
                 button.subviews.forEach { $0.removeFromSuperview() }
-                self.hostingController = nil
-                
-                // Utiliser une longueur variable pour le texte
-                self.statusItem?.length = NSStatusItem.variableLength
-                
-                let target = manager.targetMl
-                let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
-                let isGoalReached = target > 0 && manager.currentMl >= target
-                
-                if let image = self.createPercentageImage(percentage: percentage, isGoalReached: isGoalReached, showBadge: manager.showReminderBadge) {
-                    button.image = image
-                    button.imagePosition = .imageLeading
-                    button.title = ""
-                }
-            } else {
-                // Mode pie ring : utiliser SwiftUI avec longueur fixe pour centrage
-                button.image = nil
-                button.title = ""
-                
-                // Utiliser une longueur fixe pour garantir un centrage correct
-                self.statusItem?.length = 24
-                
-                // Retirer les anciennes vues
-                button.subviews.forEach { $0.removeFromSuperview() }
-                
-                self.hostingController = NSHostingController(rootView: MenuBarIconView(manager: manager))
-                
-                let iconSize: CGFloat = 18
-                let buttonFrame = button.bounds
-                
-                // Centrer la vue dans le bouton (le bouton a une hauteur standard de ~22px)
-                let xOffset = max(0, (buttonFrame.width - iconSize) / 2)
-                let yOffset = max(0, (buttonFrame.height - iconSize) / 2)
-                
-                self.hostingController?.view.frame = NSRect(x: xOffset, y: yOffset, width: iconSize, height: iconSize)
-                self.hostingController?.view.wantsLayer = true
-                self.hostingController?.view.layer?.backgroundColor = NSColor.clear.cgColor
-                
-                if let hostingView = self.hostingController?.view {
-                    button.addSubview(hostingView)
-                }
+                hostingController = nil
             }
+            renderedIconStyle = nil
+            button.title = ""
+            button.imagePosition = .imageOnly
+            switch manager.menuBarIconStyle {
+            case .pieRing:
+                statusItem?.length = NSStatusItem.squareLength
+                button.image = MenuBarIconRenderer.ring(progress: progress, showBadge: manager.showReminderBadge)
+            case .percentage:
+                statusItem?.length = NSStatusItem.variableLength
+                button.image = MenuBarIconRenderer.percentage(Int(progress * 100), showBadge: manager.showReminderBadge)
+            }
+            return
         }
+
+        switch manager.menuBarIconStyle {
+        case .percentage:
+            if renderedIconStyle != .percentage {
+                button.subviews.forEach { $0.removeFromSuperview() }
+                hostingController = nil
+                statusItem?.length = NSStatusItem.variableLength
+                button.imagePosition = .imageLeading
+                button.title = ""
+            }
+            // Une image texte coûte peu : elle est redessinée à chaque changement.
+            let percentage = target > 0 ? Int((manager.currentMl / target) * 100) : 0
+            let isGoalReached = target > 0 && manager.currentMl >= target
+            button.image = createPercentageImage(percentage: percentage,
+                                                 isGoalReached: isGoalReached,
+                                                 showBadge: manager.showReminderBadge)
+
+        case .pieRing:
+            // La vue SwiftUI observe le manager elle-même : il suffit de la monter
+            // une fois, elle se redessine ensuite seule.
+            guard renderedIconStyle != .pieRing else { break }
+            button.image = nil
+            button.title = ""
+            statusItem?.length = 24
+            button.subviews.forEach { $0.removeFromSuperview() }
+
+            let controller = NSHostingController(rootView: MenuBarIconView(manager: manager))
+            let hostingView = controller.view
+            hostingView.wantsLayer = true
+            hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+            hostingView.translatesAutoresizingMaskIntoConstraints = false
+            button.addSubview(hostingView)
+
+            // Centré par contraintes, pas par un cadre calculé. Les dimensions du
+            // bouton ne sont pas toujours définitives au moment du montage :
+            // l'ancien minuteur corrigeait un mauvais centrage au tick suivant ;
+            // monté une seule fois, un cadre calculé trop tôt resterait faux.
+            let iconSize: CGFloat = 18
+            NSLayoutConstraint.activate([
+                hostingView.centerXAnchor.constraint(equalTo: button.centerXAnchor),
+                hostingView.centerYAnchor.constraint(equalTo: button.centerYAnchor),
+                hostingView.widthAnchor.constraint(equalToConstant: iconSize),
+                hostingView.heightAnchor.constraint(equalToConstant: iconSize),
+            ])
+            hostingController = controller
+        }
+        renderedIconStyle = manager.menuBarIconStyle
     }
-    
+
     private func createPercentageImage(percentage: Int, isGoalReached: Bool, showBadge: Bool) -> NSImage? {
         let text = "\(percentage)%"
         let fontSize: CGFloat = 12
         let font = NSFont.systemFont(ofSize: fontSize, weight: .bold)
         
         // Couleur selon si l'objectif est atteint
-        let color = isGoalReached ? NSColor(red: 0.2, green: 0.8, blue: 0.2, alpha: 1.0) : NSColor(red: 0.2, green: 0.5, blue: 1.0, alpha: 1.0)
+        let color = isGoalReached ? Theme.NS.goal : Theme.NS.water
         
         // Calculer la taille du texte
         let attributes: [NSAttributedString.Key: Any] = [
@@ -359,6 +435,13 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         if event.type == .rightMouseUp {
             // Clic droit : afficher le menu contextuel
             showContextMenu(for: sender)
+        } else if event.modifierFlags.contains(.option) {
+            // ⌥-clic : premier preset, sans ouvrir le popover (F14).
+            let manager = HydrationManager.shared
+            if let first = manager.presetsMl.first {
+                manager.addWater(amount: first)
+                NSSound(named: "Pop")?.play()
+            }
         } else {
             // Clic gauche : ouvrir/fermer le popover
             togglePopover(for: sender)
@@ -384,32 +467,12 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         }
     }
     
-    func updatePopoverSize(height: CGFloat) {
-        guard let popover = popover,
-              let viewController = popover.contentViewController else { return }
-        
-        let newSize = NSSize(width: 320, height: height)
-        popover.contentSize = newSize
-        viewController.view.setFrameSize(newSize)
-    }
-    
     /// Charge les raccourcis sauvegardés depuis UserDefaults
     private func loadSavedShortcuts() {
-        let manager = GlobalHotkeyManager.shared
-        let hydrationManager = HydrationManager.shared
-        
-        // Charger les raccourcis pour chaque preset
-        for index in 0..<hydrationManager.presetsMl.count {
-            let key = "shortcut_preset_\(index)"
-            if let data = UserDefaults.standard.data(forKey: key),
-               let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data) {
-                // Réenregistrer le raccourci
-                manager.registerShortcut(
-                    for: index,
-                    keyCode: shortcut.keyCode,
-                    modifiers: shortcut.modifiers
-                )
-            }
+        let hotkeys = GlobalHotkeyManager.shared
+        let presetActions = HydrationManager.shared.presetsMl.indices.map { HotkeyAction.preset($0) }
+        for action in presetActions + HotkeyAction.general {
+            hotkeys.registerSavedShortcut(for: action)
         }
     }
     
@@ -429,27 +492,74 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         
         menu.addItem(NSMenuItem.separator())
         
-        // Ajouter 25cl / 250ml
-        let addWaterItem = NSMenuItem(title: String(localized: "Add 25cl / 250ml", comment: "Menu item to add water"), action: #selector(addWater), keyEquivalent: "")
-        addWaterItem.target = self
-        menu.addItem(addWaterItem)
-        
+        // Un élément par preset réel. L'ancien « Add 25cl / 250ml » ajoutait une
+        // quantité codée en dur, quels que soient les presets de l'utilisateur.
+        let manager = HydrationManager.shared
+        for (index, preset) in manager.presetsMl.enumerated() {
+            let title = String(format: String(localized: "Add %@", comment: "Context menu item; %@ is an amount"),
+                               manager.displayValue(for: preset))
+            let item = NSMenuItem(title: title, action: #selector(addPresetFromMenu(_:)), keyEquivalent: "")
+            item.target = self
+            item.tag = index
+            menu.addItem(item)
+        }
+
+        let undoItem = NSMenuItem(title: String(localized: "Undo", comment: "Undo menu item"),
+                                  action: #selector(performUndo), keyEquivalent: "")
+        undoItem.target = self
+        undoItem.isEnabled = manager.canUndo
+        menu.addItem(undoItem)
+
         menu.addItem(NSMenuItem.separator())
+
+        // Jour off ponctuel : un férié, un congé, un jour malade.
+        if manager.dayPlan.enabled {
+            let dayOffItem = NSMenuItem(title: String(localized: "Today Is a Day Off", comment: "Context menu item"),
+                                        action: #selector(toggleDayOff), keyEquivalent: "")
+            dayOffItem.target = self
+            dayOffItem.state = manager.todayKind == .off ? .on : .off
+            dayOffItem.isEnabled = !manager.todayKindSetByFocus
+            menu.addItem(dayOffItem)
+            menu.addItem(NSMenuItem.separator())
+        }
+
+        // Pause des rappels (F19)
+        if manager.notificationsEnabled {
+            if let until = manager.remindersSnoozedUntil {
+                let title = String(format: String(localized: "Resume Reminders (paused until %@)",
+                                                  comment: "Context menu item; %@ is a time"),
+                                   until.formatted(date: .omitted, time: .shortened))
+                let resumeItem = NSMenuItem(title: title, action: #selector(resumeReminders), keyEquivalent: "")
+                resumeItem.target = self
+                menu.addItem(resumeItem)
+            } else {
+                let pauseItem = NSMenuItem(title: String(localized: "Pause Reminders", comment: "Context menu submenu"),
+                                           action: nil, keyEquivalent: "")
+                let pauseMenu = NSMenu()
+                for option in SnoozeOption.allCases {
+                    let item = NSMenuItem(title: option.title, action: #selector(snoozeFromMenu(_:)), keyEquivalent: "")
+                    item.target = self
+                    item.representedObject = option.rawValue
+                    pauseMenu.addItem(item)
+                }
+                pauseItem.submenu = pauseMenu
+                menu.addItem(pauseItem)
+            }
+            menu.addItem(NSMenuItem.separator())
+        }
         
         // Sous-menu : Raccourcis clavier configurés
         let shortcutsTitle = String(localized: "Keyboard Shortcuts", comment: "Context menu submenu for configured shortcuts")
         let shortcutsItem = NSMenuItem(title: shortcutsTitle, action: nil, keyEquivalent: "")
         let shortcutsSubmenu = NSMenu()
-        let presetCount = HydrationManager.shared.presetsMl.count
-        for index in 0..<presetCount {
-            let key = "shortcut_preset_\(index)"
-            let presetLabel = String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1)
+        let presetActions = HydrationManager.shared.presetsMl.indices.map { HotkeyAction.preset($0) }
+        for action in presetActions + HotkeyAction.general {
             let displayText: String
-            if let data = UserDefaults.standard.data(forKey: key),
+            if let data = UserDefaults.standard.data(forKey: action.defaultsKey),
                let shortcut = try? JSONDecoder().decode(Shortcut.self, from: data) {
-                displayText = "\(presetLabel): \(shortcut.displayString)"
+                displayText = "\(action.localizedName): \(shortcut.displayString)"
             } else {
-                displayText = "\(presetLabel): —"
+                displayText = "\(action.localizedName): —"
             }
             let item = NSMenuItem(title: displayText, action: nil, keyEquivalent: "")
             item.isEnabled = false
@@ -458,6 +568,11 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         shortcutsItem.submenu = shortcutsSubmenu
         menu.addItem(shortcutsItem)
         
+        let settingsItem = NSMenuItem(title: String(localized: "Settings…", comment: "Context menu item opening the settings window"),
+                                      action: #selector(openSettingsWindow), keyEquivalent: ",")
+        settingsItem.target = self
+        menu.addItem(settingsItem)
+
         // À propos
         let aboutItem = NSMenuItem(title: String(localized: "About", comment: "Menu item for about"), action: #selector(showAbout), keyEquivalent: "")
         aboutItem.target = self
@@ -478,8 +593,25 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         menu.popUp(positioning: nil, at: NSPoint(x: 0, y: sender.bounds.height), in: sender)
     }
     
-    @objc func addWater() {
-        HydrationManager.shared.addWater(amount: 250.0)
+    @objc func addPresetFromMenu(_ sender: NSMenuItem) {
+        let manager = HydrationManager.shared
+        guard manager.presetsMl.indices.contains(sender.tag) else { return }
+        manager.addWater(amount: manager.presetsMl[sender.tag])
+    }
+
+    @objc func snoozeFromMenu(_ sender: NSMenuItem) {
+        guard let raw = sender.representedObject as? String,
+              let option = SnoozeOption(rawValue: raw) else { return }
+        HydrationManager.shared.snoozeReminders(option)
+    }
+
+    @objc func resumeReminders() {
+        HydrationManager.shared.resumeReminders()
+    }
+
+    @objc func toggleDayOff() {
+        let manager = HydrationManager.shared
+        manager.setTodayKind(manager.todayKind == .off ? .work : .off)
     }
     
     @objc func showAbout() {
@@ -544,14 +676,8 @@ class AppDelegate: NSObject, NSApplicationDelegate, UNUserNotificationCenterDele
         didReceive response: UNNotificationResponse,
         withCompletionHandler completionHandler: @escaping () -> Void
     ) {
-        if response.actionIdentifier == "DRINK_ACTION" {
-            // Ajouter le premier preset
-            let manager = HydrationManager.shared
-            if !manager.presetsMl.isEmpty {
-                manager.addWater(amount: manager.presetsMl[0])
-            }
-        }
-        
+        let typedText = (response as? UNTextInputNotificationResponse)?.userText
+        HydrationManager.shared.handleNotificationAction(response.actionIdentifier, typedText: typedText)
         completionHandler()
     }
     
