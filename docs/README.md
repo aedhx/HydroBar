@@ -2,6 +2,7 @@
 
 | Document | Contenu |
 |---|---|
+| [**BACKLOG.md**](BACKLOG.md) | **La suite** : ce qui vient après la 2.0.1, par version, avec l'ordre conseillé et ce qu'on ne fera pas. À lire en premier. |
 | [**AUDIT_TECHNIQUE.md**](AUDIT_TECHNIQUE.md) | Revue de code complète : 32 points classés P0 → P4, une **revue n°2** (octobre 2026) de 13 points, et la **revue n°3** — la passe de corrections, avec les 14 défauts qu'elle a trouvés. Chaque point porte son statut et le commit qui le corrige ; les points corrigés sont conservés, pas effacés. |
 | [**ROADMAP_FONCTIONNALITES.md**](ROADMAP_FONCTIONNALITES.md) | 21 propositions classées valeur / effort, séquencées v1.3 → v1.6, avec **ce qui est intégrable aujourd'hui** et ce qui bloque le reste. Inclut ce qu'il vaut mieux **ne pas** faire. |
 | [**specs/DEEP_LINKS.md**](specs/DEEP_LINKS.md) | Spécification du schéma d'URL `hydrobar://` — **implémentée** : grammaire, sécurité, `x-callback-url`, codes d'erreur, code Swift et tests. |
@@ -31,3 +32,5 @@
   roadmap pointe vers son explication détaillée.
 - Ces documents sont un **état des lieux daté**, pas une vérité permanente. À
   actualiser au fil des corrections — un audit périmé est pire que pas d'audit.
+
+À côté de ces documents : les notes de version dans [`releases/`](releases/), le [guide de publication sur le Mac App Store](PUBLICATION_MAC_APP_STORE.md) et la [politique de confidentialité en français](PRIVACY.fr.md).
