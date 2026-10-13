@@ -124,7 +124,11 @@ final class FocusModeMonitor: ObservableObject {
     /// persisté, y compris au lancement.
     func setAutoSync(_ enabled: Bool) {
         isAutoSyncEnabled = enabled
-        if enabled { checkFocusStatus() }
+        if enabled {
+            checkFocusStatus()
+        } else {
+            hydrationManager?.setFocusActive(false)
+        }
     }
 
     func checkFocusStatus() {
@@ -142,20 +146,7 @@ final class FocusModeMonitor: ObservableObject {
             return
         }
 
-        guard manager.doNotDisturb != isFocused else { return }
-
-        // Couper temporairement la synchro pour éviter la cascade de didSet.
-        // Contournement fragile, conservé tel quel : le corriger proprement est
-        // l'objet de P1-7 (séparer intention utilisateur et état effectif).
-        let wasAutoSync = manager.focusModeAutoSync
-        manager.focusModeAutoSync = false
-        manager.doNotDisturb = isFocused
-        manager.focusModeAutoSync = wasAutoSync
-
-        if manager.notificationsEnabled {
-            manager.scheduleNotifications()
-            manager.checkReminderStatus()
-        }
+        manager.setFocusActive(isFocused)
     }
 
     private func startPeriodicCheck() {

@@ -15,23 +15,23 @@
 | # | Fonctionnalité | Valeur | Effort | Prérequis |
 |---|---|---|---|---|
 | **F1** | **Deep links `hydrobar://`** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
-| **F2** | **App Intents / Shortcuts** | ⭐⭐⭐⭐⭐ | 2 j | F1 (validation partagée) |
+| **F2** | **App Intents / Shortcuts** ✅ v2.0 | ⭐⭐⭐⭐⭐ | — | F1 (validation partagée) |
 | **F3** | **Lancement au démarrage** ✅ livré | ⭐⭐⭐⭐⭐ | — | — |
 | **F18** | **Repère d'allure sur l'anneau** ✅ livré | ⭐⭐⭐⭐ | — | — |
-| **F4** | Export des données (CSV / JSON) | ⭐⭐⭐⭐ | 1 j | F5 |
-| **F5** | Journal d'événements + historique illimité | ⭐⭐⭐⭐ | 2 j | P1-2 |
-| **F17** | Journal du jour + suppression à l'unité | ⭐⭐⭐⭐ | 1 j | F5 |
-| **F6** | Rappels intelligents | ⭐⭐⭐⭐ | 2 j | P0-3, F5 |
+| **F4** | **Export des données (CSV / JSON)** ✅ v2.0 | ⭐⭐⭐⭐ | — | F5 |
+| **F5** | **Journal d'événements + historique illimité** ✅ v2.0 | ⭐⭐⭐⭐ | — | P1-2 |
+| **F17** | **Journal du jour + suppression à l'unité** ✅ v2.0 | ⭐⭐⭐⭐ | — | F5 |
+| **F6** | **Rappels intelligents** ✅ v2.0 | ⭐⭐⭐⭐ | — | P0-3, F5 |
 | **F7** | Accessibilité (VoiceOver, contrastes) | ⭐⭐⭐⭐ | 1,5 j | — |
-| **F8** | Onboarding au premier lancement | ⭐⭐⭐ | 1,5 j | — |
-| **F19** | Snooze des rappels | ⭐⭐⭐ | 3 h | — (plage horaire déjà faite) |
-| **F20** | Raccourcis globaux au-delà des presets | ⭐⭐⭐ | 4 h | — |
+| **F8** | **Onboarding au premier lancement** ✅ v2.0 | ⭐⭐⭐ | — | — |
+| **F19** | **Snooze des rappels** ✅ v2.0 | ⭐⭐⭐ | — | — (plage horaire déjà faite) |
+| **F20** | **Raccourcis globaux au-delà des presets** ✅ v2.0 | ⭐⭐⭐ | — | — |
 | **F9** | Types de boissons | ⭐⭐⭐ | 2 j | F5 |
 | **F10** | Widget + contrôles Control Center | ⭐⭐⭐ | 1 j | P0-6 |
 | **F11** | Synchronisation iCloud | ⭐⭐⭐ | 3 j | F5 |
 | **F12** | Mises à jour automatiques (Sparkle) | ⭐⭐⭐ | 1,5 j | P3-6 |
 | **F13** | Distribution Homebrew | ⭐⭐ | 3 h | P3-6 |
-| **F21** | Suggestion d'objectif | ⭐⭐ | 3 h | F8 (idéalement) |
+| **F21** | **Suggestion d'objectif** ✅ v2.0 | ⭐⭐ | — | F8 (idéalement) |
 | **F14** | Interactions barre de menu (molette, alt-clic) | ⭐⭐ | 1 j | P2-1 |
 | **F15** | Plugin Stream Deck | ⭐⭐ | 1 j | F1 |
 | **F16** | Fenêtre tableau de bord | ⭐⭐ | 2 j | — |
@@ -48,11 +48,18 @@ touche à la donnée bute sur le même prérequis — et ce constat est partagé
 indépendamment, par le backlog produit de la branche
 `claude/macos-menu-bar-backlog-xbv1px`.
 
+> **Mise à jour (revue n°3).** La passe de corrections a soldé l'audit : l'unité
+> ml, R2-7, R2-8 et la dette du widget sont livrés, et le widget fonctionne enfin
+> (son App Group était vide, voir audit R3-3). Le prérequis de F5 se réduit à
+> l'injection de dépendances de `HydrationManager`. **iOS est hors périmètre
+> pour l'instant** : les pistes qui passaient par un iPhone (Santé via
+> Raccourcis, app compagnon) sont mises de côté.
+
 ### Intégrable maintenant, sans prérequis
 
 | Feature | Effort | Pourquoi c'est prêt |
 |---|---|---|
-| **Unité ml** (R2-6) | ~2 h | Tout est déjà stocké en ml. Ajouter un cas à `AppUnit` et l'aligner dans le formateur du widget. Rétrocompatible : les valeurs persistées (`cl`, `L`, `oz`) restent valides. |
+| ~~**Unité ml** (R2-6)~~ | ✅ | Livrée, avec l'once britannique. |
 | **F19** — Snooze | ~3 h | La plage horaire de F18 existe ; les catégories de notification aussi (`setupNotificationCategories`). |
 | **F20** — Raccourcis globaux étendus | ~4 h | `DeepLinkAction` définit déjà le vocabulaire (`undo`, `open`). **À faire avec R2-9** : ajouter des raccourcis multiplie les collisions, et elles échouent aujourd'hui en silence. |
 | **F8 + F21** — Onboarding et suggestion d'objectif | ~1,5 j | Aucune dépendance. F3 (lancement au démarrage) est déjà là pour y être proposé. |
@@ -67,7 +74,7 @@ indépendamment, par le backlog produit de la branche
 | Notarisation (P3-6) | Le certificat Developer ID. Le script est prêt. |
 | **F12** — Sparkle | La notarisation. |
 | **F13** — Homebrew | La notarisation. |
-| **F10** — Widget | Le Team ID à vérifier (les App Groups en dépendent), puis un re-test. R2-3 et P0-6 sont corrigés ; restent les presets codés en dur et la timeline `.never`. |
+| **F10** — Widget | Le Team ID à vérifier (les App Groups en dépendent), puis un test sur un Mac. Le code est prêt : App Group de l'extension, presets réels, timeline jusqu'à minuit, synchro par notification Darwin. Reste le `ControlWidget`. |
 
 ### Bloqué par la dette structurelle — c'est là que se joue la suite
 
@@ -84,8 +91,9 @@ comptage d'`AddWaterIntent` (audit, P4).
 
 ### L'ordre que je recommande
 
-1. **Les rapides** : unité ml, R2-7, R2-8 — trois bugs visibles, environ une demi-journée.
-2. **F5** — journal d'événements, avec une migration non destructive et testée.
+1. ~~**Les rapides** : unité ml, R2-7, R2-8~~ — ✅ livrés.
+2. **F5** — journal d'événements, avec une migration non destructive et testée,
+   en commençant par injecter les dépendances de `HydrationManager` (audit P3-1).
 3. **F2** sur cette fondation, puis tout ce que F5 débloque.
 
 En parallèle, dès que le certificat est là : notarisation → Sparkle → Homebrew.
@@ -111,7 +119,9 @@ Raycast bascule sur `?preset=N` pour suivre les presets réels de l'utilisateur.
 
 ---
 
-## F2 — App Intents / Shortcuts ⭐⭐⭐⭐⭐
+## F2 — App Intents / Shortcuts ⭐⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Cinq intents (Log Water, Log a Preset, Get Hydration Status, Undo Last Drink, Set Daily Goal) et trois raccourcis proposés d'office, dans le processus de l'app et validés par `HydrationLimits`. Reste : les Focus Filters, et la traduction des phrases Siri (`AppShortcuts.xcstrings`).
 
 **Le complément indispensable de F1.** Un schéma d'URL est unidirectionnel : il ne
 peut rien **renvoyer** (c'est volontaire — voir
@@ -136,12 +146,10 @@ cantonnée au target widget et écrit dans l'App Group au lieu de parler à l'ap
 
 - **Automatisations Raccourcis** : « à 9 h, si mon Mac est déverrouillé, ajouter un
   verre », « quand je lance Zoom, rappeler de boire ».
-- **Health sur iOS** : macOS n'a **pas** HealthKit (framework indisponible hors
-  Mac Catalyst, et l'app Santé n'existe pas sur Mac) — l'item « Health app
-  integration » de la roadmap du README n'est donc pas réalisable en direct. En
-  revanche, un raccourci peut chaîner `GetHydrationStatusIntent` → « Enregistrer un
-  échantillon de santé » sur un iPhone synchronisé. C'est le seul chemin viable, et
-  il ne coûte qu'un intent.
+- ~~**Health sur iOS**~~ — *hors périmètre (décision d'octobre 2026 : pas d'iOS
+  pour l'instant).* macOS n'a pas HealthKit ; le seul chemin passait par un
+  raccourci qui enregistre un échantillon de santé sur un iPhone synchronisé.
+  L'item a été retiré de la roadmap du README.
 - **Focus Filters** (`SetFocusFilterIntent`) : suspendre automatiquement les rappels
   pendant un mode de concentration — une alternative **fiable** à
   `INFocusStatusCenter`, qui demande une autorisation dédiée et échoue aujourd'hui en
@@ -239,7 +247,9 @@ heures actives), qui passe de 4 h à ~3 h.
 
 ---
 
-## F4 — Export des données ⭐⭐⭐⭐
+## F4 — Export des données ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Export CSV quotidien, sauvegarde JSON du journal, restauration par fusion idempotente (identifiants). Un historique de la v1 se restaure aussi.
 
 Présent dans la roadmap du README, et c'est aussi une question de confiance : des
 données qu'on ne peut pas sortir sont des données prises en otage.
@@ -255,10 +265,16 @@ Exporter avant d'avoir corrigé ça, c'est exporter un mois maximum, à vie.
 
 ---
 
-## F5 — Journal d'événements + historique illimité ⭐⭐⭐⭐
+## F5 — Journal d'événements + historique illimité ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Journal `IntakeLog` (pur) + `IntakeLogStore` (dossier injecté), migration depuis historyEntries.json en événements agrégés datés à midi. Format JSON plutôt que SwiftData : quelques centaines de Ko par an, testable sans framework, et réversible si F11 (iCloud) impose SwiftData plus tard.
 
 **C'est le prérequis que je sous-estimais en écrivant cette roadmap.** Un seul
 changement de modèle débloque quatre fonctionnalités d'un coup.
+
+> **Avancement (revue n°3).** La moitié « historique illimité » est livrée : la
+> troncature à 30 jours et le double store ont disparu (audit P1-2). Reste le
+> journal d'événements lui-même.
 
 ### Le constat
 
@@ -307,7 +323,9 @@ seconde migration.
 
 ---
 
-## F17 — Journal du jour + suppression à l'unité ⭐⭐⭐⭐
+## F17 — Journal du jour + suppression à l'unité ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Liste repliable dans le popover, suppression annulable par ⌘Z. « Reset my day » est lui aussi annulable.
 
 **Une lacune de base pour un tracker**, et la donnée existe déjà.
 
@@ -335,7 +353,9 @@ critique une fois la suppression fine disponible, mais reste un clic destructif.
 
 ---
 
-## F6 — Rappels intelligents ⭐⭐⭐⭐
+## F6 — Rappels intelligents ⭐⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Points 1, 2, 4 et 6 : plage active, silence écran en veille ou session verrouillée, cadence adaptative (un tiers plus rapide en retard, plancher de 15 min), arrêt une fois l'objectif atteint, célébration. `ReminderPlanner` est pur et testé. Restent la détection de visio (3) et le résumé hebdomadaire (5).
 
 Le système actuel est un intervalle fixe qui se réarme à chaque ajout — il notifie à
 3 h du matin comme à 15 h.
@@ -362,7 +382,9 @@ Le point 4 est celui qui différencie l'app d'un simple minuteur.
 
 ---
 
-## F7 — Accessibilité ⭐⭐⭐⭐
+## F7 — Accessibilité ⭐⭐⭐⭐ — 🟡 en partie (v2.0)
+
+> **Livré (v2.0).** Coche « objectif atteint » (non chromatique), « Réduire les animations », VoiceOver sur l'icône de la barre de menu, le bouton « Hold to Add » et les presets. Reste : les tailles de police dynamiques.
 
 Aucun `accessibilityLabel` dans le projet. Quelques points concrets :
 
@@ -382,7 +404,9 @@ C'est peu coûteux, rarement fait, et ça élargit réellement le public.
 
 ---
 
-## F8 — Onboarding au premier lancement ⭐⭐⭐
+## F8 — Onboarding au premier lancement ⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** Trois écrans (objectif, presets, rappels). L'autorisation des notifications n'est plus demandée au lancement mais à l'activation des rappels, et un refus s'affiche.
 
 Au premier lancement, l'app apparaît dans la barre de menu avec un objectif de 2 000 ml
 et des presets arbitraires, sans explication, et demande l'autorisation de
@@ -400,7 +424,9 @@ silencieux comme aujourd'hui.
 
 ---
 
-## F19 — Snooze des rappels ⭐⭐⭐
+## F19 — Snooze des rappels ⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** 1 heure, jusqu'à ce soir, jusqu'à demain — alignés sur la plage active. Depuis la notification, le menu contextuel et les réglages.
 
 Le mode Ne pas déranger est **binaire** : activé ou non. Il manque le cas le plus
 courant — « pas maintenant ». Sans snooze, l'utilisateur en réunion désactive les
@@ -421,7 +447,9 @@ actuel.
 
 ---
 
-## F20 — Raccourcis globaux au-delà des presets ⭐⭐⭐
+## F20 — Raccourcis globaux au-delà des presets ⭐⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** `HotkeyAction` (preset, annuler, ouvrir le popover) ; clés de sauvegarde des presets inchangées, donc aucune migration.
 
 `GlobalHotkeyManager.registerShortcut(for presetIndex:)` ne sait binder **que** des
 presets, et `triggerPreset` n'appelle qu'`addWater`
@@ -459,6 +487,12 @@ clic : l'ajout d'une friction pour chaque verre tuerait l'usage principal.
 ---
 
 ## F10 — Widget et contrôles Control Center ⭐⭐⭐
+
+> **Avancement (revue n°3).** Cause du retrait identifiée et corrigée :
+> l'entitlement App Group de l'extension était vide, le widget ne voyait donc
+> jamais les données de l'app (audit R3-3). Presets réels, timeline jusqu'à minuit
+> et synchronisation par notification Darwin sont livrés (`ba9c754`). Reste le
+> `ControlWidget`, et un test sur un Mac signé avec le Team ID.
 
 Le widget est **déjà écrit** (`HydroBarWidget/`, 285 lignes, familles small et medium,
 boutons interactifs via App Intents) mais retiré de la v1.2 (commit `c84b203`).
@@ -526,7 +560,9 @@ globaux et extension Raycast. Un cask ne demande qu'un fichier Ruby et une PR su
 
 ---
 
-## F21 — Suggestion d'objectif ⭐⭐
+## F21 — Suggestion d'objectif ⭐⭐ — ✅ livré (v2.0)
+
+> **Livré (v2.0).** ~30 ml/kg, arrondi aux 50 ml, borné, livres selon la locale ; le poids n'est pas stocké.
 
 Rien n'aide à choisir 2 000 ml plutôt que 3 000. L'objectif par défaut est posé une
 fois et, faute de repère, il reste souvent en place à vie — y compris s'il est
@@ -543,7 +579,9 @@ de l'activité, du climat et de l'alimentation.
 
 ---
 
-## F14 — Interactions dans la barre de menu ⭐⭐
+## F14 — Interactions dans la barre de menu ⭐⭐ — 🟡 en partie (v2.0)
+
+> **Livré (v2.0).** ⌥-clic sur l'icône (premier preset) et info-bulle de progression. Restent la molette, le glisser-déposer et les styles d'icône supplémentaires.
 
 L'icône ne répond aujourd'hui qu'au clic gauche (popover) et au clic droit (menu).
 
@@ -572,6 +610,8 @@ Devient quasi gratuit une fois F1 livré : le plugin se contente d'ouvrir des UR
 
 ## F16 — Fenêtre tableau de bord ⭐⭐
 
+> **Avancement (v2.0).** L'édition rétroactive, « manque à part entière », est livrée sans attendre la fenêtre : « Add an Earlier Drink… » dans le journal du jour.
+
 Le popover est contraint à 320 px de large et sa hauteur est calculée à la main via un
 `PreferenceKey` et un rappel vers l'`AppDelegate`
 (`MainView.swift:211-230`) — un mécanisme fragile. Une vraie fenêtre, ouvrable depuis
@@ -595,6 +635,12 @@ P3-3, ~~P3-8~~, code mort).
 → L'intégration Raycast fonctionne, l'app démarre toute seule, l'anneau cesse de
 mentir le matin. **Reste** : P0-5, P0-6, P3-3 (écritures atomiques) et le code mort.
 
+> **Mise à jour (v2.0).** Les versions intermédiaires ont été regroupées en une
+> seule v2.0, qui livre F2, F4, F5, F6, F8, F17, F19, F20 et F21, une partie de
+> F7, F14 et F16, et la refonte du design (voir « Pistes pour la v3 »), en plus
+> de l'audit soldé. Reste au programme : F9, F10 (Control Center), F11,
+> F12-F13 (dès la notarisation), et la suite de F7, F14 et F16.
+
 **v1.4 — « Automatisable »** (~1 semaine)
 `F2` + `F20` + lots 3 et 4 de l'audit (tests, CI, refactor `@Observable`).
 → Shortcuts, Spotlight, Siri, Focus Filters, et des raccourcis globaux qui ne se
@@ -615,6 +661,78 @@ arrêter le format avant d'écrire l'export.
 
 ---
 
+## Pistes pour la v3 — design et micro-animations
+
+> **Livré en v2.0.** Jetons de design (`Theme.swift`), icône de barre de menu
+> monochrome, toutes les micro-animations du tableau ci-dessous, fenêtre de
+> réglages à onglets, Liquid Glass sur les presets (macOS 26). Restent : le
+> dimensionnement automatique du popover, les tailles de texte dynamiques
+> (les jetons en sont le prérequis) et les pistes produit.
+
+> Exploration d'octobre 2026, pendant la v2. Un prototype interactif rejoue chaque
+> micro-animation proposée et la compare au comportement actuel (lien partagé
+> séparément : c'est une page privée, pas un fichier du dépôt).
+
+**Constats de la relecture du design**
+
+- L'icône de la barre de menu est en couleur (bleu, vert). macOS attend des icônes
+  *template* monochromes qui suivent la couleur de la barre de menu.
+- 127 tailles de police et une vingtaine de couleurs sont écrites en dur : pas de
+  système de design, pas de tailles de texte dynamiques.
+- Douze sections de réglages s'empilent dans un popover de 320 px.
+- La hauteur du popover est mesurée à la main (`PreferenceKey` → `AppDelegate`).
+- Hormis le remplissage de l'anneau, aucune animation ne signale une action.
+- Le SDK de la CI est macOS 26.5 : Liquid Glass et le Centre de contrôle sont
+  accessibles derrière `#available(macOS 26, *)`.
+
+**Micro-animations** — chacune dit quelque chose, aucune ne boucle, toutes se
+réduisent à un fondu avec « Réduire les animations ».
+
+| Animation | Ce qu'elle signale | API SwiftUI | Effort |
+|---|---|---|---|
+| Compteur qui roule | La prise vient d'être comptée | `.contentTransition(.numericText())` | Petit |
+| Goutte qui rejoint l'anneau | Le geste et son effet sont liés | `KeyframeAnimator` | Moyen |
+| Anneau à ressort + second tour au-delà de 100 % | 130 % ne ressemble plus à 100 % | `.spring`, deuxième `Circle` | Petit |
+| « Hold to Add » qui se remplit comme un verre | Quand relâcher | `TimelineView`, `Canvas` | Moyen |
+| Objectif atteint : coche, éclaboussure, haptique | Le moment à récompenser | `PhaseAnimator`, `NSHapticFeedbackManager` | Moyen |
+| Rebond de l'icône + étiquette « +20 cl » | Ajout hors popover (raccourci, ⌥-clic, Raccourcis) | `.symbolEffect(.bounce)`, `NSPanel` | Moyen |
+| Repère d'allure qui pulse trois fois | Le retard, sans lire la légende | `.symbolEffect(.pulse)` | Petit |
+| Journal qui glisse et se replie | Insertion et suppression | `.transition(.move(edge: .top))` | Petit |
+| Pastille de rappel : deux battements puis immobile | Un rappel, sans clignoter | `.symbolEffect(.bounce, value:)` | Petit |
+
+**Design de l'app**
+
+- Icône de barre de menu *template*, la couleur restant une option.
+- `Theme.swift` : couleurs sémantiques, échelle typographique sur `Font.TextStyle`,
+  espacements et rayons — prérequis des tailles de texte dynamiques (F7).
+- Réglages dans une fenêtre native (⌘,) à onglets : Général, Rappels,
+  Raccourcis, Données, Intégrations.
+- Liquid Glass sur macOS 26 pour l'en-tête, les presets et le bouton d'ajout.
+- `NSHostingController.sizingOptions = .preferredContentSize` à la place du calcul
+  manuel de la hauteur du popover.
+
+> **Livré en v2.0 également** : presets appris, mode gourde, objectif par jour
+> de la semaine, vue sur l'année, bilan du mois partageable, filtre de
+> Concentration, bouton du Centre de contrôle (F10), bilan hebdomadaire (F6.5),
+> popover qui se dimensionne seul.
+>
+> **Puis** : jours travaillés et jours off (plage, cadence, objectif propres ;
+> jour off ponctuel, congés, type de journée fixé par une Concentration ou un
+> raccourci) ; notifications actionnables (presets, quantité libre, niveaux de
+> la gourde) et informatives (progression, retard, dernier appel du soir), un
+> seul rappel visible à la fois ; rappels suspendus pendant un appel (micro ou
+> caméra utilisés, sans autorisation). Plutôt que le calendrier, qui demandait
+> un accès à EventKit, c'est l'appel lui-même qui est détecté. Reste : captures
+> de référence en CI.
+
+**Produit** : presets appris des quantités les plus bues, mode gourde
+(un quart, la moitié, finie), objectif par jour de la semaine, heatmap sur un an,
+bilan du mois partageable en image, rappels qui évitent les réunions du
+calendrier, Focus Filter, bouton dans le Centre de contrôle, captures de
+référence en CI.
+
+---
+
 ## Ce que je ne recommande pas
 
 Par symétrie, quelques idées séduisantes qui coûteraient plus qu'elles ne rapportent
@@ -629,9 +747,10 @@ Par symétrie, quelques idées séduisantes qui coûteraient plus qu'elles ne ra
 - **Objectif adaptatif selon la météo ou l'activité.** Séduisant sur le papier,
   mais cela suppose une API externe, une géolocalisation et des permissions — pour un
   gain d'exactitude marginal face à un objectif fixe bien choisi.
-- **App iOS compagnon.** Effort considérable (nouveau target, nouvelle UI, App Store,
-  synchronisation) alors que F2 permet déjà de logger depuis un iPhone via Raccourcis.
-- **Traduction dans davantage de langues.** 9 langues sont déjà annoncées mais ~35 des
-  81 clés ne sont pas traduites (voir
-  [P3-5](AUDIT_TECHNIQUE.md#p3-5--localisation-incomplète-et-changement-de-langue-par-redémarrage)).
-  Finir l'existant avant d'en ajouter.
+- **App iOS compagnon.** *Décision d'octobre 2026 : hors périmètre pour
+  l'instant.* Effort considérable (nouveau target, nouvelle UI, App Store,
+  synchronisation) pour une app dont la valeur tient à la barre de menu.
+- **Traduction dans davantage de langues.** Les 9 langues annoncées sont
+  désormais complètes (voir
+  [P3-5](AUDIT_TECHNIQUE.md#p3-5--localisation-incomplète-et-changement-de-langue-par-redémarrage)) ;
+  chaque nouvelle langue alourdit chaque future chaîne. À n'ajouter qu'à la demande.

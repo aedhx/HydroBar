@@ -1,7 +1,9 @@
 import Foundation
 import SwiftUI
+import AppKit
 import UserNotifications
 import WidgetKit
+import Combine
 import os
 
 // MARK: - Formatage de dates
@@ -14,21 +16,8 @@ enum DateFormat {
     static let iso8601 = ISO8601DateFormatter()
 }
 
-// MARK: - DailyEntry (legacy, pour compatibilité)
-struct DailyEntry: Codable, Identifiable {
-    let id: String
-    let date: Date
-    let amount: Double // en ml
-    
-    init(date: Date, amount: Double) {
-        self.id = DateFormat.iso8601.string(from: date)
-        self.date = date
-        self.amount = amount
-    }
-}
-
 // MARK: - HistoryEntry
-struct HistoryEntry: Codable, Identifiable {
+struct HistoryEntry: Codable, Identifiable, Equatable {
     let id: String
     let date: Date
     let amountMl: Double
@@ -44,28 +33,43 @@ struct HistoryEntry: Codable, Identifiable {
 
 // MARK: - MenuBarIconStyle Enum
 enum MenuBarIconStyle: String, CaseIterable, Codable {
+    // Valeurs brutes stockées dans les préférences : ne pas les traduire ni
+    // les renommer. L'affichage passe par `localizedName`.
     case pieRing = "Pie Ring"
     case percentage = "Percentage"
+
+    var localizedName: String {
+        switch self {
+        case .pieRing:    return String(localized: "Pie Ring", comment: "Menu bar icon style: progress ring")
+        case .percentage: return String(localized: "Percentage", comment: "Menu bar icon style: percentage text")
+        }
+    }
 }
 
 // `AppUnit` est défini dans AppGroupStore.swift, partagé avec le widget.
 
-// MARK: - Extension pour Array<Double> avec AppStorage
-extension Array: @retroactive RawRepresentable where Element == Double {
-    public init?(rawValue: String) {
-        guard let data = rawValue.data(using: .utf8),
-              let array = try? JSONDecoder().decode([Double].self, from: data) else {
-            return nil
-        }
-        self = array
+// MARK: - Presets
+
+/// Encodage des presets dans UserDefaults. Remplace une conformance rétroactive
+/// `Array: RawRepresentable` — qui changeait la sémantique de *tout* `[Double]`
+/// du projet et pouvait entrer en conflit avec une future conformance d'Apple
+/// (cf. AUDIT_TECHNIQUE.md § P1-6).
+enum PresetStorage {
+    static let defaults: [Double] = [200, 500, 750]
+
+    static func decode(_ raw: String) -> [Double] {
+        guard let data = raw.data(using: .utf8),
+              let values = try? JSONDecoder().decode([Double].self, from: data),
+              !values.isEmpty
+        else { return defaults }
+        return values
     }
-    
-    public var rawValue: String {
-        guard let data = try? JSONEncoder().encode(self),
-              let string = String(data: data, encoding: .utf8) else {
-            return "[]"
-        }
-        return string
+
+    static func encode(_ values: [Double]) -> String {
+        guard let data = try? JSONEncoder().encode(values),
+              let raw = String(data: data, encoding: .utf8)
+        else { return "[]" }
+        return raw
     }
 }
 
@@ -78,10 +82,23 @@ class HydrationManager: ObservableObject {
     @AppStorage("selectedUnit") private var storedSelectedUnitRaw: String = AppUnit.cl.rawValue
     @AppStorage("presetsMl") private var storedPresetsMlRaw: String = "[200.0, 500.0, 750.0]" // Toujours en ml en interne
     @AppStorage("lastResetDate") private var lastResetDateString: String = ""
+    /// Total du jour de la v1. Lu une seule fois, par la migration vers le journal.
     @AppStorage("currentMl") private var storedCurrentMl: Double = 0.0
+    // MARK: - Réglages publiés
+    //
+    // `@AppStorage` est conçu pour les vues : dans un `ObservableObject`, il lit et
+    // écrit correctement UserDefaults mais n'émet AUCUN `objectWillChange`. Les
+    // vues ne voyaient donc pas les changements de réglages, et l'app compensait
+    // par des minuteurs de rafraîchissement — dont celui qui reconstruisait
+    // l'icône de la barre de menu deux fois par seconde (cf. AUDIT § P1-1, P2-1).
+    // Chaque réglage lu par une vue émet donc explicitement, AVANT le changement,
+    // comme l'exige le contrat d'ObservableObject.
+
     @AppStorage("notificationsEnabled") var notificationsEnabled: Bool = false {
+        willSet { objectWillChange.send() }
         didSet {
             scheduleNotifications()
+            updateCallDetector()
             if notificationsEnabled {
                 checkReminderStatus()
             } else {
@@ -90,132 +107,422 @@ class HydrationManager: ObservableObject {
         }
     }
     @AppStorage("notificationInterval") private var storedNotificationInterval: String = NotificationInterval.thirtyMinutes.rawValue
-    @AppStorage("customNotificationMinutes") var customNotificationMinutes: Int = 60
+    @AppStorage("customNotificationMinutes") var customNotificationMinutes: Int = 60 {
+        willSet { objectWillChange.send() }
+    }
+    /// Mode « Ne pas déranger » choisi par l'utilisateur. C'est une intention :
+    /// la synchronisation avec Concentration ne l'écrit jamais. L'état effectif
+    /// est `isQuietMode` (cf. AUDIT § P1-7).
     @AppStorage("doNotDisturb") var doNotDisturb: Bool = false {
+        willSet { objectWillChange.send() }
         didSet {
-            // IMPORTANT: Ne jamais modifier notificationsEnabled ici
-            // Le mode DnD ne désactive pas les notifications, il change juste leur comportement
-            if notificationsEnabled {
-                scheduleNotifications()
-                checkReminderStatus()
-            }
+            guard oldValue != doNotDisturb else { return }
+            quietModeDidChange()
         }
     }
-    
+
+    /// Un mode de concentration macOS est actif. Renseigné par
+    /// `FocusModeMonitor` quand la synchronisation est activée, jamais persisté.
+    @Published private(set) var focusIsActive = false
+
+    /// Les rappels prennent la forme d'une pastille plutôt que d'une
+    /// notification système. Le mode DnD ne désactive pas les rappels.
+    var isQuietMode: Bool {
+        doNotDisturb || (focusModeAutoSync && focusIsActive) || focusFilterQuiet
+    }
+
+    /// Posé par le filtre de Concentration (`HydroBarFocusFilter`) : vrai tant
+    /// qu'une Concentration configurée pour cela est active. Persisté, pour
+    /// survivre à un redémarrage de l'app pendant la Concentration.
+    @AppStorage("focusFilterQuiet") private(set) var focusFilterQuiet: Bool = false {
+        willSet { objectWillChange.send() }
+    }
+
+    func setFocusFilterQuiet(_ quiet: Bool) {
+        guard focusFilterQuiet != quiet else { return }
+        let wasQuiet = isQuietMode
+        focusFilterQuiet = quiet
+        if isQuietMode != wasQuiet { quietModeDidChange() }
+    }
+
+    /// Jusqu'ici la synchro Concentration écrivait `doNotDisturb`, et
+    /// l'interrupteur manuel était désactivé pendant ce temps : avec la synchro
+    /// active, la valeur stockée vient du Focus, pas de l'utilisateur. On la
+    /// remet à zéro une fois, sinon un Focus en cours lors de la mise à jour
+    /// laisserait le DnD allumé indéfiniment.
+    private static func migrateFocusOwnedDoNotDisturb() {
+        let defaults = UserDefaults.standard
+        let key = "migration.focusOwnedDoNotDisturb"
+        guard !defaults.bool(forKey: key) else { return }
+        if defaults.bool(forKey: "focusModeAutoSync") {
+            defaults.set(false, forKey: "doNotDisturb")
+        }
+        defaults.set(true, forKey: key)
+    }
+
+    /// Point d'entrée unique de `FocusModeMonitor`. Auparavant le moniteur
+    /// écrivait `doNotDisturb` — le réglage de l'utilisateur — en coupant puis
+    /// rétablissant la synchronisation pour éviter une cascade de didSet ; la fin
+    /// d'une concentration effaçait aussi un DnD activé à la main.
+    func setFocusActive(_ active: Bool) {
+        guard focusIsActive != active else { return }
+        let wasQuiet = isQuietMode
+        focusIsActive = active
+        if isQuietMode != wasQuiet { quietModeDidChange() }
+    }
+
+    private func quietModeDidChange() {
+        guard notificationsEnabled else { return }
+        scheduleNotifications()
+        checkReminderStatus()
+    }
+
     @AppStorage("focusModeAutoSync") var focusModeAutoSync: Bool = false {
+        willSet { objectWillChange.send() }
         didSet {
-            // Éviter les appels récursifs
             guard oldValue != focusModeAutoSync else { return }
-            
-            if focusModeAutoSync {
-                FocusModeMonitor.shared.setAutoSync(true)
-            } else {
-                FocusModeMonitor.shared.setAutoSync(false)
-            }
+            // Lu avant setAutoSync, qui remet focusIsActive à false à la désactivation.
+            let focusWasSilencing = focusIsActive && !doNotDisturb
+            FocusModeMonitor.shared.setAutoSync(focusModeAutoSync)
+            if focusWasSilencing { quietModeDidChange() }
         }
     }
-    
+
+    /// La langue s'applique au prochain lancement : l'app lit `AppleLanguages`
+    /// au démarrage. Voir le sélecteur de langue dans les réglages.
     @AppStorage("appLanguage") var appLanguage: String = "system" {
-        didSet {
-            // Mettre à jour la langue de l'application
-            updateAppLanguage()
+        willSet { objectWillChange.send() }
+        didSet { Self.applyLanguagePreference(appLanguage) }
+    }
+
+    /// Écrit la préférence que le système lit au lancement. Revenir à « Système »
+    /// doit effacer la surcharge : l'ancien code ne l'effaçait jamais, et l'app
+    /// restait dans la dernière langue choisie.
+    static func applyLanguagePreference(_ language: String) {
+        if language == "system" {
+            UserDefaults.standard.removeObject(forKey: "AppleLanguages")
+        } else {
+            UserDefaults.standard.set([language], forKey: "AppleLanguages")
         }
     }
-    
-    @AppStorage("debugModeEnabled") var debugModeEnabled: Bool = false
+
+    @AppStorage("debugModeEnabled") var debugModeEnabled: Bool = false {
+        willSet { objectWillChange.send() }
+    }
 
     /// Autorise `hydrobar://reset` et `hydrobar://set-goal` à s'exécuter sans alerte
     /// de confirmation. Désactivé par défaut : n'importe quelle page web peut
     /// déclencher un schéma d'URL. Voir docs/specs/DEEP_LINKS.md § 4.1.
     @AppStorage("allowDestructiveDeepLinks") var allowDestructiveDeepLinks: Bool = false {
-        didSet {
-            // @AppStorage n'émet rien depuis un ObservableObject (cf. AUDIT_TECHNIQUE P1-1) :
-            // sans cette notification, le toggle des réglages ne se redessine pas.
-            objectWillChange.send()
-        }
+        willSet { objectWillChange.send() }
     }
 
     // MARK: - Plage horaire active
-    // Sert au repère d'allure de l'anneau, et servira à borner les rappels (F19).
+    // Sert au repère d'allure de l'anneau et borne les rappels (F6).
 
     @AppStorage("activeHoursStart") var activeHoursStart: Int = HydrationPace.defaultStartHour {
-        didSet { objectWillChange.send() }
+        willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
     }
 
     @AppStorage("activeHoursEnd") var activeHoursEnd: Int = HydrationPace.defaultEndHour {
-        didSet { objectWillChange.send() }
+        willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
     }
-    
-    /// Met à jour la langue de l'application
-    private func updateAppLanguage() {
-        // La langue sera appliquée au prochain démarrage de l'app
-        // Pour une mise à jour immédiate, on notifie le changement
-        DispatchQueue.main.async {
-            self.objectWillChange.send()
+
+    // MARK: - Autorisation des notifications
+
+    /// Active ou coupe les rappels. À l'activation, demande l'autorisation des
+    /// notifications si elle n'a jamais été demandée — au moment où
+    /// l'utilisateur en exprime le besoin, et non plus au premier lancement,
+    /// avant qu'il ait compris à quoi sert l'app (roadmap F8).
+    ///
+    /// - Parameter completion: `false` si le système a refusé ; les rappels
+    ///   restent alors coupés.
+    func setRemindersEnabled(_ enabled: Bool, completion: ((Bool) -> Void)? = nil) {
+        guard enabled else {
+            notificationsEnabled = false
+            completion?(true)
+            return
         }
-    }
-    @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing
-    
-    // MARK: - Published Properties
-    @Published var currentMl: Double = 0.0 {
-        didSet {
-            storedCurrentMl = currentMl
-            // Defer @Published mutations (history, historyEntries) to avoid
-            // "Publishing changes from within view updates" warnings.
-            DispatchQueue.main.async { [weak self] in
-                self?.saveTodayEntry()
+        let center = UNUserNotificationCenter.current()
+        center.getNotificationSettings { settings in
+            let finish: (Bool) -> Void = { granted in
+                DispatchQueue.main.async {
+                    self.notificationsEnabled = granted
+                    completion?(granted)
+                }
+            }
+            switch settings.authorizationStatus {
+            case .notDetermined:
+                center.requestAuthorization(options: [.alert, .sound]) { granted, _ in finish(granted) }
+            case .denied:
+                finish(false)
+            default:
+                finish(true)
             }
         }
+    }
+
+    /// Ouvre les réglages de notifications de HydroBar dans Réglages Système.
+    func openNotificationSettings() {
+        let bundleID = Bundle.main.bundleIdentifier ?? ""
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Notifications-Settings.extension?id=\(bundleID)") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    // MARK: - Pause des rappels (F19)
+
+    /// Fin de la pause, en secondes depuis 1970 ; 0 sans pause.
+    @AppStorage("remindersSnoozedUntil") private var snoozedUntilTimestamp: Double = 0
+
+    /// Fin de la pause en cours, ou `nil`.
+    var remindersSnoozedUntil: Date? {
+        snoozedUntilTimestamp > Date().timeIntervalSince1970
+            ? Date(timeIntervalSince1970: snoozedUntilTimestamp)
+            : nil
+    }
+
+    func snoozeReminders(_ option: SnoozeOption) {
+        objectWillChange.send()
+        snoozedUntilTimestamp = option.endDate(from: Date(),
+                                               activeStartHour: todayRules.startHour,
+                                               activeEndHour: todayRules.endHour,
+                                               calendar: .current).timeIntervalSince1970
+        scheduleNotifications()
+    }
+
+    func resumeReminders() {
+        objectWillChange.send()
+        snoozedUntilTimestamp = 0
+        scheduleNotifications()
+    }
+
+    /// Appelée par le minuteur et au réveil : la pause se termine seule.
+    private func resumeRemindersIfSnoozeEnded() {
+        guard snoozedUntilTimestamp > 0, snoozedUntilTimestamp <= Date().timeIntervalSince1970 else { return }
+        resumeReminders()
+    }
+
+    /// Icône de barre de menu en couleur, comme avant la v2. Par défaut,
+    /// l'icône est monochrome (« template ») et suit la barre de menu.
+    @AppStorage("coloredMenuBarIcon") var coloredMenuBarIcon: Bool = false {
+        willSet { objectWillChange.send() }
+    }
+
+    @AppStorage("menuBarIconStyle") var menuBarIconStyle: MenuBarIconStyle = .pieRing {
+        willSet { objectWillChange.send() }
+    }
+    
+    // MARK: - Journal des prises (F5)
+
+    /// Source de vérité : un événement par prise. Tout le reste en est dérivé —
+    /// le total du jour comme l'historique des statistiques.
+    @Published private(set) var log = IntakeLog() {
+        didSet { refreshDerivedState() }
+    }
+
+    private let store: IntakeLogStore
+
+    /// Total du jour, dérivé du journal (plus l'appui long en cours). Ce n'est
+    /// plus une valeur stockée : l'ancien total en cache était archivé à la
+    /// bascule de jour, et c'est ce mécanisme qui a effacé l'historique au
+    /// lancement et attribué des verres à la veille (cf. AUDIT § R3-1, R3-5).
+    @Published private(set) var currentMl: Double = 0.0
+
+    /// Émet la quantité de chaque prise ajoutée, quelle que soit sa source
+    /// (popover, raccourci, intent, widget, deep link). L'AppDelegate s'en sert
+    /// pour confirmer visuellement un ajout fait sans ouvrir le popover.
+    let intakeAdded = PassthroughSubject<Double, Never>()
+
+    /// Prises du jour, de la plus récente à la plus ancienne.
+    var todayEvents: [IntakeEvent] {
+        log.events(on: Date(), calendar: .current).reversed()
+    }
+
+    private func refreshDerivedState() {
+        let calendar = Calendar.current
+        historyEntries = log.dailyEntries(calendar: calendar, defaultGoal: targetMl)
+        currentMl = log.total(on: Date(), calendar: calendar) + (holdSessionTotal ?? 0)
     }
     
     // MARK: - Journalisation et diagnostic
 
-    private static let logger = Logger(subsystem: "com.adxcool.HydroBar", category: "hydration")
+    static let logger = Logger(subsystem: "com.adxcool.HydroBar", category: "hydration")
 
     /// Dernier problème de persistance rencontré, affiché en mode debug.
     /// Mieux vaut un message visible qu'un historique disparu sans trace.
     @Published private(set) var lastDataIssue: String?
 
-    @Published var history: [DailyEntry] = []
-    @Published var historyEntries: [HistoryEntry] = []
+    /// Une entrée par jour, avec l'objectif de ce jour-là. Dérivé du journal,
+    /// jamais écrit directement.
+    @Published private(set) var historyEntries: [HistoryEntry] = []
     @Published var showReminderBadge: Bool = false
     
     // MARK: - Undo Stack
-    var undoStack: [(amount: Double, timestamp: Date)] = []
-    private let maxUndoStackSize = 50 // Limiter la taille pour éviter la consommation mémoire
-    
-    // MARK: - Timer pour vérification quotidienne
-    private var dailyCheckTimer: Timer?
-    
-    // MARK: - Timer pour vérification des rappels
-    private var reminderCheckTimer: Timer?
+
+    /// Ce qu'annuler veut dire, action par action. Privée : `MainContentView` y
+    /// ajoutait directement ses entrées (cf. AUDIT § P1-3).
+    private enum UndoAction {
+        /// Annuler retire cette prise.
+        case added(UUID)
+        /// Annuler remet ces prises (suppression à l'unité, ou reset du jour).
+        case removed([IntakeEvent])
+    }
+
+    private var undoStack: [UndoAction] = []
+    private let maxUndoStackSize = 50
+
+    private func pushUndo(_ action: UndoAction) {
+        undoStack.append(action)
+        if undoStack.count > maxUndoStackSize {
+            undoStack.removeFirst()
+        }
+    }
+
+    // MARK: - Session « Hold to Add »
+
+    /// Total ajouté depuis le début de l'appui en cours ; `nil` hors appui.
+    /// Pendant un appui, les effets coûteux — reprogrammation des notifications,
+    /// entrée d'annulation, écriture sur disque — sont reportés à la fin, au lieu
+    /// d'être répétés 20 fois par seconde (cf. AUDIT § P2-2).
+    private var holdSessionTotal: Double?
+
+    /// Total de l'appui en cours, affiché sur le bouton pendant l'appui.
+    @Published private(set) var holdTotalMl: Double = 0
+
+    func beginHoldSession() {
+        holdSessionTotal = 0
+        holdTotalMl = 0
+    }
+
+    /// Pendant l'appui, rien n'est écrit dans le journal : seul l'affichage
+    /// suit. Le geste entier devient une seule prise à la fin.
+    func addHeldWater(_ ml: Double) {
+        guard let total = holdSessionTotal else { return }
+        holdSessionTotal = total + ml
+        holdTotalMl = total + ml
+        refreshDerivedState()
+    }
+
+    /// Clôt l'appui : une seule prise dans le journal, une seule entrée
+    /// d'annulation, une seule reprogrammation des notifications.
+    func endHoldSession() {
+        guard let total = holdSessionTotal else { return }
+        holdSessionTotal = nil
+        holdTotalMl = 0
+        if total > 0 {
+            addWater(amount: total)
+        } else {
+            refreshDerivedState()
+        }
+        flushPendingWrites()
+    }
+
+    // MARK: - Minuteurs
+
+    /// Un seul minuteur, au lieu de deux minuteurs de 60 s distincts — chacun
+    /// empêchait l'App Nap de son côté (cf. AUDIT § P2-4).
+    private var minuteTimer: Timer?
     @AppStorage("lastWaterAddedDate") private var lastWaterAddedDateString: String = ""
     
     // MARK: - Computed Properties
+    /// Borné à la lecture aussi : un objectif de 0 stocké par une version
+    /// antérieure (cf. AUDIT § P0-2) diviserait par zéro partout où l'on
+    /// calcule une progression.
     var targetMl: Double {
-        get { storedTargetMl }
+        get { clampedGoal(plannedGoal(on: Date())) }
+        // Les écritures (réglages, intents, deep links) visent l'objectif par
+        // défaut ; une surcharge du jour reste prioritaire.
+        set { defaultTargetMl = newValue }
+    }
+
+    /// Objectif par défaut, celui des jours sans surcharge.
+    var defaultTargetMl: Double {
+        get { clampedGoal(storedTargetMl) }
         set {
+            objectWillChange.send()
             storedTargetMl = newValue
-            syncToAppGroup()
+            goalDidChange()
         }
     }
+
+    // MARK: - Objectif par jour de la semaine
+
+    @AppStorage("weekdayGoals") private var weekdayGoalsRaw: String = ""
+
+    var weekdayGoals: WeekdayGoals {
+        get { WeekdayGoals.decode(weekdayGoalsRaw) }
+        set {
+            objectWillChange.send()
+            weekdayGoalsRaw = newValue.encoded()
+            goalDidChange()
+        }
+    }
+
+    func clampedGoal(_ goal: Double) -> Double {
+        min(max(goal, HydrationLimits.goal.lowerBound), HydrationLimits.goal.upperBound)
+    }
+
+    func goalDidChange() {
+        // Le jour se juge contre l'objectif qu'il avait : on le note.
+        log.setGoal(targetMl, on: Date(), calendar: .current)
+        persistLog()
+        scheduleNotifications()
+        syncToAppGroup()
+    }
+
+    // MARK: - Mode gourde
+
+    @AppStorage("bottleModeEnabled") var bottleModeEnabled: Bool = false {
+        willSet { objectWillChange.send() }
+        // Les rappels proposent alors les niveaux de la gourde.
+        didSet { scheduleNotifications() }
+    }
+    @AppStorage("bottleCapacityMl") var bottleCapacityMl: Double = Bottle.defaultCapacityMl {
+        willSet { objectWillChange.send() }
+    }
+    /// Numéro de la gourde en cours, valable pour `bottleDayKey` seulement :
+    /// chaque journée repart de la première gourde.
+    @AppStorage("bottleNumber") var bottleNumber: Int = 1
+    @AppStorage("bottleDay") var bottleDayKey: String = ""
+
+    // MARK: - Jours off (logique : HydrationManager+Days.swift)
+
+    @AppStorage("dayPlan") var dayPlanRaw: String = ""
+    /// Type de journée imposé par le filtre de Concentration, vide sinon.
+    @AppStorage("focusDayKind") var focusDayKindRaw: String = ""
+    /// Dernier plan décodé : le planificateur et les vues le lisent souvent.
+    var dayPlanCache: (raw: String, plan: DayPlan)?
+
+    // MARK: - Preset suggéré (logique : HydrationManager+Features.swift)
+
+    /// Quantités dont l'utilisateur a refusé la suggestion.
+    @AppStorage("dismissedPresetSuggestions") var dismissedSuggestionsRaw: String = ""
 
     var selectedUnit: AppUnit {
         get {
             AppUnit(rawValue: storedSelectedUnitRaw) ?? .cl
         }
         set {
+            objectWillChange.send()
             storedSelectedUnitRaw = newValue.rawValue
+            refreshNotificationCategories()
             syncToAppGroup()
         }
     }
     
     var presetsMl: [Double] {
         get {
-            Array(rawValue: storedPresetsMlRaw) ?? [200.0, 500.0, 750.0]
+            PresetStorage.decode(storedPresetsMlRaw)
         }
         set {
-            storedPresetsMlRaw = newValue.rawValue
+            objectWillChange.send()
+            storedPresetsMlRaw = PresetStorage.encode(newValue)
+            // Les boutons des notifications et le widget affichent les presets.
+            refreshNotificationCategories()
+            syncToAppGroup()
         }
     }
     
@@ -224,6 +531,7 @@ class HydrationManager: ObservableObject {
             NotificationInterval(rawValue: storedNotificationInterval) ?? .thirtyMinutes
         }
         set {
+            objectWillChange.send()
             storedNotificationInterval = newValue.rawValue
             if notificationsEnabled {
                 scheduleNotifications()
@@ -233,10 +541,23 @@ class HydrationManager: ObservableObject {
     }
     
     // MARK: - Initialization
-    private init() {
-        checkAndResetIfNeeded()
-        loadHistory()
-        setupNotificationCategories()
+    private init(store: IntakeLogStore = .applicationSupport()) {
+        self.store = store
+        // Avant toute lecture de `doNotDisturb` (programmation des rappels).
+        Self.migrateFocusOwnedDoNotDisturb()
+
+        loadLog()
+        if lastResetDateString.isEmpty || DateFormat.iso8601.date(from: lastResetDateString) == nil {
+            updateLastResetDate()
+        } else {
+            rollOverIfNewDay()
+        }
+        refreshDerivedState()
+        refreshNotificationCategories()
+        CallDetector.shared.onChange = { [weak self] inCall in
+            if inCall { self?.scheduleNotifications() } else { self?.callDidEnd() }
+        }
+        updateCallDetector()
         
         // Initialiser la date de dernière consommation si elle n'existe pas
         if getLastWaterAddedDate() == nil {
@@ -246,9 +567,8 @@ class HydrationManager: ObservableObject {
         if notificationsEnabled {
             scheduleNotifications()
         }
-        setupDailyResetTimer()
-        setupReminderCheckTimer()
-        
+        setupTimers()
+
         // Démarrer la surveillance du Focus Mode
         FocusModeMonitor.shared.startMonitoring(manager: self)
 
@@ -264,151 +584,372 @@ class HydrationManager: ObservableObject {
     }
     
     deinit {
-        dailyCheckTimer?.invalidate()
-        reminderCheckTimer?.invalidate()
+        minuteTimer?.invalidate()
     }
     
-    // MARK: - Reset Logic
-    private func checkAndResetIfNeeded() {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        if let lastResetDateString = lastResetDateString.isEmpty ? nil : lastResetDateString,
-           let lastResetDate = DateFormat.iso8601.date(from: lastResetDateString) {
-            let lastResetDay = calendar.startOfDay(for: lastResetDate)
-            
-            if lastResetDay < today {
-                // Nouveau jour : sauvegarder l'entrée du jour précédent avant de reset
-                saveHistoryEntry(date: lastResetDay, amountMl: storedCurrentMl, targetMl: targetMl)
-                // Reset à 0 pour le nouveau jour
-                currentMl = 0.0
-                clearUndoStack() // Vider le stack undo pour le nouveau jour
-                updateLastResetDate()
+    // MARK: - Chargement du journal
 
-                // NEW: sync reset state to App Group
-                syncToAppGroup()
-
-                // Notifier le changement
-                DispatchQueue.main.async {
-                    self.objectWillChange.send()
-                }
+    /// Charge le journal, ou le construit depuis l'ancien format au premier
+    /// lancement de la v2.
+    private func loadLog() {
+        switch store.load() {
+        case .loaded(let loaded):
+            log = loaded
+        case .missing:
+            log = migratedLegacyLog()
+            persistLog()
+            // Le total en cours est désormais dans le journal. Laissé en place, il
+            // serait repris une seconde fois par une migration de secours.
+            storedCurrentMl = 0
+        case .corrupt(let backupName):
+            Self.logger.error("Journal illisible, mis de côté sous \(backupName ?? "—", privacy: .public)")
+            if let backupName {
+                report(issue: String(format: String(localized: "%@ was unreadable and has been set aside as %@.",
+                                                    comment: "Data issue: corrupt file quarantined; %@ are file names"),
+                                     IntakeLogStore.fileName, backupName))
             } else {
-                // Même jour, récupérer la valeur sauvegardée
-                currentMl = storedCurrentMl
+                report(issue: String(format: String(localized: "%@ is unreadable.",
+                                                    comment: "Data issue: unreadable file"),
+                                     IntakeLogStore.fileName))
             }
-        } else {
-            // Première ouverture, reset à 0
-            currentMl = 0.0
-            updateLastResetDate()
+            // L'ancien historique, s'il existe, vaut mieux qu'un journal vide.
+            log = migratedLegacyLog()
+            persistLog()
         }
     }
-    
-    /// Configure un timer pour vérifier périodiquement si on a changé de jour
-    private func setupDailyResetTimer() {
-        // Vérifier toutes les minutes si on a passé minuit
-        dailyCheckTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
-            self?.checkAndResetIfNeeded()
-        }
-        
-        // S'assurer que le timer fonctionne même quand l'app est en arrière-plan
-        RunLoop.current.add(dailyCheckTimer!, forMode: .common)
+
+    /// Reprend historyEntries.json et le total en cours stocké dans
+    /// UserDefaults. Les journées passées deviennent un événement agrégé
+    /// chacune ; l'ancien fichier reste en place.
+    private func migratedLegacyLog() -> IntakeLog {
+        let pendingDay = DateFormat.iso8601.date(from: lastResetDateString)
+        return IntakeLog.migrating(history: store.loadLegacyHistory() ?? [],
+                                   pendingDay: pendingDay,
+                                   pendingMl: pendingDay == nil ? 0 : storedCurrentMl,
+                                   defaultGoal: targetMl,
+                                   calendar: .current)
     }
-    
-    /// Configure un timer pour vérifier périodiquement si un rappel doit être affiché
-    private func setupReminderCheckTimer() {
-        // Vérifier toutes les minutes si un rappel doit être affiché
-        reminderCheckTimer = Timer.scheduledTimer(withTimeInterval: 60.0, repeats: true) { [weak self] _ in
+
+    // MARK: - Changement de jour
+
+    /// Passe à la nouvelle journée si la date a changé.
+    ///
+    /// Avec le journal, il n'y a plus rien à archiver : les prises de la veille
+    /// sont déjà enregistrées avec leur date. La bascule se contente de vider la
+    /// pile d'annulation — on ne retire pas d'une journée neuve un verre bu la
+    /// veille — et de rafraîchir le total affiché. Toujours appelée avant un
+    /// ajout ou une annulation.
+    ///
+    /// - Returns: `true` si un changement de jour a eu lieu.
+    @discardableResult
+    private func rollOverIfNewDay() -> Bool {
+        guard let lastReset = DateFormat.iso8601.date(from: lastResetDateString) else { return false }
+        let calendar = Calendar.current
+        guard calendar.startOfDay(for: lastReset) < calendar.startOfDay(for: Date()) else { return false }
+
+        undoStack.removeAll()
+        updateLastResetDate()
+        refreshDerivedState()
+        syncToAppGroup()
+        return true
+    }
+
+    /// Planifie les vérifications périodiques et s'abonne aux événements système
+    /// qui les rendent précises.
+    private func setupTimers() {
+        // Une vérification par minute suffit pour les rappels. La tolérance laisse
+        // macOS regrouper ce réveil avec d'autres — l'ancien code n'en avait pas.
+        let timer = Timer(timeInterval: 60, repeats: true) { [weak self] _ in
+            self?.rollOverIfNewDay()
+            self?.resumeRemindersIfSnoozeEnded()
+            self?.replanRemindersIfNeeded()
+            self?.sendWeeklySummaryIfDue()
+            // Filet de sécurité si une notification Darwin du widget s'est perdue.
+            self?.applyPendingWidgetDelta()
             self?.checkReminderStatus()
         }
-        
-        // S'assurer que le timer fonctionne même quand l'app est en arrière-plan
-        RunLoop.current.add(reminderCheckTimer!, forMode: .common)
-        
-        // Vérifier immédiatement
+        timer.tolerance = 10
+        RunLoop.main.add(timer, forMode: .common)
+        minuteTimer = timer
+
+        let center = NotificationCenter.default
+        // Le système signale le changement de jour à minuit pile : la bascule
+        // n'attend plus jusqu'à 60 s.
+        center.addObserver(forName: .NSCalendarDayChanged, object: nil, queue: .main) { [weak self] _ in
+            self?.rollOverIfNewDay()
+        }
+        // Après une veille, les minuteurs repartent en retard : on rattrape tout
+        // de suite. Avant, une nuit de veille laissait l'anneau sur la veille
+        // jusqu'au premier tick.
+        // Écran en veille, session verrouillée ou changée : plus de rappels
+        // jusqu'au retour (F6). Ils s'empilaient dans le centre de notifications.
+        let workspaceCenter = NSWorkspace.shared.notificationCenter
+        for name in [NSWorkspace.screensDidSleepNotification, NSWorkspace.sessionDidResignActiveNotification] {
+            workspaceCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                self?.isUserAway = true
+                self?.scheduleNotifications()
+            }
+        }
+        for name in [NSWorkspace.screensDidWakeNotification, NSWorkspace.sessionDidBecomeActiveNotification] {
+            workspaceCenter.addObserver(forName: name, object: nil, queue: .main) { [weak self] _ in
+                self?.isUserAway = false
+                self?.scheduleNotifications()
+            }
+        }
+
+        NSWorkspace.shared.notificationCenter.addObserver(
+            forName: NSWorkspace.didWakeNotification, object: nil, queue: .main
+        ) { [weak self] _ in
+            self?.rollOverIfNewDay()
+            self?.resumeRemindersIfSnoozeEnded()
+            self?.checkReminderStatus()
+        }
+
         checkReminderStatus()
     }
     
+    /// Intervalle effectif des rappels, en minutes.
+    ///
+    /// La valeur personnalisée est bornée ici aussi, et pas seulement dans le
+    /// champ de saisie : une valeur stockée par une version antérieure (0, ou
+    /// négative) ferait planter `UNTimeIntervalNotificationTrigger`, qui refuse
+    /// un déclencheur répétitif de moins de 60 secondes.
+    var reminderIntervalMinutes: Int {
+        switch notificationInterval {
+        case .thirtyMinutes:
+            return 30
+        case .twoHours:
+            return 120
+        case .custom:
+            return min(max(customNotificationMinutes, HydrationLimits.reminderMinutes.lowerBound),
+                       HydrationLimits.reminderMinutes.upperBound)
+        }
+    }
+
     /// Vérifie si un rappel doit être affiché (badge ou notification)
     func checkReminderStatus() {
-        guard notificationsEnabled else {
+        // La pastille remplace la notification en mode Ne pas déranger : elle
+        // suit les mêmes règles que les rappels (plage active, objectif atteint).
+        guard notificationsEnabled, isQuietMode, remindersSnoozedUntil == nil else {
             showReminderBadge = false
             return
         }
-        
-        // Calculer l'intervalle en minutes
-        let intervalMinutes: Int
-        switch notificationInterval {
-        case .thirtyMinutes:
-            intervalMinutes = 30
-        case .twoHours:
-            intervalMinutes = 120
-        case .custom:
-            intervalMinutes = customNotificationMinutes
-        }
-        
-        // Vérifier si l'intervalle est écoulé depuis la dernière consommation
-        let now = Date()
-        let lastWaterDate = getLastWaterAddedDate() ?? now // Si jamais de consommation, utiliser maintenant
-        let timeSinceLastWater = now.timeIntervalSince(lastWaterDate)
-        let intervalInSeconds = TimeInterval(intervalMinutes * 60)
-        
-        if timeSinceLastWater >= intervalInSeconds {
-            // L'intervalle est écoulé
-            if doNotDisturb {
-                // Mode DnD actif : afficher le badge au lieu de la notification
-                showReminderBadge = true
-            } else {
-                // Mode DnD inactif : la notification système sera gérée par scheduleNotifications
-                showReminderBadge = false
-            }
+        showReminderBadge = ReminderPlanner.isDue(reminderContext(now: Date()))
+    }
+
+    // MARK: - Rappels intelligents (F6)
+
+    /// Cadence adaptative : resserrer les rappels quand l'utilisateur est en
+    /// retard sur son allure. Activée par défaut.
+    @AppStorage("adaptiveReminders") var adaptiveReminders: Bool = true {
+        willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
+    }
+
+    /// Écran en veille ou session inactive : inutile de rappeler quelqu'un qui
+    /// n'est pas devant son Mac. Les rappels reprennent au réveil.
+    var isUserAway = false
+
+    /// Premier rappel programmé. Une fois passé, le minuteur replanifie : la
+    /// série programmée est finie, et l'allure a pu changer depuis.
+    var nextPlannedReminder: Date?
+
+    static let reminderIdentifierPrefix = "HYDRATION_REMINDER"
+    static let maxPlannedReminders = 6
+
+    func reminderContext(now: Date) -> ReminderPlanner.Context {
+        let calendar = Calendar.current
+        let today = log.total(on: now, calendar: calendar)
+        let behind = HydrationPace.deficitMl(currentMl: today,
+                                             targetMl: targetMl,
+                                             expectedFraction: expectedProgress) != nil
+        return ReminderPlanner.Context(
+            now: now,
+            lastDrink: getLastWaterAddedDate() ?? now,
+            intervalMinutes: reminderIntervalMinutes,
+            activeStartHour: activeHoursStart,
+            activeEndHour: activeHoursEnd,
+            goalReachedToday: targetMl > 0 && today >= targetMl,
+            behindPace: adaptiveReminders && behind,
+            notBefore: remindersSnoozedUntil,
+            calendar: calendar,
+            dayRules: dayRulesProvider(now: now)
+        )
+    }
+
+    private func replanRemindersIfNeeded() {
+        guard let next = nextPlannedReminder, next <= Date() else { return }
+        // Un rappel vient de partir : il remplace ceux restés affichés.
+        keepOnlyLatestDeliveredReminder()
+        scheduleNotifications()
+    }
+
+    /// Une notification une heure avant la fin de la journée, si l'objectif
+    /// n'est pas atteint.
+    @AppStorage("lastCallEnabled") var lastCallEnabled: Bool = true {
+        willSet { objectWillChange.send() }
+        didSet { scheduleNotifications() }
+    }
+
+    /// Pas de rappel pendant un appel ou une visio (micro ou caméra utilisés).
+    @AppStorage("holdRemindersDuringCalls") var holdRemindersDuringCalls: Bool = true {
+        willSet { objectWillChange.send() }
+        didSet { updateCallDetector() }
+    }
+
+    var isInCall: Bool { holdRemindersDuringCalls && CallDetector.shared.isInCall }
+
+    /// La détection ne tourne que si elle sert.
+    func updateCallDetector() {
+        if notificationsEnabled && holdRemindersDuringCalls {
+            CallDetector.shared.start()
         } else {
-            // L'intervalle n'est pas encore écoulé
-            showReminderBadge = false
+            CallDetector.shared.stop()
         }
     }
-    
+
+    // MARK: - Bilan de la semaine (F6)
+
+    @AppStorage("weeklySummaryEnabled") var weeklySummaryEnabled: Bool = true {
+        willSet { objectWillChange.send() }
+    }
+    @AppStorage("lastWeeklySummaryWeek") private var lastWeeklySummaryWeek: String = ""
+
+    /// Appelée par le minuteur : le dernier jour de la semaine, une heure avant
+    /// la fin de la plage active, une notification résume la semaine.
+    private func sendWeeklySummaryIfDue() {
+        guard notificationsEnabled, weeklySummaryEnabled, !isQuietMode else { return }
+        let now = Date()
+        let hour = max(todayRules.endHour - 1, todayRules.startHour)
+        guard let key = HydrationStats.weeklySummaryKeyIfDue(now: now, hour: hour,
+                                                            lastSentKey: lastWeeklySummaryWeek)
+        else { return }
+        lastWeeklySummaryWeek = key
+
+        let summary = HydrationStats.weekSummary(history: historyEntries, today: todayForStats)
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Your week", comment: "Weekly summary notification title")
+        var body = String(format: String(localized: "Goal reached %lld days out of 7, %@ a day on average.",
+                                         comment: "Weekly summary; %lld is a day count, %@ an amount"),
+                          summary.goalDays, displayValue(for: summary.averageMl))
+        if currentStreak > 1 {
+            body += " " + String(format: String(localized: "Current streak: %lld days.",
+                                                comment: "Weekly summary streak; %lld is the streak length"),
+                                 currentStreak)
+        }
+        content.body = body
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "WEEKLY_SUMMARY", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
+    // MARK: - Objectif atteint
+
+    /// Jour de la dernière célébration, pour n'en envoyer qu'une par jour même
+    /// si l'utilisateur annule puis repasse la barre.
+    @AppStorage("lastGoalCelebrationDay") private var lastGoalCelebrationDay: String = ""
+
+    private func celebrateIfGoalJustReached(previousTotal: Double) {
+        let calendar = Calendar.current
+        let now = Date()
+        let dayKey = IntakeLog.dayKey(for: now, calendar: calendar)
+        guard notificationsEnabled, !isQuietMode,
+              targetMl > 0, previousTotal < targetMl, currentMl >= targetMl,
+              lastGoalCelebrationDay != dayKey
+        else { return }
+        lastGoalCelebrationDay = dayKey
+
+        let content = UNMutableNotificationContent()
+        content.title = String(localized: "Goal reached!", comment: "Goal celebration notification title")
+        let streak = currentStreak
+        content.body = streak > 1
+            ? String(format: String(localized: "%lld days in a row. Well done!",
+                                    comment: "Goal celebration body; %lld is the streak length"), streak)
+            : String(localized: "You reached your daily goal. Well done!",
+                     comment: "Goal celebration body without a streak")
+        content.sound = .default
+        let request = UNNotificationRequest(identifier: "GOAL_REACHED", content: content, trigger: nil)
+        UNUserNotificationCenter.current().add(request)
+    }
+
     private func updateLastResetDate() {
         lastResetDateString = DateFormat.iso8601.string(from: Date())
     }
     
     // MARK: - Public Methods
     
-    /// Ajoute de l'eau (amount toujours en ml)
-    /// Optimisée pour être appelée très fréquemment (ex: toutes les 0.05s pour "Hold to Add")
-    /// - Parameter amount: Quantité en ml à ajouter
-    /// - Parameter skipUndo: Si true, n'enregistre pas l'action dans le stack undo (pour regroupement)
-    func addWater(amount: Double, skipUndo: Bool = false) {
-        // amount est toujours en ml
-        // Optimisation : pas de vérification de reset ici pour performance
-        // Le reset est géré à l'initialisation et peut être déclenché manuellement
-        
-        // Enregistrer l'action pour undo (seulement si amount > 0 et skipUndo = false)
-        if amount > 0 && !skipUndo {
-            undoStack.append((amount: amount, timestamp: Date()))
-            
-            // Limiter la taille du stack
-            if undoStack.count > maxUndoStackSize {
-                undoStack.removeFirst()
-            }
-        }
-        
-        currentMl += amount
+    /// Ajoute une prise, en ml. `bottle` : numéro de la gourde du jour, en
+    /// mode gourde.
+    func addWater(amount: Double, bottle: Int? = nil) {
+        // Un verre bu après minuit appartient à la nouvelle journée.
+        rollOverIfNewDay()
+        guard amount > 0, amount.isFinite else { return }
 
-        // Mettre à jour la date de dernière consommation d'eau
+        let now = Date()
+        let previousTotal = currentMl
+        let event = IntakeEvent(date: now, amountMl: amount, bottle: bottle)
+        log.add(event)
+        log.setGoal(targetMl, on: now, calendar: .current)
+        pushUndo(.added(event.id))
+        persistLog()
+
         updateLastWaterAddedDate()
-
-        // Réinitialiser le badge de rappel
         showReminderBadge = false
+        clearDeliveredReminders()
+        // Replanifier les rappels à partir de cette prise.
+        scheduleNotifications()
+        celebrateIfGoalJustReached(previousTotal: previousTotal)
+        syncToAppGroup()
+        intakeAdded.send(amount)
+    }
 
-        // Repousser le prochain rappel après avoir ajouté de l'eau
-        if notificationsEnabled {
-            scheduleNotifications()
+    /// Ajoute une prise oubliée, à une date passée (« j'ai oublié de noter
+    /// hier »). Annulable. Une journée passée n'était jusqu'ici plus modifiable.
+    func addPastDrink(amount: Double, at date: Date) {
+        rollOverIfNewDay()
+        let now = Date()
+        guard amount > 0, amount.isFinite, date <= now else { return }
+
+        let calendar = Calendar.current
+        let event = IntakeEvent(date: date, amountMl: amount)
+        log.add(event)
+        // Une journée sans objectif noté prend l'objectif actuel.
+        if log.goal(on: date, calendar: calendar) == nil {
+            log.setGoal(targetMl, on: date, calendar: calendar)
         }
+        pushUndo(.added(event.id))
+        persistLog()
+        if let last = getLastWaterAddedDate(), date > last {
+            lastWaterAddedDateString = DateFormat.iso8601.string(from: date)
+        }
+        scheduleNotifications()
+        syncToAppGroup()
+    }
 
-        // NEW: sync state to App Group for widget and trigger widget refresh
+    /// Supprime une prise du jour (journal du jour, F17). Annulable.
+    func removeEvent(id: UUID) {
+        rollOverIfNewDay()
+        guard let removed = log.remove(id: id) else { return }
+        pushUndo(.removed([removed]))
+        persistLog()
+        scheduleNotifications()
         syncToAppGroup()
     }
     
+    /// Fusionne une sauvegarde importée (F4). Seules les prises absentes sont
+    /// ajoutées : importer deux fois la même sauvegarde ne change rien.
+    /// - Returns: le nombre de prises ajoutées.
+    @discardableResult
+    func importBackup(_ backup: IntakeLog) -> Int {
+        var merged = log
+        let added = merged.merge(backup)
+        guard added > 0 || merged != log else { return 0 }
+        log = merged
+        persistLog()
+        syncToAppGroup()
+        return added
+    }
+
     /// Met à jour la date de dernière consommation d'eau
     private func updateLastWaterAddedDate() {
         lastWaterAddedDateString = DateFormat.iso8601.string(from: Date())
@@ -423,42 +964,39 @@ class HydrationManager: ObservableObject {
         return date
     }
     
-    /// Annule la dernière action d'ajout d'eau
-    /// - Returns: true si une action a été annulée, false si le stack est vide
+    /// Annule la dernière action : un ajout, une suppression ou un reset.
+    /// - Returns: true si une action a été annulée, false si la pile est vide
     @discardableResult
     func undo() -> Bool {
-        guard !undoStack.isEmpty else { return false }
-        
-        let lastAction = undoStack.removeLast()
+        // Pas d'annulation par-dessus minuit : la bascule vide la pile.
+        rollOverIfNewDay()
+        guard let action = undoStack.popLast() else { return false }
 
-        // Retirer la quantité ajoutée
-        currentMl = max(0, currentMl - lastAction.amount)
-
-        // NEW: sync updated state to App Group
+        switch action {
+        case .added(let id):
+            log.remove(id: id)
+        case .removed(let events):
+            log.restore(events)
+        }
+        persistLog()
+        scheduleNotifications()
         syncToAppGroup()
-
         return true
     }
-    
+
     /// Vérifie si une action peut être annulée
     var canUndo: Bool {
-        return !undoStack.isEmpty
+        !undoStack.isEmpty
     }
-    
-    /// Vide le stack undo (appelé lors du reset du jour)
-    private func clearUndoStack() {
-        undoStack.removeAll()
-    }
-    
-    /// Remet la consommation du jour à zéro
+
+    /// Remet la journée à zéro en retirant ses prises. Annulable : l'annulation
+    /// les remet toutes.
     func resetDay() {
-        // Sauvegarder l'entrée actuelle (qui sera 0) avant de reset
-        // Le didSet de currentMl sauvegardera automatiquement
-        currentMl = 0.0
-        clearUndoStack() // Vider le stack undo lors du reset
-        updateLastResetDate()
-        // Seul chemin de mutation qui oubliait de propager l'état : le widget
-        // gardait l'ancienne valeur après un reset (bouton ou hydrobar://reset).
+        rollOverIfNewDay()
+        let removed = log.removeEvents(on: Date(), calendar: .current)
+        if !removed.isEmpty { pushUndo(.removed(removed)) }
+        persistLog()
+        scheduleNotifications()
         syncToAppGroup()
     }
     
@@ -477,195 +1015,19 @@ class HydrationManager: ObservableObject {
         return selectedUnit.toMl(display)
     }
     
-    // MARK: - History Management
-    
-    /// Chemin vers le fichier d'historique dans Application Support
-    private var historyFileURL: URL {
-        let fileManager = FileManager.default
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appFolderURL = appSupportURL.appendingPathComponent("HydroBar", isDirectory: true)
-        
-        // Créer le dossier s'il n'existe pas
-        try? fileManager.createDirectory(at: appFolderURL, withIntermediateDirectories: true)
-        
-        return appFolderURL.appendingPathComponent("history.json")
-    }
-    
-    /// Chemin vers le fichier d'historique complet (avec targetMl)
-    private var historyEntriesFileURL: URL {
-        let fileManager = FileManager.default
-        let appSupportURL = fileManager.urls(for: .applicationSupportDirectory, in: .userDomainMask).first!
-        let appFolderURL = appSupportURL.appendingPathComponent("HydroBar", isDirectory: true)
-        
-        // Créer le dossier s'il n'existe pas
-        try? fileManager.createDirectory(at: appFolderURL, withIntermediateDirectories: true)
-        
-        return appFolderURL.appendingPathComponent("historyEntries.json")
-    }
-    
-    /// Sauvegarde l'entrée du jour actuel
-    private func saveTodayEntry() {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        saveEntry(date: today, amount: currentMl)
-        // saveHistoryEntry est appelé dans saveEntry, donc pas besoin de l'appeler ici
-    }
-    
-    /// Sauvegarde une entrée pour une date donnée
-    private func saveEntry(date: Date, amount: Double) {
-        let calendar = Calendar.current
-        let dateStart = calendar.startOfDay(for: date)
-        
-        // Mettre à jour ou créer l'entrée DailyEntry (legacy)
-        let entry = DailyEntry(date: dateStart, amount: amount)
-        
-        // Charger l'historique actuel
-        var entries = history
-        
-        // Retirer l'ancienne entrée pour cette date si elle existe
-        entries.removeAll { entry in
-            calendar.isDate(entry.date, inSameDayAs: dateStart)
-        }
-        
-        // Ajouter la nouvelle entrée
-        entries.append(entry)
-        
-        // Garder seulement les 7 derniers jours
-        let today = calendar.startOfDay(for: Date())
-        let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today)!
-        entries = entries.filter { $0.date >= sevenDaysAgo }
-        
-        // Trier par date (plus ancien en premier)
-        entries.sort { $0.date < $1.date }
-        
-        history = entries
-        saveHistory()
-        
-        // Sauvegarder aussi dans HistoryEntry avec targetMl
-        saveHistoryEntry(date: dateStart, amountMl: amount, targetMl: targetMl)
-    }
-    
-    /// Sauvegarde une HistoryEntry avec targetMl historique
-    private func saveHistoryEntry(date: Date, amountMl: Double, targetMl: Double) {
-        let calendar = Calendar.current
-        let dateStart = calendar.startOfDay(for: date)
-        
-        // Charger l'historique complet
-        var entries = historyEntries
-        
-        // Retirer l'ancienne entrée pour cette date si elle existe
-        entries.removeAll { entry in
-            calendar.isDate(entry.date, inSameDayAs: dateStart)
-        }
-        
-        // Ajouter la nouvelle entrée avec targetMl historique
-        let historyEntry = HistoryEntry(date: dateStart, amountMl: amountMl, targetMl: targetMl)
-        entries.append(historyEntry)
-        
-        // Garder seulement les 30 derniers jours
-        let today = calendar.startOfDay(for: Date())
-        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
-        entries = entries.filter { $0.date >= thirtyDaysAgo }
-        
-        // Trier par date (plus ancien en premier)
-        entries.sort { $0.date < $1.date }
-        
-        historyEntries = entries
-        saveHistoryEntries()
-    }
-    
-    /// Sauvegarde l'historique dans le fichier JSON
-    private func saveHistory() {
-        writeJSON(history, to: historyFileURL, label: "history.json")
-    }
-    
-    /// Charge l'historique depuis les fichiers JSON.
-    private func loadHistory() {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
+    // MARK: - Persistance du journal
 
-        // DailyEntry (legacy) — 7 derniers jours
-        if let entries: [DailyEntry] = readJSON([DailyEntry].self,
-                                                from: historyFileURL,
-                                                label: "history.json"),
-           let sevenDaysAgo = calendar.date(byAdding: .day, value: -7, to: today) {
-            history = entries.filter { $0.date >= sevenDaysAgo }.sorted { $0.date < $1.date }
-        } else {
-            history = []
-        }
-
-        // HistoryEntry (avec targetMl) — 30 derniers jours
-        if let entries: [HistoryEntry] = readJSON([HistoryEntry].self,
-                                                  from: historyEntriesFileURL,
-                                                  label: "historyEntries.json"),
-           let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today) {
-            historyEntries = entries.filter { $0.date >= thirtyDaysAgo }.sorted { $0.date < $1.date }
-        } else {
-            historyEntries = []
-        }
-    }
-    
-    /// Sauvegarde l'historique complet (HistoryEntry) dans le fichier JSON
-    private func saveHistoryEntries() {
-        writeJSON(historyEntries, to: historyEntriesFileURL, label: "historyEntries.json")
-    }
-
-    // MARK: - Persistance JSON
-
-    /// Écrit en **atomique** : les données passent par un fichier temporaire
-    /// renommé à la fin. Sans cette option, une coupure en pleine écriture
-    /// laissait un JSON tronqué, que `readJSON` interprétait comme « pas
-    /// d'historique » — et le prochain enregistrement l'écrasait pour de bon.
-    private func writeJSON<T: Encodable>(_ value: T, to url: URL, label: String) {
+    /// Écrit le journal immédiatement : une prise est un geste rare, et une
+    /// écriture différée exposerait le dernier verre à un crash. L'appui long
+    /// ne passe ici qu'une fois, à la fin.
+    private func persistLog() {
         do {
-            let encoder = JSONEncoder()
-            encoder.dateEncodingStrategy = .iso8601
-            let data = try encoder.encode(value)
-            try data.write(to: url, options: [.atomic])
+            try store.save(log)
         } catch {
-            Self.logger.error("Échec d'écriture de \(label, privacy: .public): \(error.localizedDescription, privacy: .public)")
+            Self.logger.error("Échec d'écriture du journal: \(error.localizedDescription, privacy: .public)")
             report(issue: String(format: String(localized: "Could not save %@.",
                                                 comment: "Data issue: write failure, %@ is a file name"),
-                                 label))
-        }
-    }
-
-    /// Lit un fichier JSON en distinguant deux cas que l'ancien code confondait :
-    /// le fichier **absent** (premier lancement, normal) et le fichier **présent
-    /// mais illisible** (corruption, anormal). Dans le second cas, le fichier est
-    /// mis de côté plutôt qu'écrasé en silence.
-    private func readJSON<T: Decodable>(_ type: T.Type, from url: URL, label: String) -> T? {
-        guard FileManager.default.fileExists(atPath: url.path) else {
-            return nil // premier lancement
-        }
-        do {
-            let data = try Data(contentsOf: url)
-            let decoder = JSONDecoder()
-            decoder.dateDecodingStrategy = .iso8601
-            return try decoder.decode(type, from: data)
-        } catch {
-            quarantine(url, label: label, error: error)
-            return nil
-        }
-    }
-
-    /// Renomme un fichier illisible en `<nom>.corrupt-<date>` pour que son contenu
-    /// reste récupérable à la main. Perdre un mois d'historique sans trace était le
-    /// pire scénario de l'ancienne implémentation.
-    private func quarantine(_ url: URL, label: String, error: Error) {
-        let stamp = DateFormat.iso8601.string(from: Date()).replacingOccurrences(of: ":", with: "-")
-        let backup = url.appendingPathExtension("corrupt-\(stamp)")
-        do {
-            try FileManager.default.moveItem(at: url, to: backup)
-            Self.logger.error("\(label, privacy: .public) illisible, mis de côté dans \(backup.lastPathComponent, privacy: .public): \(error.localizedDescription, privacy: .public)")
-            report(issue: String(format: String(localized: "%@ was unreadable and has been set aside as %@.",
-                                                comment: "Data issue: corrupt file quarantined; %@ are file names"),
-                                 label, backup.lastPathComponent))
-        } catch {
-            Self.logger.error("\(label, privacy: .public) illisible et impossible à mettre de côté: \(error.localizedDescription, privacy: .public)")
-            report(issue: String(format: String(localized: "%@ is unreadable.",
-                                                comment: "Data issue: unreadable file"),
-                                 label))
+                                 IntakeLogStore.fileName))
         }
     }
 
@@ -678,129 +1040,58 @@ class HydrationManager: ObservableObject {
         }
     }
     
-    /// Retourne les 7 derniers jours avec leurs pourcentages d'objectif
-    func getLast7DaysData() -> [(date: Date, percentage: Double)] {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        
-        var result: [(date: Date, percentage: Double)] = []
-        
-        // Générer les 7 derniers jours
-        for i in 0..<7 {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            
-            // Chercher l'entrée correspondante dans l'historique
-            if let entry = history.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                let percentage = targetMl > 0 ? min((entry.amount / targetMl) * 100, 100) : 0
-                result.append((date: date, percentage: percentage))
-            } else {
-                // Pas d'entrée pour ce jour, 0%
-                result.append((date: date, percentage: 0))
-            }
-        }
-        
-        // Inverser pour avoir du plus ancien au plus récent
-        return result.reversed()
-    }
-    
-    /// Calcule la série actuelle (streak) de jours consécutifs où l'objectif a été atteint
-    func calculateStreak() -> Int {
-        return currentStreak
-    }
-    
     // MARK: - Computed Properties for Statistics
     
-    /// Somme des 7 derniers jours (aujourd'hui inclus)
+    private var todayForStats: HydrationStats.Today {
+        HydrationStats.Today(date: Date(), amountMl: currentMl, targetMl: targetMl)
+    }
+
+    /// Somme des 7 derniers jours, aujourd'hui inclus.
     var weeklyTotal: Double {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        _ = calendar.date(byAdding: .day, value: -6, to: today)! // -6 pour avoir 7 jours au total (aujourd'hui + 6 jours passés)
-        
-        var total: Double = 0
-        
-        // Parcourir les 7 derniers jours (aujourd'hui inclus)
-        for i in 0..<7 {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            
-            if calendar.isDate(date, inSameDayAs: today) {
-                // Aujourd'hui : utiliser currentMl
-                total += currentMl
-            } else {
-                // Jours passés : chercher dans l'historique
-                if let entry = historyEntries.first(where: { calendar.isDate($0.date, inSameDayAs: date) }) {
-                    total += entry.amountMl
-                }
-                // Si pas d'entrée, c'est 0 (jour sans consommation)
-            }
-        }
-        
-        return total
+        HydrationStats.total(lastDays: 7, history: historyEntries, today: todayForStats)
     }
-    
-    /// Moyenne sur les 7 derniers jours (aujourd'hui inclus)
-    /// Divise par 7 pour avoir la vraie moyenne quotidienne
+
+    /// Moyenne quotidienne sur 7 jours : un jour sans consommation compte pour zéro.
     var dailyAverage: Double {
-        // Toujours diviser par 7 jours pour avoir la moyenne réelle
-        return weeklyTotal / 7.0
+        weeklyTotal / 7.0
     }
-    
-    /// Calcule la série de jours consécutifs (en comptant aujourd'hui si > 0, sinon en partant d'hier)
-    /// où amountMl >= targetMl
+
+    /// Les 12 derniers mois, pour la vue sur l'année et le bilan du mois.
+    var monthlySummaries: [HydrationStats.MonthSummary] {
+        HydrationStats.monthlySummaries(history: historyEntries, today: todayForStats)
+    }
+
+    /// Jours consécutifs où l'objectif est atteint (cf. `HydrationStats.streak`).
     var currentStreak: Int {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        var streak = 0
-        var currentDate: Date
-        
-        // Vérifier si aujourd'hui a des données ou si currentMl > 0
-        let todayEntry = historyEntries.first { calendar.isDate($0.date, inSameDayAs: today) }
-        let todayAmount = todayEntry?.amountMl ?? currentMl
-        
-        if todayAmount > 0 {
-            // Commencer par aujourd'hui
-            currentDate = today
-            let todayTarget = todayEntry?.targetMl ?? targetMl
-            if todayAmount >= todayTarget {
-                streak = 1
-            } else {
-                // Aujourd'hui n'a pas atteint l'objectif, streak = 0
-                return 0
-            }
-        } else {
-            // Pas de données aujourd'hui, commencer par hier
-            guard let yesterday = calendar.date(byAdding: .day, value: -1, to: today) else { return 0 }
-            currentDate = yesterday
-        }
-        
-        // Compter les jours consécutifs où l'objectif est atteint
-        while true {
-            // Passer au jour précédent
-            guard let previousDate = calendar.date(byAdding: .day, value: -1, to: currentDate) else { break }
-            currentDate = previousDate
-            
-            if let entry = historyEntries.first(where: { calendar.isDate($0.date, inSameDayAs: currentDate) }) {
-                if entry.amountMl >= entry.targetMl {
-                    streak += 1
-                } else {
-                    break
-                }
-            } else {
-                // Pas de données pour ce jour, arrêter le streak
-                break
-            }
-        }
-        
-        return streak
+        HydrationStats.streak(history: historyEntries, today: todayForStats)
     }
-    
+
     // MARK: - Allure
 
     /// Fraction de l'objectif attendue à cet instant, au prorata de la plage active.
     /// `nil` avant le début de la plage : rien n'est encore attendu.
     var expectedProgress: Double? {
-        HydrationPace.expectedFraction(at: Date(),
-                                       startHour: activeHoursStart,
-                                       endHour: activeHoursEnd)
+        let rules = todayRules
+        return HydrationPace.expectedFraction(at: Date(), startHour: rules.startHour, endHour: rules.endHour)
+    }
+
+    /// Phrase complète pour VoiceOver : progression, quantités et allure. Partagée
+    /// par l'anneau du popover et l'icône de la barre de menu.
+    var progressAccessibilitySummary: String {
+        let percentage = targetMl > 0 ? Int(currentMl / targetMl * 100) : 0
+        let base = String(
+            format: String(localized: "Hydration: %lld percent, %@ of %@",
+                           comment: "VoiceOver description of the progress ring"),
+            percentage, displayValue(for: currentMl), displayValue(for: targetMl)
+        )
+        guard expectedProgress != nil else { return base }
+        if let deficit = paceDeficitMl {
+            let behind = String(format: String(localized: "%@ behind",
+                                               comment: "Pace caption when the user is behind schedule"),
+                                displayValue(for: deficit))
+            return "\(base). \(behind)"
+        }
+        return "\(base). " + String(localized: "On track", comment: "Pace caption when the user is on schedule")
     }
 
     /// Quantité manquante, en ml, pour être dans les temps. `nil` si à jour ou hors plage.
@@ -810,21 +1101,6 @@ class HydrationManager: ObservableObject {
                                 expectedFraction: expectedProgress)
     }
 
-    /// Pourcentage global de réussite sur les 30 derniers jours
-    var completionRate: Double {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let thirtyDaysAgo = calendar.date(byAdding: .day, value: -30, to: today)!
-        
-        let relevantEntries = historyEntries
-            .filter { $0.date >= thirtyDaysAgo && $0.date < today } // Exclure aujourd'hui
-        
-        guard !relevantEntries.isEmpty else { return 0 }
-        
-        let successfulDays = relevantEntries.filter { $0.amountMl >= $0.targetMl }.count
-        return (Double(successfulDays) / Double(relevantEntries.count)) * 100
-    }
-    
     /// Retourne un tableau complet de 30 jours avec HistoryEntry
     /// Génère des entrées avec amountMl: 0 pour les jours sans données
     func getLast30DaysData() -> [HistoryEntry] {
@@ -882,102 +1158,26 @@ class HydrationManager: ObservableObject {
         return result
     }
     
-    // MARK: - Notifications
-    
-    /// Configure les catégories de notifications avec actions
-    private func setupNotificationCategories() {
-        let center = UNUserNotificationCenter.current()
-        
-        // Action "Boire un verre"
-        let drinkAction = UNNotificationAction(
-            identifier: "DRINK_ACTION",
-            title: String(localized: "Drink a glass", comment: "Notification action button"),
-            options: []
-        )
-        
-        // Catégorie avec action
-        let category = UNNotificationCategory(
-            identifier: "HYDRATION_REMINDER",
-            actions: [drinkAction],
-            intentIdentifiers: [],
-            options: []
-        )
-        
-        center.setNotificationCategories([category])
-    }
-    
-    /// Programme les notifications locales répétées
-    func scheduleNotifications() {
-        guard notificationsEnabled else {
-            // Annuler toutes les notifications si désactivées
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            showReminderBadge = false
-            return
-        }
-        
-        // Si mode Ne pas déranger est activé, ne pas programmer de notifications système
-        // Le badge sera géré par checkReminderStatus()
-        if doNotDisturb {
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            // Vérifier immédiatement le statut du badge
-            checkReminderStatus()
-            return
-        }
-        
-        // Annuler les anciennes notifications
-        UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-        
-        // Calculer l'intervalle en minutes
-        let intervalMinutes: Int
-        switch notificationInterval {
-        case .thirtyMinutes:
-            intervalMinutes = 30
-        case .twoHours:
-            intervalMinutes = 120
-        case .custom:
-            intervalMinutes = customNotificationMinutes
-        }
-        
-        // Créer le contenu de la notification
-        let content = UNMutableNotificationContent()
-        content.title = String(localized: "Hydrobar", comment: "Notification title")
-        content.body = String(localized: "Time to hydrate!", comment: "Notification body message")
-        content.sound = .default
-        content.categoryIdentifier = "HYDRATION_REMINDER"
-        content.userInfo = ["presetIndex": 0] // Index du premier preset
-        
-        // Créer le trigger répétitif
-        let trigger = UNTimeIntervalNotificationTrigger(
-            timeInterval: TimeInterval(intervalMinutes * 60),
-            repeats: true
-        )
-        
-        // Créer la requête
-        let request = UNNotificationRequest(
-            identifier: "HYDRATION_REMINDER",
-            content: content,
-            trigger: trigger
-        )
-        
-        // Programmer la notification
-        UNUserNotificationCenter.current().add(request) { error in
-            if let error = error {
-                Self.logger.error("Échec de programmation de la notification: \(error.localizedDescription, privacy: .public)")
-            }
-        }
-    }
-    
+    // MARK: - Notifications (HydrationManager+Notifications.swift)
+
     // MARK: - Widget → App Sync
 
-    /// Observes the shared App Group UserDefaults for widget button taps.
+    /// Écoute la notification Darwin que le widget poste après un ajout (cf.
+    /// `AppGroupStore.widgetDidAddWaterNotification`). Le rappel C ne peut rien
+    /// capturer : il passe par le singleton, qui vit autant que l'app.
     private func setupAppGroupObserver() {
-        NotificationCenter.default.addObserver(
-            forName: UserDefaults.didChangeNotification,
-            object: UserDefaults(suiteName: AppGroupStore.suiteName),
-            queue: .main
-        ) { [weak self] _ in
-            self?.applyPendingWidgetDelta()
-        }
+        CFNotificationCenterAddObserver(
+            CFNotificationCenterGetDarwinNotifyCenter(),
+            nil,
+            { _, _, _, _, _ in
+                DispatchQueue.main.async {
+                    HydrationManager.shared.applyPendingWidgetDelta()
+                }
+            },
+            AppGroupStore.widgetDidAddWaterNotification as CFString,
+            nil,
+            .deliverImmediately
+        )
     }
 
     /// Consumes ml queued by widget `AddWaterIntent` and applies it to HydrationManager.
@@ -987,33 +1187,50 @@ class HydrationManager: ObservableObject {
         addWater(amount: delta)
     }
 
-    // MARK: - App Group Sync
+    // MARK: - Persistance différée
 
-    /// Writes the current hydration state to the shared App Group container for widget access.
-    /// Must be called after every state mutation (addWater, undo, daily reset, target change).
-    /// This is a lightweight write (~200 bytes) — safe to call at 20Hz during Hold-to-Add.
+    /// L'instantané du widget passe par un délai unique (le journal, lui, est
+    /// écrit à chaque prise). Avant, chaque gorgée de « Hold to Add » réécrivait les deux
+    /// fichiers d'historique, encodait l'instantané du widget et le stockait,
+    /// 20 fois par seconde ; seul le rechargement du widget était différé
+    /// (cf. AUDIT § P2-2). Les écritures atomiques de P3-3 rendaient le problème
+    /// plus coûteux encore : chaque écriture ajoute un fichier temporaire et un
+    /// renommage.
+    private var pendingPersist: DispatchWorkItem?
+    private static let persistDelay: TimeInterval = 0.5
+
+    /// Conservé sous ce nom : c'est l'appel des points de mutation (objectif,
+    /// unité, bascule de jour, ajout, annulation, reset).
     private func syncToAppGroup() {
-        let last7Days = getLast7DaysSnapshotsForWidget()
-        let snapshot = HydrationSnapshot(
+        schedulePersist()
+    }
+
+    private func schedulePersist() {
+        pendingPersist?.cancel()
+        let work = DispatchWorkItem { [weak self] in self?.flushPendingWrites() }
+        pendingPersist = work
+        DispatchQueue.main.asyncAfter(deadline: .now() + Self.persistDelay, execute: work)
+    }
+
+    /// Écrit immédiatement tout ce qui attend. Appelé à la fin d'un appui long et
+    /// à la fermeture de l'app : un délai ne doit jamais coûter une donnée.
+    func flushPendingWrites() {
+        pendingPersist?.cancel()
+        pendingPersist = nil
+        writeWidgetSnapshot()
+    }
+
+    private func writeWidgetSnapshot() {
+        AppGroupStore.write(HydrationSnapshot(
             currentMl: currentMl,
             targetMl: targetMl,
             unit: selectedUnit.rawValue,
             lastUpdated: Date(),
-            weekHistory: last7Days
-        )
-        AppGroupStore.write(snapshot)
-
-        // Debounce widget reload: cancel pending reload and schedule a new one 0.5s later.
-        // This prevents hammering WidgetKit 20x/sec during hold-to-add.
-        widgetReloadWorkItem?.cancel()
-        let work = DispatchWorkItem {
-            WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
-        }
-        widgetReloadWorkItem = work
-        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5, execute: work)
+            weekHistory: getLast7DaysSnapshotsForWidget(),
+            presetsMl: presetsMl
+        ))
+        WidgetCenter.shared.reloadTimelines(ofKind: "HydroBarWidget")
     }
-
-    private var widgetReloadWorkItem: DispatchWorkItem?
 
     /// Builds the last 7 days of HistoryEntrySnapshot values for the widget.
     /// Uses historyEntries (30-day canonical source). Synthesizes today's entry from
@@ -1049,52 +1266,41 @@ class HydrationManager: ObservableObject {
 
     // MARK: - Debug Functions
 
-    /// Génère de fausses données d'historique pour les tests
+    #if DEBUG
+    /// Génère de fausses données d'historique pour les tests. Remplace tout
+    /// l'historique passé : jamais compilé dans une version publiée.
     func generateFakeHistoryData() {
         let calendar = Calendar.current
         let today = calendar.startOfDay(for: Date())
-        
-        // Générer des données pour les 30 derniers jours
-        var fakeEntries: [HistoryEntry] = []
-        
-        for i in stride(from: 29, through: 0, by: -1) {
-            guard let date = calendar.date(byAdding: .day, value: -i, to: today) else { continue }
-            
-            // Pour aujourd'hui, utiliser les données actuelles
-            if calendar.isDate(date, inSameDayAs: today) {
-                let todayEntry = HistoryEntry(date: date, amountMl: currentMl, targetMl: targetMl)
-                fakeEntries.append(todayEntry)
-                continue
+        var fake = IntakeLog(events: log.events(on: today, calendar: calendar))
+
+        for offset in 1...29 {
+            guard let day = calendar.date(byAdding: .day, value: -offset, to: today) else { continue }
+            fake.setGoal(targetMl, on: day, calendar: calendar)
+            // Un jour sur dix vide ; sinon 3 à 8 prises, de 50 à 150 % de l'objectif.
+            guard Int.random(in: 1...10) != 1 else { continue }
+            let count = Int.random(in: 3...8)
+            let dayTotal = targetMl * Double.random(in: 0.5...1.5)
+            for index in 0..<count {
+                let hour = 8 + index * 14 / count
+                guard let date = calendar.date(byAdding: .hour, value: hour, to: day) else { continue }
+                fake.add(IntakeEvent(date: date, amountMl: (dayTotal / Double(count)).rounded()))
             }
-            
-            // Générer des données aléatoires mais réalistes
-            // Variation entre 50% et 150% de l'objectif
-            let randomFactor = Double.random(in: 0.5...1.5)
-            let fakeAmount = targetMl * randomFactor
-            
-            // Ajouter quelques jours avec 0% (pour tester les cas vides)
-            let isEmptyDay = Int.random(in: 1...10) == 1 // 10% de chance d'avoir un jour vide
-            let finalAmount = isEmptyDay ? 0.0 : fakeAmount
-            
-            let entry = HistoryEntry(date: date, amountMl: finalAmount, targetMl: targetMl)
-            fakeEntries.append(entry)
         }
-        
-        // Sauvegarder les fausses données
-        historyEntries = fakeEntries
-        saveHistoryEntries()
-        
-        // Notifier le changement
-        objectWillChange.send()
+        undoStack.removeAll()
+        log = fake
+        persistLog()
+        syncToAppGroup()
     }
-    
+    #endif
+
     /// Teste l'envoi d'une notification immédiatement
     func testNotification() {
         let center = UNUserNotificationCenter.current()
         
         // Créer le contenu de la notification de test
         let content = UNMutableNotificationContent()
-        content.title = String(localized: "Hydrobar", comment: "Notification title")
+        content.title = "HydroBar"
         content.body = String(localized: "Test notification - Time to hydrate!", comment: "Test notification body")
         content.sound = .default
         content.categoryIdentifier = "HYDRATION_REMINDER"

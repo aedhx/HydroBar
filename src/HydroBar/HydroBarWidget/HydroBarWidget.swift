@@ -21,13 +21,25 @@ struct HydroBarTimelineProvider: TimelineProvider {
     }
 
     func getSnapshot(in context: Context, completion: @escaping (HydrationEntry) -> Void) {
-        completion(HydrationEntry(date: Date(), snapshot: AppGroupStore.read()))
+        let now = Date()
+        completion(HydrationEntry(date: now, snapshot: AppGroupStore.read().asOf(now)))
     }
 
+    /// Deux entrées : maintenant, et minuit. Avec l'ancienne politique `.never`,
+    /// le widget affichait le total de la veille jusqu'à la prochaine écriture
+    /// de l'app — toute la matinée si le Mac était resté en veille.
     func getTimeline(in context: Context, completion: @escaping (Timeline<HydrationEntry>) -> Void) {
-        let entry = HydrationEntry(date: Date(), snapshot: AppGroupStore.read())
-        let timeline = Timeline(entries: [entry], policy: .never)
-        completion(timeline)
+        let now = Date()
+        let snapshot = AppGroupStore.read()
+        var entries = [HydrationEntry(date: now, snapshot: snapshot.asOf(now))]
+
+        let calendar = Calendar.current
+        guard let midnight = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: now)) else {
+            completion(Timeline(entries: entries, policy: .never))
+            return
+        }
+        entries.append(HydrationEntry(date: midnight, snapshot: snapshot.asOf(midnight)))
+        completion(Timeline(entries: entries, policy: .after(midnight)))
     }
 }
 
@@ -71,10 +83,6 @@ private func heatmapColor(amountMl: Double, targetMl: Double) -> Color {
     return Color.green.opacity(0.2 + ratio * 0.8)
 }
 
-// MARK: - Preset button presets (ml)
-
-private let presets: [Double] = [200, 500, 750]
-
 // MARK: - Small Widget
 
 struct SmallWidgetView: View {
@@ -99,7 +107,7 @@ struct SmallWidgetView: View {
 
             // Preset buttons
             HStack(spacing: 4) {
-                ForEach(presets, id: \.self) { ml in
+                ForEach(entry.snapshot.widgetPresetsMl, id: \.self) { ml in
                     Button(intent: AddWaterIntent(amountMl: ml)) {
                         Text("+\(formatMl(ml, unit: unit))")
                             .font(.system(size: 9, weight: .medium))
@@ -127,9 +135,11 @@ struct MediumWidgetView: View {
 
     private var paddedHistory: [HistoryEntrySnapshot] {
         let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        return (0..<7).map { offset -> HistoryEntrySnapshot in
-            let date = calendar.date(byAdding: .day, value: -(6 - offset), to: today)!
+        // La date de l'entrée, pas Date() : l'entrée de minuit est calculée à
+        // l'avance et doit déjà décaler la semaine.
+        let today = calendar.startOfDay(for: entry.date)
+        return (0..<7).compactMap { offset -> HistoryEntrySnapshot? in
+            guard let date = calendar.date(byAdding: .day, value: -(6 - offset), to: today) else { return nil }
             let existing = entry.snapshot.weekHistory.first {
                 calendar.isDate($0.date, inSameDayAs: date)
             }
@@ -138,9 +148,7 @@ struct MediumWidgetView: View {
     }
 
     private func dayInitial(_ date: Date) -> String {
-        let formatter = DateFormatter()
-        formatter.dateFormat = "EEEEE"
-        return formatter.string(from: date).uppercased()
+        date.formatted(.dateTime.weekday(.narrow)).uppercased()
     }
 
     var body: some View {
@@ -184,7 +192,7 @@ struct MediumWidgetView: View {
 
                 // Preset buttons
                 HStack(spacing: 5) {
-                    ForEach(presets, id: \.self) { ml in
+                    ForEach(entry.snapshot.widgetPresetsMl, id: \.self) { ml in
                         Button(intent: AddWaterIntent(amountMl: ml)) {
                             Text("+\(formatMl(ml, unit: unit))")
                                 .font(.system(size: 10, weight: .medium))
@@ -246,6 +254,9 @@ struct HydroBarWidget: Widget {
 struct HydroBarWidgetBundle: WidgetBundle {
     var body: some Widget {
         HydroBarWidget()
+        if #available(macOS 26.0, *) {
+            AddWaterControl()
+        }
     }
 }
 

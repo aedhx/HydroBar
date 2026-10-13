@@ -1,0 +1,74 @@
+{
+  "en-US": {
+    "today": ["Drink enough. Without thinking about it.", "One click in your menu bar. The ring shows where you are, and where you should be by now."],
+    "notification": ["Reminders you can act on", "See what's left, log a glass or type any amount, right from the notification."],
+    "days": ["Work days. Days off.", "Each with its own hours, reminders and goal. Your Work Focus can switch for you."],
+    "stats": ["See your progress", "Streaks, a monthly recap to share, and your whole year at a glance."],
+    "bottle": ["Bottle mode", "Drinking from a bottle? Just say how much is gone."],
+    "everywhere": ["Everywhere on your Mac. Nowhere else.", "Widget, Control Center, Shortcuts and Siri. No account, no tracking: your data stays on your Mac."]
+  },
+  "fr-FR": {
+    "today": ["Buvez assez. Sans y penser.", "Un clic dans la barre des menus. L'anneau montre où vous en êtes, et où vous devriez être."],
+    "notification": ["Des rappels utiles", "Voyez ce qu'il reste, ajoutez un verre ou tapez une quantité, depuis la notification."],
+    "days": ["Jours de travail. Jours off.", "Chacun avec sa plage, ses rappels et son objectif. Votre concentration Travail peut basculer pour vous."],
+    "stats": ["Suivez vos progrès", "Séries, bilan du mois à partager et toute votre année d'un coup d'œil."],
+    "bottle": ["Mode gourde", "Vous buvez à la gourde ? Dites simplement où elle en est."],
+    "everywhere": ["Partout sur votre Mac. Nulle part ailleurs.", "Widget, Centre de contrôle, Raccourcis et Siri. Sans compte ni pistage : vos données restent sur votre Mac."]
+  },
+  "de-DE": {
+    "today": ["Genug trinken. Ganz nebenbei.", "Ein Klick in der Menüleiste. Der Ring zeigt, wo du stehst – und wo du jetzt sein solltest."],
+    "notification": ["Erinnerungen mit Aktionen", "Sieh, was noch fehlt, und trag ein Glas oder eine beliebige Menge direkt in der Mitteilung ein."],
+    "days": ["Arbeitstage. Freie Tage.", "Jeweils mit eigenen Zeiten, Erinnerungen und Ziel. Dein Arbeitsfokus kann für dich umschalten."],
+    "stats": ["Deine Fortschritte", "Serien, eine Monatsbilanz zum Teilen und dein ganzes Jahr auf einen Blick."],
+    "bottle": ["Flaschenmodus", "Du trinkst aus einer Flasche? Sag einfach, wie viel schon weg ist."],
+    "everywhere": ["Überall auf deinem Mac. Nirgendwo sonst.", "Widget, Kontrollzentrum, Kurzbefehle und Siri. Kein Konto, kein Tracking: Deine Daten bleiben auf deinem Mac."]
+  },
+  "es-ES": {
+    "today": ["Bebe lo suficiente. Sin pensarlo.", "Un clic en la barra de menús. El anillo muestra cómo vas y dónde deberías estar."],
+    "notification": ["Recordatorios útiles", "Mira lo que te queda, registra un vaso o escribe una cantidad desde la notificación."],
+    "days": ["Días laborables. Días libres.", "Cada uno con sus horas, recordatorios y objetivo. Tu modo Trabajo puede cambiarlo por ti."],
+    "stats": ["Sigue tu progreso", "Rachas, un resumen del mes para compartir y todo tu año de un vistazo."],
+    "bottle": ["Modo botella", "¿Bebes de una botella? Solo indica cuánto llevas."],
+    "everywhere": ["En todo tu Mac. En ningún otro sitio.", "Widget, Centro de control, Atajos y Siri. Sin cuenta ni rastreo: tus datos se quedan en tu Mac."]
+  },
+  "it": {
+    "today": ["Bevi il giusto. Senza pensarci.", "Un clic nella barra dei menu. L'anello mostra a che punto sei e dove dovresti essere."],
+    "notification": ["Promemoria utili", "Vedi quanto manca, registra un bicchiere o scrivi una quantità dalla notifica."],
+    "days": ["Giorni lavorativi. Giorni liberi.", "Ognuno con orari, promemoria e obiettivo propri. La modalità Lavoro può cambiare per te."],
+    "stats": ["Segui i tuoi progressi", "Serie, un riepilogo del mese da condividere e tutto il tuo anno a colpo d'occhio."],
+    "bottle": ["Modalità borraccia", "Bevi dalla borraccia? Indica solo quanto ne hai bevuto."],
+    "everywhere": ["Ovunque sul tuo Mac. Da nessun'altra parte.", "Widget, Centro di Controllo, Comandi e Siri. Nessun account, nessun tracciamento: i dati restano sul tuo Mac."]
+  },
+  "ja": {
+    "today": ["十分な水分補給を、意識せずに。", "メニューバーからワンクリック。リングで今の状況と、今いるべき位置がわかります。"],
+    "notification": ["操作できるリマインダー", "残りの量を確認し、通知から一杯の記録や好きな量の入力ができます。"],
+    "days": ["仕事の日も、休日も。", "それぞれに時間帯、リマインダー、目標。仕事の集中モードで自動切り替えも。"],
+    "stats": ["進み具合をひと目で", "連続記録、共有できる月間まとめ、そして1年の概要。"],
+    "bottle": ["ボトルモード", "ボトルで飲んでいるなら、どれだけ飲んだかを選ぶだけ。"],
+    "everywhere": ["Macのどこからでも。データはMacの中だけ。", "ウィジェット、コントロールセンター、ショートカット、Siri。アカウント不要、トラッキングなし。"]
+  },
+  "nl-NL": {
+    "today": ["Genoeg drinken. Zonder erbij na te denken.", "Eén klik in je menubalk. De ring laat zien waar je staat, en waar je nu zou moeten zijn."],
+    "notification": ["Herinneringen met acties", "Zie wat er nog over is, registreer een glas of typ een hoeveelheid, direct vanuit de melding."],
+    "days": ["Werkdagen. Vrije dagen.", "Elk met eigen uren, herinneringen en doel. Je Werk-focus kan voor je wisselen."],
+    "stats": ["Volg je voortgang", "Reeksen, een maandoverzicht om te delen en je hele jaar in één oogopslag."],
+    "bottle": ["Flesmodus", "Drink je uit een fles? Geef gewoon aan hoeveel er op is."],
+    "everywhere": ["Overal op je Mac. Nergens anders.", "Widget, Bedieningspaneel, Opdrachten en Siri. Geen account, geen tracking: je gegevens blijven op je Mac."]
+  },
+  "pt-BR": {
+    "today": ["Beba o suficiente. Sem pensar.", "Um clique na barra de menus. O anel mostra como você está e onde deveria estar."],
+    "notification": ["Lembretes úteis", "Veja quanto falta, registre um copo ou digite uma quantidade direto na notificação."],
+    "days": ["Dias de trabalho. Dias de folga.", "Cada um com horários, lembretes e objetivo próprios. Seu Foco Trabalho pode trocar por você."],
+    "stats": ["Acompanhe seu progresso", "Sequências, um resumo do mês para compartilhar e seu ano inteiro num relance."],
+    "bottle": ["Modo garrafa", "Bebe de uma garrafa? É só dizer quanto já foi."],
+    "everywhere": ["Em todo o seu Mac. Em nenhum outro lugar.", "Widget, Central de Controle, Atalhos e Siri. Sem conta nem rastreamento: seus dados ficam no seu Mac."]
+  },
+  "zh-Hans": {
+    "today": ["喝够水，无需费心。", "在菜单栏一键记录。圆环显示你当前的进度，以及此刻应达到的位置。"],
+    "notification": ["可直接操作的提醒", "查看还差多少，直接在通知中记录一杯水或输入任意数量。"],
+    "days": ["工作日，休息日。", "各自拥有时段、提醒和目标。“工作”专注模式可以自动切换。"],
+    "stats": ["查看你的进度", "连续天数、可分享的月度总结，以及一整年的概览。"],
+    "bottle": ["水瓶模式", "用水瓶喝水？只需选择喝了多少。"],
+    "everywhere": ["遍布你的 Mac，只留在你的 Mac。", "小组件、控制中心、快捷指令和 Siri。无需账户，没有追踪：数据只在你的 Mac 上。"]
+  }
+}
