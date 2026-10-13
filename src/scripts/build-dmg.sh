@@ -1,14 +1,14 @@
 #!/bin/bash
-# build-dmg.sh — builds HydroBar.app in Release and packages it as a DMG + ZIP.
+# src/scripts/build-dmg.sh — builds HydroBar.app in Release and packages it as a DMG + ZIP.
 #
 # Usage:
-#   ./build-dmg.sh
+#   ./src/scripts/build-dmg.sh
 #
 # Distribution signée (recommandé — supprime l'écran « app endommagée ») :
 #   DEVELOPMENT_TEAM=XXXXXXXXXX \
 #   SIGNING_IDENTITY="Developer ID Application: Ton Nom (XXXXXXXXXX)" \
 #   NOTARY_PROFILE=HydroBarNotary \
-#   ./build-dmg.sh
+#   ./src/scripts/build-dmg.sh
 #
 # Préparer NOTARY_PROFILE une seule fois (le mot de passe reste dans le keychain) :
 #   xcrun notarytool store-credentials HydroBarNotary \
@@ -20,11 +20,14 @@
 # clairement : utilisable pour tester localement, PAS pour distribuer.
 #
 # Pour une release, le chemin habituel ne passe pas par ces variables : la CI
-# construit l'app (workflow Release, Xcode 26), puis ./notarize-release.sh la
+# construit l'app (workflow Release, Xcode 26), puis ./src/scripts/notarize-release.sh la
 # signe et la notarise avec le compte connecté dans Xcode, sans certificat à
 # installer.
 
 set -euo pipefail
+
+# Les chemins ci-dessous partent de la racine du dépôt, où que le script soit lancé.
+cd "$(dirname "$0")/../.."
 
 SCHEME="HydroBar"
 PROJECT="src/HydroBar/HydroBar.xcodeproj"
@@ -135,7 +138,7 @@ fi
 
 # ── Packaging ────────────────────────────────────────────────────────────────
 echo "→ Creating DMG..."
-./package-dmg.sh "$APP_PATH" "$DMG_NAME"
+./src/scripts/package-dmg.sh "$APP_PATH" "$DMG_NAME"
 
 echo "→ Creating ZIP..."
 ditto -c -k --keepParent "$APP_PATH" "$ZIP_NAME"

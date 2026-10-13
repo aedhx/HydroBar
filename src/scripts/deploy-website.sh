@@ -1,12 +1,12 @@
 #!/bin/bash
-# deploy-website.sh — publie la landing (website/) sur le VPS, à hydrobar.adx.cool.
+# src/scripts/deploy-website.sh — publie la landing (src/website/) sur le VPS, à hydrobar.adx.cool.
 #
 # Usage, depuis ton Mac, à la racine du dépôt :
-#   ./deploy-website.sh --setup   # une seule fois : dossier, site nginx, certificat HTTPS
-#   ./deploy-website.sh           # ensuite, à chaque mise à jour de la page
+#   ./src/scripts/deploy-website.sh --setup   # une seule fois : dossier, site nginx, certificat HTTPS
+#   ./src/scripts/deploy-website.sh           # ensuite, à chaque mise à jour de la page
 #
 # Le serveur et le compte SSH se règlent par variable (valeur par défaut ci-dessous) :
-#   DEPLOY_HOST=antoine@185.97.144.4 ./deploy-website.sh
+#   DEPLOY_HOST=antoine@185.97.144.4 ./src/scripts/deploy-website.sh
 #
 # Prérequis sur le VPS : nginx et certbot (sudo apt install nginx certbot python3-certbot-nginx),
 # un compte qui peut utiliser sudo, et ta clé SSH autorisée.
@@ -35,7 +35,7 @@ else
   CERTBOT_FLAGS="$CERTBOT_FLAGS --non-interactive"
 fi
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/../.."
 
 setup() {
   echo "→ Site nginx pour $DOMAIN sur $DEPLOY_HOST"
@@ -115,10 +115,10 @@ REMOTE
 }
 
 publish() {
-  echo "→ Envoi de website/ vers $DEPLOY_HOST:$WEBROOT"
+  echo "→ Envoi de src/website/ vers $DEPLOY_HOST:$WEBROOT"
   # -rlpt plutôt que -a : sans propriétaire ni groupe, pour que les fichiers
   # appartiennent au compte du serveur et non à l'identifiant numérique du Mac.
-  rsync -rlptvz --delete --exclude README.md --exclude .DS_Store website/ "$DEPLOY_HOST:$WEBROOT/"
+  rsync -rlptvz --delete --exclude README.md --exclude .DS_Store src/website/ "$DEPLOY_HOST:$WEBROOT/"
   echo "✓ https://$DOMAIN/"
 }
 

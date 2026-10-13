@@ -1,13 +1,13 @@
 #!/bin/bash
-# notarize-release.sh — signe une release avec le certificat Developer ID du
+# src/scripts/notarize-release.sh — signe une release avec le certificat Developer ID du
 # compte développeur, la fait notariser par Apple, et refait le DMG et le ZIP.
 # Une app notarisée s'ouvre d'un double-clic : plus de « HydroBar est
 # endommagé », plus de `xattr -cr`.
 #
 # Usage :
-#   ./notarize-release.sh v2.0            # signe, notarise, empaquette
-#   UPLOAD=1 ./notarize-release.sh v2.0   # et remplace les fichiers de la release GitHub
-#   APP=chemin/HydroBar.app ./notarize-release.sh v2.0   # part d'une app locale
+#   ./src/scripts/notarize-release.sh v2.0            # signe, notarise, empaquette
+#   UPLOAD=1 ./src/scripts/notarize-release.sh v2.0   # et remplace les fichiers de la release GitHub
+#   APP=chemin/HydroBar.app ./src/scripts/notarize-release.sh v2.0   # part d'une app locale
 #
 # D'où vient l'app : du ZIP de la release GitHub, construit par la CI avec
 # Xcode 26 (workflow Release). Ce script ne compile rien ; il peut donc tourner
@@ -36,7 +36,7 @@ UPLOAD="${UPLOAD:-0}"
 # compte peut en prendre beaucoup plus.
 TIMEOUT_MIN="${TIMEOUT_MIN:-60}"
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/../.."
 ROOT="$(pwd)"
 WORK="$ROOT/build/notarize"
 ARCHIVE="$WORK/HydroBar.xcarchive"
@@ -204,7 +204,7 @@ fi
 echo "  ✓ $(grep origin= <<<"$verdict" | sed 's/origin=//'), notarisée, ticket agrafé"
 
 # ── 7. DMG et ZIP ────────────────────────────────────────────────────────────
-./package-dmg.sh "$SIGNED" "$DMG"
+./src/scripts/package-dmg.sh "$SIGNED" "$DMG"
 rm -f "$ZIP"
 ditto -c -k --keepParent "$SIGNED" "$ZIP"
 

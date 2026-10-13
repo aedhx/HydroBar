@@ -1,11 +1,11 @@
 #!/bin/bash
-# upload-listing.sh — envoie la fiche App Store (textes et captures, 9 langues)
+# src/scripts/upload-listing.sh — envoie la fiche App Store (textes et captures, 9 langues)
 # sur App Store Connect, avec fastlane deliver.
 #
 # Usage :
-#   ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=xxxxxxxx-xxxx-… ./upload-listing.sh
-#   SKIP_SCREENSHOTS=1 … ./upload-listing.sh      # les textes seulement
-#   SKIP_METADATA=1 … ./upload-listing.sh         # les captures seulement
+#   ASC_KEY_ID=XXXXXXXXXX ASC_ISSUER_ID=xxxxxxxx-xxxx-… ./src/scripts/upload-listing.sh
+#   SKIP_SCREENSHOTS=1 … ./src/scripts/upload-listing.sh      # les textes seulement
+#   SKIP_METADATA=1 … ./src/scripts/upload-listing.sh         # les captures seulement
 #
 # La clé d'API (Utilisateurs et accès › Intégrations › API App Store Connect)
 # est lue dans ~/.appstoreconnect/private_keys/AuthKey_<ASC_KEY_ID>.p8, ou dans
@@ -19,7 +19,7 @@
 
 set -euo pipefail
 
-cd "$(dirname "$0")"
+cd "$(dirname "$0")/../.."
 
 KEY_ID="${ASC_KEY_ID:?ASC_KEY_ID manquant}"
 ISSUER_ID="${ASC_ISSUER_ID:?ASC_ISSUER_ID manquant}"
@@ -34,7 +34,7 @@ if ! command -v fastlane >/dev/null; then
 fi
 
 # La fiche doit être valide avant de partir : App Store Connect refuse champ par champ.
-python3 fastlane/check_metadata.py
+python3 src/fastlane/check_metadata.py
 
 VERSION=$(awk -F' = ' '/MARKETING_VERSION = /{gsub(";", "", $2); print $2; exit}' src/HydroBar/HydroBar.xcodeproj/project.pbxproj)
 
@@ -56,6 +56,8 @@ if [ "${SKIP_SCREENSHOTS:-0}" = "1" ]; then ARGS+=(--skip_screenshots); fi
 if [ "${SKIP_METADATA:-0}" = "1" ]; then ARGS+=(--skip_metadata); fi
 
 echo "→ Fiche de HydroBar $VERSION vers App Store Connect"
+# fastlane travaille dans le dossier qui contient fastlane/ : c'est src/.
+cd src
 fastlane deliver \
   --api_key_path "$TMP/key.json" \
   --app_identifier com.adxcool.HydroBar \

@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 // Rend les visuels de HydroBar à partir de template.html.
 //
-//   node marketing/render.cjs                 → captures App Store, 9 langues
-//   node marketing/render.cjs --readme        → images du README (anglais)
-//   node marketing/render.cjs --only fr-FR    → une seule langue
+//   node src/marketing/render.cjs             → captures App Store, 9 langues
+//   node src/marketing/render.cjs --readme    → images du README (anglais)
+//   node src/marketing/render.cjs --only fr-FR → une seule langue
 //
-// Les captures App Store vont dans fastlane/screenshots/<langue>/, au format
+// Les captures App Store vont dans src/fastlane/screenshots/<langue>/, au format
 // 2880 × 1800 accepté par App Store Connect.
 const fs = require('fs');
 const path = require('path');
@@ -13,7 +13,9 @@ const { chromium } = require('playwright');
 const { LOCALES } = require('./strings.cjs');
 const { SCREENS, build } = require('./data.cjs');
 
+// Le dossier src/ (captures de la fiche) et la racine du dépôt (images du README).
 const ROOT = path.join(__dirname, '..');
+const REPO = path.join(ROOT, '..');
 const TEMPLATE = 'file://' + path.join(__dirname, 'template.html');
 const args = process.argv.slice(2);
 const only = args.includes('--only') ? args[args.indexOf('--only') + 1] : null;
@@ -46,7 +48,7 @@ async function shoot(browser, data, file, { width = 1440, height = 900, clip, sc
 (async () => {
   const browser = await launch();
   if (args.includes('--readme')) {
-    const out = path.join(ROOT, 'Resources/v2');
+    const out = path.join(REPO, 'Resources/v2');
     for (const screen of SCREENS) {
       await shoot(browser, { ...build('en-US', screen), bare: true }, path.join(out, `${screen}.jpg`),
         { clip: { x: 0, y: 0, width: 800, height: 756 }, scale: 1.5 });

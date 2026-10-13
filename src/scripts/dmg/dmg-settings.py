@@ -1,4 +1,4 @@
-# Réglages dmgbuild de l'image disque de HydroBar (voir package-dmg.sh).
+# Réglages dmgbuild de l'image disque de HydroBar (voir src/scripts/package-dmg.sh).
 #
 # dmgbuild écrit lui-même le .DS_Store du volume : la mise en page ne dépend
 # plus d'un AppleScript adressé au Finder, qui échouait sans permission

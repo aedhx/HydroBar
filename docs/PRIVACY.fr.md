@@ -10,4 +10,4 @@ Désinstaller HydroBar supprime ses données. Les exports CSV et sauvegardes JSO
 
 Questions : <https://github.com/aedhx/HydroBar/issues>.
 
-English version, which is the reference: [PRIVACY.md](PRIVACY.md).
+English version, which is the reference: [PRIVACY.md](../PRIVACY.md).

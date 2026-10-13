@@ -1,16 +1,16 @@
 #!/bin/bash
-# build-appstore.sh — archive HydroBar pour le Mac App Store et l'envoie sur
+# src/scripts/build-appstore.sh — archive HydroBar pour le Mac App Store et l'envoie sur
 # App Store Connect (ou l'exporte en .pkg pour Transporter).
 #
-# La build App Store diffère de la build DMG (build-dmg.sh) sur deux points :
+# La build App Store diffère de la build DMG (src/scripts/build-dmg.sh) sur deux points :
 #   - condition de compilation APP_STORE : pas de vérification des mises à
 #     jour via GitHub (règle 2.4.5 : c'est le Store qui met à jour) ;
 #   - pas d'accès réseau sortant : l'app n'en a alors plus besoin.
 #
 # Usage :
-#   ./build-appstore.sh                    # archive + export d'un .pkg
-#   UPLOAD=1 ./build-appstore.sh           # archive + envoi sur App Store Connect
-#   BUILD_NUMBER=5 UPLOAD=1 ./build-appstore.sh
+#   ./src/scripts/build-appstore.sh                    # archive + export d'un .pkg
+#   UPLOAD=1 ./src/scripts/build-appstore.sh           # archive + envoi sur App Store Connect
+#   BUILD_NUMBER=5 UPLOAD=1 ./src/scripts/build-appstore.sh
 #
 # Variables :
 #   DEVELOPMENT_TEAM  équipe Apple Developer (défaut : celle du projet)
@@ -26,6 +26,9 @@
 #                     utilise le compte connecté dans Réglages › Comptes.
 
 set -euo pipefail
+
+# Les chemins ci-dessous partent de la racine du dépôt, où que le script soit lancé.
+cd "$(dirname "$0")/../.."
 
 SCHEME="HydroBar"
 PROJECT="src/HydroBar/HydroBar.xcodeproj"

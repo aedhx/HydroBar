@@ -180,8 +180,8 @@ programme Apple Developer est faite. Les deux autres restent ouverts
 
 ### P0-1 — Le schéma d'URL `hydrobar://` n'existe pas : l'extension Raycast ne peut pas fonctionner
 
-**Constat.** `raycast-hydrobar/src/*.ts` ouvre `hydrobar://add?ml=250` et
-`hydrobar://add/preset/0`. `raycast-hydrobar/README.md` documente ces URLs.
+**Constat.** `src/raycast-hydrobar/src/*.ts` ouvre `hydrobar://add?ml=250` et
+`hydrobar://add/preset/0`. `src/raycast-hydrobar/README.md` documente ces URLs.
 Or l'app ne déclare **aucun** `CFBundleURLTypes` (vérifié dans
 `HydroBar.xcodeproj/project.pbxproj` et dans les `Info.plist`) et n'implémente
 **aucun** handler (`application(_:open:)`, `onOpenURL`, ou `NSAppleEventManager`).
@@ -737,7 +737,7 @@ rien pour le code historique.
 
 ### P3-2 — Aucune intégration continue
 
-Pas de `.github/workflows`. Chaque release dépend d'un `./build-dmg.sh` lancé à la main
+Pas de `.github/workflows`. Chaque release dépend d'un `./src/scripts/build-dmg.sh` lancé à la main
 sur une machine de dev.
 
 **Correctif.** ✅ **Corrigé** : `.github/workflows/ci.yml`, deux jobs.
@@ -837,7 +837,7 @@ Enfin, changer de langue affiche une `NSAlert` **bloquante depuis un setter de
 
 ### P3-6 — Distribution : signature ad-hoc, pas de notarisation
 
-**Constat.** `build-dmg.sh:40-47` supprime le provisioning profile et re-signe en
+**Constat.** `src/scripts/build-dmg.sh:40-47` supprime le provisioning profile et re-signe en
 ad-hoc (`codesign --sign "-"`).
 
 **Impact.** Gatekeeper affiche « HydroBar est endommagé et ne peut pas être ouvert » —
@@ -847,7 +847,7 @@ utilisateur doit passer par `xattr -cr`. C'est le principal frein à l'adoption,
 
 **Correctif.** ✅ **Outillage prêt**, en attente du certificat.
 
-`build-dmg.sh` a été réécrit : signature Developer ID de l'intérieur vers
+`src/scripts/build-dmg.sh` a été réécrit : signature Developer ID de l'intérieur vers
 l'extérieur (extensions avant l'app, sinon la signature de l'app est invalidée),
 `--options runtime` et `--timestamp` — tous deux exigés par la notarisation —
 puis `notarytool submit --wait` et `stapler staple`, et une vérification `spctl`.
@@ -858,7 +858,7 @@ Tout est piloté par variables d'environnement :
 DEVELOPMENT_TEAM=XXXXXXXXXX \
 SIGNING_IDENTITY="Developer ID Application: … (XXXXXXXXXX)" \
 NOTARY_PROFILE=HydroBarNotary \
-./build-dmg.sh
+./src/scripts/build-dmg.sh
 ```
 
 Sans `SIGNING_IDENTITY`, le script retombe sur l'ad-hoc **et le dit** : utilisable
@@ -873,11 +873,11 @@ du README. Voir aussi F12 (Sparkle) et F13 (Homebrew), qui en dépendent.
 
 ### P3-7 — Version dupliquée entre le script et le projet
 
-`build-dmg.sh:7` code `VERSION="1.2"` en dur, alors que `MARKETING_VERSION = 1.2`
+`src/scripts/build-dmg.sh:7` code `VERSION="1.2"` en dur, alors que `MARKETING_VERSION = 1.2`
 existe dans `project.pbxproj:653`. Deux endroits à mettre à jour à chaque release,
 donc un DMG qui finira par être mal nommé.
 
-**Correctif.** ✅ **Corrigé** : `build-dmg.sh` lit `MARKETING_VERSION` depuis le
+**Correctif.** ✅ **Corrigé** : `src/scripts/build-dmg.sh` lit `MARKETING_VERSION` depuis le
 projet, et échoue proprement s'il n'y arrive pas. Le `| grep … || true` qui
 masquait le code de sortie de `xcodebuild` a disparu : la sortie va dans un
 fichier journal, seules les lignes `error:`/`warning:` sont affichées, et le code
@@ -888,7 +888,7 @@ de sortie est vérifié explicitement.
 ### P3-8 — Fichier LICENSE absent
 
 Le README annonce « MIT License - see the LICENSE file » et
-`raycast-hydrobar/package.json` déclare `"license": "MIT"`, mais aucun fichier
+`src/raycast-hydrobar/package.json` déclare `"license": "MIT"`, mais aucun fichier
 `LICENSE` n'existe dans le dépôt. Juridiquement, le code est donc « tous droits
 réservés » par défaut — ce qui interdit les contributions que la section
 « Contributing » sollicite, et bloque une soumission au Raycast Store.
@@ -946,7 +946,7 @@ racine du dépôt.
 - Commentaires en français (165 occurrences) dans un projet dont le README, les
   identifiants et les chaînes localisées sont en anglais. À trancher une bonne fois
   (le français est un choix légitime, mais il doit être uniforme).
-- `build-dmg.sh:24` — Team ID `S8YKU5RDHK` en dur dans un script versionné. Ce n'est
+- `src/scripts/build-dmg.sh:24` — Team ID `S8YKU5RDHK` en dur dans un script versionné. Ce n'est
   pas un secret, mais le passer en variable d'environnement facilite les forks.
 
 ---
