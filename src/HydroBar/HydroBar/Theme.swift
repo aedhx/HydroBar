@@ -66,12 +66,9 @@ enum Theme {
 
         static let caption = SwiftUI.Font.system(size: 11)
         static let captionMedium = SwiftUI.Font.system(size: 11, weight: .medium)
-        /// Titres de section en capitales des réglages.
-        static let sectionTitle = SwiftUI.Font.system(size: 11, weight: .semibold)
 
         static let footnote = SwiftUI.Font.system(size: 10)
         static let footnoteEmphasis = SwiftUI.Font.system(size: 10, weight: .semibold)
-        static let micro = SwiftUI.Font.system(size: 9)
 
         static let mono = SwiftUI.Font.system(size: 12, design: .monospaced)
     }

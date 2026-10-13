@@ -26,8 +26,20 @@ struct ShortcutRecorderView: View {
     @State private var errorMessage: String?
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        // Aligné à droite : dans les réglages, l'enregistreur est le contrôle
+        // d'une ligne dont le libellé est à gauche.
+        VStack(alignment: .trailing, spacing: 4) {
             HStack(spacing: 8) {
+                if currentShortcut != nil && !isRecording {
+                    Button(action: { removeShortcut() }) {
+                        Image(systemName: "xmark.circle.fill")
+                            .font(Theme.Font.control)
+                            .foregroundColor(.secondary)
+                    }
+                    .buttonStyle(.plain)
+                    .help(String(localized: "Remove shortcut", comment: "Tooltip for remove shortcut button"))
+                }
+
                 Button(action: {
                     if isRecording {
                         stopRecording()
@@ -48,12 +60,12 @@ struct ShortcutRecorderView: View {
                         }
                     }
                     .font(Theme.Font.body)
-                    .frame(width: 120, alignment: .leading)
+                    .frame(width: 120)
                     .padding(.horizontal, 8)
                     .padding(.vertical, 4)
                     .background(
                         RoundedRectangle(cornerRadius: 6)
-                            .fill(isRecording ? Theme.water.opacity(0.1) : Color(NSColor.controlBackgroundColor))
+                            .fill(isRecording ? AnyShapeStyle(Theme.water.opacity(0.1)) : AnyShapeStyle(.quaternary))
                     )
                     .overlay(
                         RoundedRectangle(cornerRadius: 6)
@@ -61,27 +73,13 @@ struct ShortcutRecorderView: View {
                     )
                 }
                 .buttonStyle(.plain)
-
-                if currentShortcut != nil && !isRecording {
-                    Button(action: { removeShortcut() }) {
-                        Image(systemName: "xmark.circle.fill")
-                            .font(Theme.Font.control)
-                            .foregroundColor(.secondary)
-                    }
-                    .buttonStyle(.plain)
-                    .help(String(localized: "Remove shortcut", comment: "Tooltip for remove shortcut button"))
-                    .frame(width: 20)
-                } else {
-                    // Espace réservé pour maintenir l'alignement
-                    Spacer()
-                        .frame(width: 20)
-                }
             }
 
             if let errorMessage {
                 Text(errorMessage)
                     .font(Theme.Font.caption)
                     .foregroundColor(.orange)
+                    .multilineTextAlignment(.trailing)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }

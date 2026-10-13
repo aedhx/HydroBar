@@ -74,6 +74,11 @@ struct ValidatedNumberField: View {
     /// Mise en forme de la valeur dans le champ.
     let format: (Double) -> String
     var alignment: TextAlignment = .leading
+    /// Largeur du champ seul. Les bornes rappelées en cas de refus gardent
+    /// alors leur propre largeur, au lieu de se replier sous un champ étroit.
+    var fieldWidth: CGFloat?
+    /// Unité affichée à droite du champ.
+    var suffix: String?
     let onCommit: (Double) -> Void
 
     @State private var text = ""
@@ -81,20 +86,28 @@ struct ValidatedNumberField: View {
     @FocusState private var isFocused: Bool
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 2) {
-            TextField("", text: $text)
-                .textFieldStyle(.roundedBorder)
-                .multilineTextAlignment(alignment)
-                .focused($isFocused)
-                .onSubmit(commit)
-                .onChange(of: isFocused) { _, focused in
-                    if !focused { commit() }
+        VStack(alignment: alignment == .trailing ? .trailing : .leading, spacing: 2) {
+            HStack(spacing: 6) {
+                TextField("", text: $text)
+                    .textFieldStyle(.roundedBorder)
+                    .multilineTextAlignment(alignment)
+                    .focused($isFocused)
+                    .onSubmit(commit)
+                    .onChange(of: isFocused) { _, focused in
+                        if !focused { commit() }
+                    }
+                    .onAppear { text = format(value) }
+                    .onChange(of: value) { _, newValue in
+                        // Ne pas écraser ce que l'utilisateur est en train de taper.
+                        if !isFocused { text = format(newValue) }
+                    }
+                    .frame(width: fieldWidth)
+
+                if let suffix {
+                    Text(verbatim: suffix)
+                        .foregroundStyle(.secondary)
                 }
-                .onAppear { text = format(value) }
-                .onChange(of: value) { _, newValue in
-                    // Ne pas écraser ce que l'utilisateur est en train de taper.
-                    if !isFocused { text = format(newValue) }
-                }
+            }
 
             if rejected {
                 Text(String(format: String(localized: "Between %@ and %@",
@@ -102,7 +115,7 @@ struct ValidatedNumberField: View {
                             format(range.lowerBound), format(range.upperBound)))
                     .font(Theme.Font.footnote)
                     .foregroundColor(.orange)
-                    .fixedSize(horizontal: false, vertical: true)
+                    .fixedSize(horizontal: fieldWidth != nil, vertical: true)
             }
         }
     }

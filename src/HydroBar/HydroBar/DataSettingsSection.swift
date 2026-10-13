@@ -21,39 +21,31 @@ struct DataSettingsSection: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            Text("DATA", comment: "Settings section title for data export and import")
-                .font(Theme.Font.sectionTitle)
-                .foregroundColor(.secondary)
-
-            actionButton(String(localized: "Export as CSV…", comment: "Button: export daily totals as CSV"),
-                         systemImage: "tablecells", action: exportCSV)
-            actionButton(String(localized: "Back Up (JSON)…", comment: "Button: export the full intake log as JSON"),
-                         systemImage: "externaldrive", action: exportBackup)
-            actionButton(String(localized: "Restore from Backup…", comment: "Button: import a JSON backup"),
-                         systemImage: "arrow.down.doc", action: importBackup)
-
-            Text("Restoring adds the entries you don't have yet: importing the same backup twice changes nothing.",
-                 comment: "Explanation under the data import button")
-                .font(Theme.Font.caption)
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-    }
-
-    private func actionButton(_ title: String, systemImage: String, action: @escaping () -> Void) -> some View {
-        Button(action: action) {
-            HStack(spacing: 8) {
-                Image(systemName: systemImage)
-                    .font(Theme.Font.callout)
-                    .frame(width: 20, alignment: .leading)
-                Text(title)
-                    .font(Theme.Font.body)
-                Spacer()
+        Section {
+            LabeledContent {
+                Button(String(localized: "Export as CSV…", comment: "Button: export daily totals as CSV"),
+                       action: exportCSV)
+            } label: {
+                Text("Daily totals", comment: "Settings row: what the CSV export contains")
             }
-            .contentShape(Rectangle())
+            LabeledContent {
+                Button(String(localized: "Back Up (JSON)…", comment: "Button: export the full intake log as JSON"),
+                       action: exportBackup)
+            } label: {
+                Text("Full history", comment: "Settings row: what the JSON backup contains")
+            }
+            LabeledContent {
+                Button(String(localized: "Restore from Backup…", comment: "Button: import a JSON backup"),
+                       action: importBackup)
+            } label: {
+                Text("Existing backup", comment: "Settings row: restore entries from a JSON backup file")
+            }
+        } header: {
+            Text("Data", comment: "Settings section title for data export and import")
+        } footer: {
+            SettingsFooter(Text("Restoring adds the entries you don't have yet: importing the same backup twice changes nothing.",
+                                comment: "Explanation under the data import button"))
         }
-        .buttonStyle(.plain)
     }
 
     // MARK: - Actions
