@@ -193,7 +193,10 @@ You need Xcode 16 or later; the Control Center button and the Liquid Glass prese
 
 | Script | What it does |
 |---|---|
-| `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP, optionally signed and notarized |
+| `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP (ad-hoc signed unless given a certificate) |
+| `./notarize-release.sh v2.0` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
+| `./package-dmg.sh` | Puts a signed app in the disk image, with its window layout |
+| `./deploy-website.sh` | Publishes `website/` to hydrobar.adx.cool |
 | `./build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |
 | `node marketing/render.cjs` | App Store screenshots in 9 languages, and the images of this README (`--readme`) |
 | `python3 fastlane/check_metadata.py` | Checks the App Store listing in every language |
