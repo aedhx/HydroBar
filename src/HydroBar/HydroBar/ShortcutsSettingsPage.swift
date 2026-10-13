@@ -30,7 +30,7 @@ struct ShortcutsSettingsPage: View {
     // MARK: - Raccourcis clavier
 
     private var shortcutsSection: some View {
-        Section {
+        SettingsCard(title: Text("Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts")) {
             ForEach(Array(manager.presetsMl.indices), id: \.self) { index in
                 shortcutRow(for: .preset(index))
             }
@@ -38,8 +38,6 @@ struct ShortcutsSettingsPage: View {
             ForEach(HotkeyAction.general, id: \.self) { action in
                 shortcutRow(for: action)
             }
-        } header: {
-            Text("Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts")
         }
     }
 
@@ -54,7 +52,7 @@ struct ShortcutsSettingsPage: View {
     // MARK: - Intégrations
 
     private var integrationsSection: some View {
-        Section {
+        SettingsCard(title: Text("Integrations", comment: "Settings section title for integrations")) {
             LabeledContent {
                 Button(String(localized: "View Repository", comment: "Menu item to open GitHub repository")) {
                     if let url = URL(string: "https://github.com/aedhx/HydroBar/tree/main/raycast-hydrobar") {
@@ -72,8 +70,6 @@ struct ShortcutsSettingsPage: View {
                 Text("Applies to hydrobar://reset and hydrobar://set-goal. Adding water and undo are never blocked.",
                      comment: "Explanation for destructive deep links toggle")
             }
-        } header: {
-            Text("Integrations", comment: "Settings section title for integrations")
         }
     }
 
@@ -81,7 +77,7 @@ struct ShortcutsSettingsPage: View {
 
     /// Accès par cinq clics sur le numéro de version, page Général.
     private var debugSection: some View {
-        Section {
+        SettingsCard(title: Text("DEBUG", comment: "Settings section title for debug")) {
             // Réservé aux builds Debug : la section s'ouvre aussi en
             // version publiée (5 clics sur la version), et ce bouton
             // remplace tout l'historique réel, sans confirmation.
@@ -112,8 +108,6 @@ struct ShortcutsSettingsPage: View {
                     Image(systemName: "bell.badge.fill")
                 }
             }
-        } header: {
-            Text("DEBUG", comment: "Settings section title for debug")
         }
     }
 
@@ -129,7 +123,7 @@ struct ShortcutsSettingsPage: View {
     /// Journal des deep links — sans lui, un ajout inexpliqué (script, page
     /// web, Raycast) est indébuggable.
     private var deepLinkLogSection: some View {
-        Section {
+        SettingsCard(title: Text("RECENT DEEP LINKS", comment: "Debug section title for deep link log")) {
             ForEach(Array(deepLinkRouter.log.suffix(10).reversed())) { entry in
                 HStack(spacing: 6) {
                     Image(systemName: entry.outcome == "ok" ? "checkmark.circle.fill" : "xmark.circle.fill")
@@ -145,8 +139,6 @@ struct ShortcutsSettingsPage: View {
                 }
                 .font(Theme.Font.mono)
             }
-        } header: {
-            Text("RECENT DEEP LINKS", comment: "Debug section title for deep link log")
         }
     }
 }
