@@ -794,7 +794,7 @@ un `FileManager`, ce qui dépend de P3-1.
 
 ### P3-4 — Ni linter ni formateur
 
-> **Statut.** ✅ **Corrigé** (`84dff92`) — SwiftLint en CI, `.swiftlint.yml` à la racine. Pas de formateur : à ajouter si le projet accueille des contributeurs.
+> **Statut.** ✅ **Corrigé** (`84dff92`) — SwiftLint en CI, `.swiftlint.yml` dans `src/HydroBar/` (à la racine jusqu'à la 2.0.1). Pas de formateur : à ajouter si le projet accueille des contributeurs.
 
 Pas de `.swiftlint.yml`, pas de `.swift-format`. Les conséquences se voient : mélange
 de `String(format:)` et d'interpolation, indentation variable, imports inutilisés,
