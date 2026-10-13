@@ -1,17 +1,7 @@
-import { open, showToast, Toast } from "@raycast/api";
+import { send } from "./lib/hydrobar";
 
 export default async function Command() {
-  try {
-    await open("hydrobar://undo");
-    // Le schéma d'URL ne renvoie rien : impossible de savoir d'ici si la pile
-    // d'annulation était vide. HydroBar affiche lui-même une notification dans
-    // ce cas, donc on reste neutre plutôt que d'annoncer un succès incertain.
-    await showToast({ style: Toast.Style.Success, title: "Undo sent to HydroBar" });
-  } catch (e) {
-    await showToast({
-      style: Toast.Style.Failure,
-      title: "Could not reach HydroBar",
-      message: "Make sure HydroBar 2.0 or later is installed and has been opened once.",
-    });
-  }
+  // Impossible de savoir d'ici s'il y avait quelque chose à annuler : on dit
+  // seulement que la demande est partie.
+  await send("hydrobar://undo", "Undo sent to HydroBar");
 }

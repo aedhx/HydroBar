@@ -3,7 +3,7 @@
   "name": "hydrobar",
   "title": "HydroBar",
   "description": "Log water in HydroBar, the menu bar hydration tracker, without leaving the keyboard. Requires HydroBar 2.0 or later.",
-  "version": "1.1.1",
+  "version": "1.2.0",
   "icon": "icon.png",
   "author": "aedhx",
   "platforms": [
@@ -15,7 +15,7 @@
   ],
   "license": "MIT",
   "dependencies": {
-    "@raycast/api": "^1.69.0"
+    "@raycast/api": "^2.7.3"
   },
   "devDependencies": {
     "@raycast/eslint-config": "^1.0.0",
@@ -52,13 +52,13 @@
       "name": "add-water",
       "title": "Add Water (Custom)",
       "subtitle": "HydroBar",
-      "description": "Log a custom amount of water in ml to HydroBar",
+      "description": "Log any amount: 250, 33cl, 0.5l or 8oz. Without a unit, milliliters.",
       "mode": "no-view",
       "arguments": [
         {
-          "name": "ml",
+          "name": "amount",
           "type": "text",
-          "placeholder": "e.g. 250",
+          "placeholder": "250, 33cl, 8oz",
           "required": true
         }
       ]
@@ -71,10 +71,24 @@
       "mode": "no-view"
     },
     {
+      "name": "open",
+      "title": "Open HydroBar",
+      "subtitle": "HydroBar",
+      "description": "Open HydroBar on today's view",
+      "mode": "no-view"
+    },
+    {
       "name": "open-stats",
       "title": "Open HydroBar Statistics",
       "subtitle": "HydroBar",
       "description": "Open HydroBar on the statistics view",
+      "mode": "no-view"
+    },
+    {
+      "name": "open-settings",
+      "title": "Open HydroBar Settings",
+      "subtitle": "HydroBar",
+      "description": "Open the HydroBar settings window",
       "mode": "no-view"
     }
   ]
