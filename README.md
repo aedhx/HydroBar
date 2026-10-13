@@ -20,7 +20,7 @@ and reminders that respect your day. No account, no tracking: everything stays o
 
 ## What's new in 2.0
 
-HydroBar 2.0 is the biggest update since the first release, and the first on the Mac App Store.
+HydroBar 2.0 is the biggest update since the first release, and the first built for the Mac App Store.
 
 - **Reminders you can act on**: they say where you are, offer your presets as buttons, and take any amount you type.
 - **Work days and days off**, each with its own hours, reminders and goal.
@@ -158,7 +158,7 @@ Read the [privacy policy](PRIVACY.md).
 ### Mac App Store
 
 <!-- Replace with the App Store link once the app is live: https://apps.apple.com/app/idXXXXXXXXXX -->
-Search for **HydroBar** in the Mac App Store. Updates come through the App Store.
+Coming soon. The link will be here and on [hydrobar.adx.cool](https://hydrobar.adx.cool/). Updates will come through the App Store.
 
 ### Direct download
 
@@ -170,7 +170,7 @@ Search for **HydroBar** in the Mac App Store. Updates come through the App Store
    xattr -cr /Applications/HydroBar.app
    ```
 
-The direct download checks for updates on GitHub from **Settings › General**.
+The direct download checks for updates on GitHub from **Settings › General**. It doesn't include the desktop widget or the Control Center button: macOS only loads them from a build signed by Apple, so they come with the Mac App Store version.
 
 ### Permissions
 
@@ -189,7 +189,7 @@ git clone https://github.com/aedhx/HydroBar.git
 open HydroBar/src/HydroBar/HydroBar.xcodeproj   # then ⌘R
 ```
 
-You need Xcode 16 or later. The CI builds both variants and runs the unit tests on every push.
+You need Xcode 16 or later; the Control Center button and the Liquid Glass presets are only compiled with Xcode 26. The CI builds both variants and runs the unit tests on every push, and packages the DMG of each release.
 
 | Script | What it does |
 |---|---|
@@ -238,7 +238,7 @@ Technical documentation, in French: [audit](docs/AUDIT_TECHNIQUE.md), [roadmap](
 - [x] Deep links, launch at login, pace marker, desktop widget *(1.3)*
 - [x] Intake log, export and backup, Shortcuts actions, smart reminders *(2.0)*
 - [x] Days off, actionable notifications, bottle mode, year view, Control Center *(2.0)*
-- [x] Mac App Store *(2.0)*
+- [ ] Mac App Store *(2.0, in preparation)*
 - [ ] Drink types (coffee, tea…)
 - [ ] Optional iCloud sync
 

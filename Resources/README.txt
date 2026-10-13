@@ -30,19 +30,28 @@ Apple Developer certificate — it is safe to use.
 
 PERMISSIONS
 ───────────
-After first launch, grant the following permissions:
+HydroBar asks for one permission, and only when you turn
+reminders on:
 
   • Notifications — System Settings → Notifications → HydroBar
-  • Accessibility — System Settings → Privacy & Security
-                    → Accessibility → add HydroBar
-    (required for global keyboard shortcuts)
+
+Keyboard shortcuts, the Focus filter and call detection need
+no permission.
 
 
-WIDGETS
-───────
-HydroBar includes Small and Medium macOS widgets.
-Add them via the Notification Center widget gallery
-or right-click your desktop → Edit Widgets.
+UPGRADING FROM 1.x
+──────────────────
+Replace the old app in Applications. Your settings and history
+are converted the first time 2.0 launches; the old history file
+is kept, untouched.
+
+
+WIDGET AND CONTROL CENTER
+─────────────────────────
+The desktop widget and the Control Center button are not
+available in this direct download: macOS only loads them from
+a build signed by Apple. They come with the Mac App Store
+version.
 
 
 MORE INFO

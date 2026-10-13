@@ -8,6 +8,8 @@ suite, pour toutes les langues.
 Usage : python3 fastlane/check_metadata.py
 """
 
+from __future__ import annotations
+
 import pathlib
 import sys
 
