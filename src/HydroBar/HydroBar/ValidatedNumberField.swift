@@ -67,8 +67,9 @@ enum NumberInput {
 /// caractère de « 0,5 L », cf. AUDIT § P0-2) et un intervalle de rappel de
 /// 0 minute, refusé par le système pour un déclencheur répétitif.
 struct ValidatedNumberField: View {
-    /// Valeur courante, dans l'unité affichée.
-    let value: Double
+    /// Valeur courante, dans l'unité affichée. `nil` : champ vide, permis
+    /// seulement avec `onClear`.
+    let value: Double?
     /// Bornes acceptées, dans l'unité affichée.
     let range: ClosedRange<Double>
     /// Mise en forme de la valeur dans le champ.
@@ -79,27 +80,40 @@ struct ValidatedNumberField: View {
     var fieldWidth: CGFloat?
     /// Unité affichée à droite du champ.
     var suffix: String?
+    /// Sans bordure : le champ se fond dans ce qui le porte (grand chiffre de
+    /// l'objectif, touche de preset), sur un fond qui s'entoure de bleu
+    /// pendant la saisie.
+    var isBordered = true
+    /// Texte grisé d'un champ vide : la valeur qui s'applique sans saisie.
+    var placeholder: String?
+    /// Appelée quand le champ est vidé. Sans elle, un champ vidé revient à sa
+    /// valeur.
+    var onClear: (() -> Void)?
+    /// Le refus est signalé ailleurs (plusieurs champs étroits côte à côte) :
+    /// le champ n'affiche pas lui-même les bornes.
+    var rejection: Binding<Bool>?
     let onCommit: (Double) -> Void
 
     @State private var text = ""
     @State private var rejected = false
     @FocusState private var isFocused: Bool
 
+    private var currentText: String { value.map(format) ?? "" }
+
     var body: some View {
         VStack(alignment: alignment == .trailing ? .trailing : .leading, spacing: 2) {
             HStack(spacing: 6) {
-                TextField("", text: $text)
-                    .textFieldStyle(.roundedBorder)
+                styledField
                     .multilineTextAlignment(alignment)
                     .focused($isFocused)
                     .onSubmit(commit)
                     .onChange(of: isFocused) { _, focused in
                         if !focused { commit() }
                     }
-                    .onAppear { text = format(value) }
-                    .onChange(of: value) { _, newValue in
+                    .onAppear { text = currentText }
+                    .onChange(of: value) { _, _ in
                         // Ne pas écraser ce que l'utilisateur est en train de taper.
-                        if !isFocused { text = format(newValue) }
+                        if !isFocused { text = currentText }
                     }
                     .frame(width: fieldWidth)
 
@@ -109,10 +123,8 @@ struct ValidatedNumberField: View {
                 }
             }
 
-            if rejected {
-                Text(String(format: String(localized: "Between %@ and %@",
-                                           comment: "Validation hint for a numeric field; %@ are the bounds"),
-                            format(range.lowerBound), format(range.upperBound)))
+            if rejected, rejection == nil {
+                Text(Self.boundsHint(range: range, format: format))
                     .font(Theme.Font.footnote)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: fieldWidth != nil, vertical: true)
@@ -120,20 +132,54 @@ struct ValidatedNumberField: View {
         }
     }
 
+    @ViewBuilder
+    private var styledField: some View {
+        let field = TextField("", text: $text, prompt: placeholder.map { Text(verbatim: $0) })
+        if isBordered {
+            field.textFieldStyle(.roundedBorder)
+        } else {
+            let well = RoundedRectangle(cornerRadius: Theme.Radius.row, style: .continuous)
+            field
+                .textFieldStyle(.plain)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 2)
+                .background(well.fill(Color.primary.opacity(0.07)))
+                .overlay(well.strokeBorder(Theme.water, lineWidth: isFocused ? 2 : 0))
+        }
+    }
+
+    static func boundsHint(range: ClosedRange<Double>, format: (Double) -> String) -> String {
+        String(format: String(localized: "Between %@ and %@",
+                              comment: "Validation hint for a numeric field; %@ are the bounds"),
+               format(range.lowerBound), format(range.upperBound))
+    }
+
+    private func setRejected(_ value: Bool) {
+        rejected = value
+        rejection?.wrappedValue = value
+    }
+
     private func commit() {
         // Entrer puis sortir d'un champ sans le modifier ne doit rien écrire :
         // une valeur arrondie à l'affichage (6,76 oz) serait sinon réécrite et
         // dériverait un peu plus à chaque passage.
-        guard text != format(value) else {
-            rejected = false
+        guard text != currentText else {
+            setRejected(false)
+            return
+        }
+        let isEmpty = text.trimmingCharacters(in: .whitespaces).isEmpty
+        if isEmpty, let onClear {
+            setRejected(false)
+            text = ""
+            onClear()
             return
         }
         guard let parsed = NumberInput.parse(text), range.contains(parsed) else {
-            rejected = !text.trimmingCharacters(in: .whitespaces).isEmpty
-            text = format(value)
+            setRejected(!isEmpty)
+            text = currentText
             return
         }
-        rejected = false
+        setRejected(false)
         onCommit(parsed)
         text = format(parsed)
     }

@@ -6,8 +6,8 @@
 //
 //  Réglages : les onglets et les briques communes aux pages. Chaque page a
 //  son fichier (GeneralSettingsPage, HydrationSettingsPage,
-//  RemindersSettingsPage, ShortcutsSettingsPage) ; la fenêtre est dans
-//  SettingsWindowController.swift.
+//  RemindersSettingsPage, ShortcutsSettingsPage), les aperçus sont dans
+//  SettingsPreviews.swift et la fenêtre dans SettingsWindowController.swift.
 //
 import SwiftUI
 
@@ -23,7 +23,8 @@ enum AppLanguage: String, CaseIterable {
     case dutch = "nl"
     case japanese = "ja"
     case chinese = "zh-Hans"
-    
+
+    /// Chaque langue dans sa propre langue, comme dans Réglages Système.
     var displayName: String {
         switch self {
         case .system:
@@ -48,70 +49,13 @@ enum AppLanguage: String, CaseIterable {
             return "简体中文"
         }
     }
-    
-    var flagEmoji: String {
-        switch self {
-        case .system:
-            return "🌐"
-        case .english:
-            return "🇬🇧"
-        case .french:
-            return "🇫🇷"
-        case .spanish:
-            return "🇪🇸"
-        case .german:
-            return "🇩🇪"
-        case .italian:
-            return "🇮🇹"
-        case .portuguese:
-            return "🇵🇹"
-        case .dutch:
-            return "🇳🇱"
-        case .japanese:
-            return "🇯🇵"
-        case .chinese:
-            return "🇨🇳"
-        }
-    }
-    
-    var countryName: String {
-        switch self {
-        case .system:
-            return String(localized: "System", comment: "System language option")
-        case .english:
-            return "United Kingdom"
-        case .french:
-            return "France"
-        case .spanish:
-            return "España"
-        case .german:
-            return "Deutschland"
-        case .italian:
-            return "Italia"
-        case .portuguese:
-            return "Portugal"
-        case .dutch:
-            return "Nederland"
-        case .japanese:
-            return "日本"
-        case .chinese:
-            return "中国"
-        }
-    }
-    
-    var fullDisplayName: String {
-        if self == .system {
-            return "\(flagEmoji) \(countryName)"
-        }
-        return "\(flagEmoji) \(countryName) (\(displayName))"
-    }
 }
 
 enum NotificationInterval: String, CaseIterable {
     case thirtyMinutes = "30 min"
     case twoHours = "2 h"
     case custom = "Perso"
-    
+
     var localizedString: String {
         switch self {
         case .thirtyMinutes:
@@ -171,12 +115,18 @@ enum SettingsTab: String, CaseIterable {
     }
 }
 
-// MARK: - Briques communes aux pages
+// MARK: - Page
 
 enum SettingsLayout {
     /// Largeur de la fenêtre, la même pour toutes les pages : seule la
     /// hauteur suit le contenu.
     static let pageWidth: CGFloat = 540
+    static let pageMargin: CGFloat = 18
+    static let cardSpacing: CGFloat = 12
+    /// Retrait du contenu d'une carte, et des titres au-dessus d'elle.
+    static let rowInset: CGFloat = 14
+    static let rowPadding: CGFloat = 6
+    static let rowMinHeight: CGFloat = 32
     static let amountFieldWidth: CGFloat = 72
 }
 
@@ -197,20 +147,24 @@ extension EnvironmentValues {
     }
 }
 
-/// Une page de réglages : formulaire groupé, comme dans Réglages Système,
-/// posé sur le matériau de la fenêtre.
+/// Une page de réglages : des cartes de verre empilées sur le matériau de la
+/// fenêtre, avec les contrôles natifs teintés du bleu de l'eau.
 struct SettingsPage<Content: View>: View {
     @ViewBuilder var content: Content
     @Environment(\.settingsPageMetrics) private var metrics
     @State private var isScrolled = false
 
     var body: some View {
-        Form {
-            content
+        ScrollView {
+            VStack(alignment: .leading, spacing: SettingsLayout.cardSpacing) {
+                content
+            }
+            .padding(SettingsLayout.pageMargin)
+            .frame(maxWidth: .infinity, alignment: .leading)
         }
-        .formStyle(.grouped)
-        // Le fond opaque du formulaire masquerait le matériau de la fenêtre.
-        .scrollContentBackground(.hidden)
+        .labeledContentStyle(SettingsRowStyle())
+        .toggleStyle(SettingsSwitchStyle())
+        .tint(Theme.water)
         .onScrollGeometryChange(for: CGFloat.self) { geometry in
             geometry.contentSize.height
         } action: { _, height in
@@ -230,32 +184,142 @@ struct SettingsPage<Content: View>: View {
     }
 }
 
-/// Texte d'aide sous une section. Sans cadre, macOS l'aligne à droite.
-struct SettingsFooter: View {
-    let text: Text
+// MARK: - Verre
 
-    init(_ text: Text) {
-        self.text = text
-    }
+/// Surface d'une carte : une vitre plus claire posée sur le matériau de la
+/// fenêtre, coins continus, et le liseré du verre de HydroBar (reflet clair
+/// en haut, filet intérieur, ombre douce). Les valeurs sont dans `Theme.Glass`.
+///
+/// Le flou vient de la fenêtre (NSVisualEffectView, derrière la fenêtre) :
+/// la carte ne le refait pas. Un `Material` SwiftUI par-dessus floutait une
+/// seconde fois ce qui l'est déjà et ramenait sa propre teinte grise ; un
+/// simple voile laisse passer la couleur du bureau, comme le verre du site.
+struct GlassSurface: ViewModifier {
+    var cornerRadius: CGFloat = Theme.Radius.card
 
-    var body: some View {
-        text
-            .font(.subheadline)
-            .foregroundStyle(.secondary)
-            .multilineTextAlignment(.leading)
-            .frame(maxWidth: .infinity, alignment: .leading)
-            // Le retrait du texte des lignes, dans leur cadre.
-            .padding(.horizontal, 10)
+    func body(content: Content) -> some View {
+        let shape = RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
+        content
+            .background {
+                // L'ombre ne tombe qu'autour de la carte : sous un voile
+                // translucide, elle l'assombrirait de l'intérieur.
+                shape
+                    .fill(.black)
+                    .shadow(color: Theme.Glass.shadow, radius: Theme.Glass.shadowRadius, y: Theme.Glass.shadowOffset)
+                    .mask {
+                        Rectangle()
+                            .padding(-3 * Theme.Glass.shadowRadius)
+                            .overlay(shape.blendMode(.destinationOut))
+                            .compositingGroup()
+                    }
+                shape.fill(Theme.Glass.veil)
+            }
+            .overlay {
+                shape.strokeBorder(Theme.Glass.rimHairline, lineWidth: Theme.Glass.rimWidth)
+            }
+            .overlay {
+                // Le reflet ne tient que le bord supérieur : il s'éteint dans
+                // le premier tiers de la carte.
+                shape
+                    .strokeBorder(LinearGradient(colors: [Theme.Glass.rimHighlight, Theme.Glass.rimHighlight.opacity(0)],
+                                                 startPoint: .top, endPoint: UnitPoint(x: 0.5, y: 0.35)),
+                                  lineWidth: Theme.Glass.rimWidth)
+            }
     }
 }
 
-extension View {
-    /// Centre un contrôle sur le libellé de sa ligne. Un formulaire aligne les
-    /// deux sur leur ligne de base, et celle d'un champ de saisie à bordure
-    /// tombe quelques points trop bas : le libellé remontait, et la ligne
-    /// devenait plus haute que ses voisines.
-    func centeredOnRowLabel() -> some View {
-        alignmentGuide(.firstTextBaseline) { $0[VerticalAlignment.center] + 4 }
+/// Une carte de réglages : un titre discret, des lignes séparées par un
+/// filet, un texte d'aide dessous.
+struct SettingsCard<Content: View>: View {
+    var title: Text?
+    var footer: Text?
+    @ViewBuilder var content: Content
+
+    var body: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            if let title {
+                title
+                    .font(.subheadline.weight(.semibold))
+                    .foregroundStyle(.secondary)
+                    .padding(.horizontal, SettingsLayout.rowInset)
+            }
+
+            VStack(alignment: .leading, spacing: 0) {
+                Group(subviews: content) { rows in
+                    ForEach(rows) { row in
+                        if row.id != rows.first?.id {
+                            Rectangle()
+                                .fill(Theme.Glass.separator)
+                                .frame(height: 1)
+                                .padding(.horizontal, SettingsLayout.rowInset)
+                        }
+                        row
+                            .padding(.horizontal, SettingsLayout.rowInset)
+                            .padding(.vertical, SettingsLayout.rowPadding)
+                            .frame(maxWidth: .infinity, minHeight: SettingsLayout.rowMinHeight, alignment: .leading)
+                    }
+                }
+            }
+            .modifier(GlassSurface())
+
+            if let footer {
+                footer
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.leading)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, SettingsLayout.rowInset)
+            }
+        }
+    }
+}
+
+// MARK: - Lignes
+
+/// Ligne d'une carte : libellé à gauche, contrôle à droite. Un second texte
+/// dans le libellé devient le sous-titre de la ligne.
+struct SettingsRowStyle: LabeledContentStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            VStack(alignment: .leading, spacing: 2) {
+                Group(subviews: configuration.label) { parts in
+                    if let title = parts.first {
+                        title
+                        ForEach(parts.dropFirst()) { detail in
+                            detail
+                                .font(.subheadline)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+                }
+            }
+            .multilineTextAlignment(.leading)
+            .fixedSize(horizontal: false, vertical: true)
+
+            Spacer(minLength: 0)
+
+            configuration.content
+        }
+    }
+}
+
+/// Interrupteur d'une carte : le libellé à gauche, l'interrupteur natif au
+/// bout de la ligne.
+struct SettingsSwitchStyle: ToggleStyle {
+    func makeBody(configuration: Configuration) -> some View {
+        LabeledContent {
+            Toggle(isOn: configuration.$isOn) {
+                EmptyView()
+            }
+            .toggleStyle(.switch)
+            .controlSize(.small)
+            .labelsHidden()
+        } label: {
+            configuration.label
+        }
+        // Un seul élément pour VoiceOver : le libellé de la ligne, porté par
+        // l'interrupteur.
+        .accessibilityElement(children: .combine)
     }
 }
 
@@ -303,6 +367,9 @@ struct AmountField: View {
     @ObservedObject var manager: HydrationManager
     let valueMl: Double
     let rangeMl: ClosedRange<Double>
+    var fieldWidth = SettingsLayout.amountFieldWidth
+    var showsUnit = true
+    var isBordered = true
     let onCommit: (Double) -> Void
 
     var body: some View {
@@ -312,11 +379,11 @@ struct AmountField: View {
             range: unit.fromMl(rangeMl.lowerBound)...unit.fromMl(rangeMl.upperBound),
             format: { NumberInput.fieldText($0, fractionDigits: unit.inputFractionDigits) },
             alignment: .trailing,
-            fieldWidth: SettingsLayout.amountFieldWidth,
-            suffix: unit.symbol,
+            fieldWidth: fieldWidth,
+            suffix: showsUnit ? unit.symbol : nil,
+            isBordered: isBordered,
             onCommit: { onCommit(manager.mlValue(from: $0)) }
         )
-        .centeredOnRowLabel()
     }
 }
 
@@ -349,7 +416,7 @@ struct HourRangePicker: View {
     }
 
     /// Heure formatée selon la locale (« 8 AM » ou « 08:00 » selon la région).
-    private static func label(for hour: Int) -> String {
+    static func label(for hour: Int) -> String {
         // 24 = minuit de fin de journée, affiché comme 0 h.
         let normalized = hour == 24 ? 0 : hour
         guard let date = Calendar.current.date(bySettingHour: normalized, minute: 0, second: 0, of: Date()) else {

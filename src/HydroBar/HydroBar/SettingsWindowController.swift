@@ -66,7 +66,7 @@ final class SettingsWindowController {
 /// défile.
 final class SettingsTabViewController: NSTabViewController {
     private static let selectionKey = "settingsTab"
-    private static let maxPageHeight: CGFloat = 620
+    private static let maxPageHeight: CGFloat = 680
 
     init(manager: HydrationManager) {
         super.init(nibName: nil, bundle: nil)
