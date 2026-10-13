@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Privacy Policy · HydroBar</title>
+<meta name="description" content="HydroBar collects no data. No account, no analytics, no advertising, no tracking: everything you log stays on your Mac.">
+<link rel="canonical" href="https://hydrobar.adx.cool/privacy/">
+<meta name="theme-color" content="#3a6fc4">
+<link rel="icon" type="image/png" href="../assets/favicon-64.png">
+<!-- Le texte vient de PRIVACY.md, à la racine du dépôt : les deux se mettent à jour ensemble. -->
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; src: url(../assets/fonts/bricolage-latin.woff2) format("woff2"); font-weight: 200 800; font-display: swap; }
+  @font-face { font-family: "Instrument Sans"; src: url(../assets/fonts/instrument-latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; }
+  :root { --ink: #1d1d1f; --ink-2: #48484d; --line: rgba(60, 60, 67, .16); --mat: rgba(250, 250, 252, .78); --bar: rgba(28, 30, 38, .94); color-scheme: light; }
+  @media (prefers-color-scheme: dark) { :root { --ink: #f5f5f7; --ink-2: #c9d6ee; --line: rgba(255, 255, 255, .12); --mat: rgba(36, 38, 46, .76); color-scheme: dark; } }
+  * { box-sizing: border-box; }
+  html { background: #3060c0; -webkit-text-size-adjust: 100%; }
+  body { margin: 0; color: var(--ink); font: 400 18px/1.6 "Instrument Sans", system-ui, sans-serif; -webkit-font-smoothing: antialiased;
+    background: url(../assets/wallpaper-blur.jpg) center / cover fixed no-repeat, linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e); min-height: 100vh; }
+  header { position: sticky; top: 0; z-index: 2; height: 44px; display: flex; align-items: center; gap: 28px; padding: 0 max(22px, calc((100vw - 1640px) / 2)); background: var(--bar); color: #fff; font-weight: 500; font-size: 15px; }
+  header a { color: inherit; text-decoration: none; }
+  header .brand { display: flex; align-items: center; gap: 9px; font: 760 17px "Bricolage Grotesque", system-ui, sans-serif; }
+  header .brand img { width: 22px; height: 22px; border-radius: 5px; }
+  header .back { margin-left: auto; opacity: .92; }
+  header .back:hover { text-decoration: underline; text-underline-offset: .22em; }
+  main { margin: 14px; padding: clamp(56px, 9vw, 120px) clamp(20px, 4vw, 56px); border-radius: 30px; background: var(--mat);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, .5), inset 0 0 0 1px rgba(255, 255, 255, .3), 0 24px 60px rgba(0, 0, 0, .14); }
+  article { max-width: 44em; margin-inline: auto; }
+  h1, h2 { font-family: "Bricolage Grotesque", system-ui, sans-serif; letter-spacing: -.025em; line-height: 1.05; margin: 0; text-wrap: balance; }
+  h1 { font-size: clamp(38px, 5.4vw, 72px); font-weight: 760; }
+  h2 { font-size: 26px; font-weight: 680; letter-spacing: -.01em; margin-top: 48px; padding-top: 26px; border-top: 1px solid var(--line); }
+  p, ul { margin: 14px 0 0; color: var(--ink-2); text-wrap: pretty; }
+  ul { padding-left: 1.2em; }
+  li + li { margin-top: 6px; }
+  strong { color: var(--ink); font-weight: 650; }
+  .date { font-size: 15px; font-weight: 600; margin-top: 18px; }
+  a { color: inherit; text-underline-offset: .22em; }
+  :focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }
+  @media (max-width: 760px) { main { margin: 8px; border-radius: 24px; } }
+</style>
+</head>
+<body>
+<header>
+  <a class="brand" href="../"><img src="../assets/favicon-64.png" alt="" width="22" height="22">HydroBar</a>
+  <a class="back" href="../">Back to HydroBar</a>
+</header>
+<main>
+  <article>
+      <h1>HydroBar Privacy Policy</h1>
+      <p class="date">Last updated: October 13, 2026</p>
+      <p>HydroBar is a hydration tracker for the Mac menu bar, made by Antoine Deshoux.</p>
+      <h2>The short version</h2>
+      <p>HydroBar collects no data. It has no account, no analytics, no advertising and no tracking. Everything you log stays on your Mac.</p>
+      <h2>What HydroBar stores, and where</h2>
+      <p>HydroBar keeps the following on your Mac only, in its own storage:</p>
+      <ul><li>the drinks you log: amount, date and time;</li><li>your settings: goal, presets, unit, reminders, active hours, days off;</li><li>your daily goals, so past days are judged against the goal they had.</li></ul>
+      <p>The desktop widget reads a copy of today's total and your presets through a storage space shared only between HydroBar and its widget.</p>
+      <p>Nothing is sent to us or to anyone else. The Mac App Store version of HydroBar does not connect to the internet. The direct download contacts GitHub only when you check for updates, to read the latest version number; it sends nothing about you.</p>
+      <h2>Weight</h2>
+      <p>During setup, HydroBar can suggest a daily goal from your weight. The weight is used for this calculation on your Mac and is never saved.</p>
+      <h2>Microphone and camera</h2>
+      <p>With <strong>Hold during calls</strong> turned on, HydroBar checks whether any app is currently using your microphone or camera, so that reminders wait until your call ends. HydroBar never turns them on, never receives any sound or image, and stores nothing about your calls.</p>
+      <h2>Focus</h2>
+      <p>If you add HydroBar's filter to a Focus, macOS tells HydroBar when that Focus starts and ends. HydroBar uses this only to change how reminders appear and which day type applies.</p>
+      <h2>Exports and backups</h2>
+      <p>When you export to CSV or back up to JSON, HydroBar writes the file where you choose. What happens to that file afterwards is up to you.</p>
+      <h2>Deleting your data</h2>
+      <p>Uninstalling HydroBar deletes its data. You can also use <strong>Reset my day</strong>, or delete individual drinks from today's log.</p>
+      <h2>Children</h2>
+      <p>HydroBar collects no data from anyone, including children.</p>
+      <h2>Changes</h2>
+      <p>If this policy changes, the new version will be published here with a new date.</p>
+      <h2>Contact</h2>
+      <p>Questions: open an issue at <a href="https://github.com/aedhx/HydroBar/issues">https://github.com/aedhx/HydroBar/issues</a>.</p>
+  </article>
+</main>
+</body>
+</html>
