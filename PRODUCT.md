@@ -26,7 +26,7 @@ The app sits in the macOS menu bar next to the clock, opened by a click, a globa
 
 ## Capabilities and Constraints
 
-- Free. The Mac App Store link is not live yet; until it is, the direct download (DMG on GitHub Releases) is the working action.
+- Two ways to get the same app: a free, open-source direct download (DMG on GitHub Releases, signed and notarized), and the Mac App Store for €1.99, once, which adds the desktop widget, the Control Center button and automatic updates. The Mac App Store link is not live yet; until it is, the direct download is the working action. The free claim always refers to the direct download.
 - macOS 15.1 or later, Apple silicon and Intel. Control Center button requires macOS 26.
 - 9 languages: English, French, German, Spanish, Italian, Japanese, Dutch, Portuguese, Simplified Chinese.
 - Units: ml, cl, L, US and UK fl oz.

@@ -81,8 +81,8 @@ Pour les mises à jour suivantes, seule l'étape 1 est à refaire.
 - **Lien Mac App Store** : en bas du fichier, `const APP_STORE_URL = ''`. Tant qu'il
   est vide, le badge affiche « Coming soon to the Mac App Store » sans être un lien, et
   le DMG est le téléchargement principal. Une fois l'app publiée, colle le lien de la
-  fiche : le badge devient « Download on the Mac App Store » et les boutons principaux
-  y mènent. Idéalement, remplace alors le badge par l'illustration officielle d'Apple
+  fiche : le badge devient « Download on the Mac App Store ». Les boutons « free » continuent
+  de mener au DMG de GitHub, gratuit ; le Store, lui, est à 1,99 €. Idéalement, remplace alors le badge par l'illustration officielle d'Apple
   (developer.apple.com › App Store › Marketing Resources).
 - **Version** : « Version 2.0.1 » dans la section Download, et dans le menu de l'icône (section Everywhere).
 
