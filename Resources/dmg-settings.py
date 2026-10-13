@@ -13,7 +13,8 @@ app = defines["app"]  # noqa: F821 — fourni par dmgbuild (-D app=…)
 format = "UDZO"
 files = [app]
 symlinks = {"Applications": "/Applications"}
-hide_extensions = ["HydroBar.app"]
+# Pas de hide_extensions : il pose un attribut Finder sur HydroBar.app, que
+# `codesign --verify --strict` refuse. Le Finder masque déjà « .app » par défaut.
 
 background = defines["background"]  # noqa: F821
 window_rect = ((200, 120), (660, 400))

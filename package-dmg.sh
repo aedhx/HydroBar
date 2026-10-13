@@ -33,4 +33,17 @@ python3 -m dmgbuild \
   -D background="Resources/DMG-background.tiff" \
   "HydroBar" "$DMG"
 
+# L'app doit ressortir du DMG avec une signature intacte : une image disque qui
+# l'abîme (attribut Finder, fichier ajouté dans le bundle) ne se voit qu'ici.
+MOUNT="$(mktemp -d)"
+hdiutil attach -nobrowse -readonly -mountpoint "$MOUNT" "$DMG" > /dev/null
+status=0
+codesign --verify --deep --strict "$MOUNT/$(basename "$APP")" || status=$?
+hdiutil detach "$MOUNT" > /dev/null
+rmdir "$MOUNT" 2>/dev/null || true
+if [ "$status" -ne 0 ]; then
+  echo "✗ La signature de l'app ne survit pas à la mise en DMG."
+  exit 1
+fi
+
 echo "✓ $DMG"
