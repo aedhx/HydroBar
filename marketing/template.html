@@ -108,26 +108,37 @@
   .mark { min-width: 28px; padding: 4px 6px; border-radius: 6px; text-align: center; font-size: 12px; font-weight: 600; background: rgba(255, 255, 255, .06); }
   .mark.reached { background: rgba(10, 132, 255, .25); color: var(--ink-2); }
 
-  /* Statistiques */
-  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-  .kpi { border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, .06); }
-  .kpi .k { font-size: 11px; color: var(--ink-2); }
-  .kpi .v { font: 700 22px/1.2 ui-rounded, -apple-system, Inter, sans-serif; margin-top: 4px; }
+  /* Statistiques : le haut de la vue, dans l'ordre de l'app (StatisticsView). */
+  .kpis { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .kpi { border-radius: 12px; padding: 12px; background: rgba(255, 255, 255, .06); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+  .kpi .k { display: flex; align-items: center; gap: 5px; font-size: 11px; font-weight: 600; color: var(--ink-2); }
+  .kpi .k svg { width: 11px; height: 11px; }
+  .kpi .v { font: 700 22px/1.2 ui-rounded, -apple-system, Inter, sans-serif; margin-top: 8px; }
+  .kpi .v small { font-size: 12px; font-weight: 600; color: var(--ink-2); margin-left: 3px; }
   .section { font-size: 13px; font-weight: 600; align-self: flex-start; padding: 0 20px; margin-bottom: -14px; }
-  .recap { border-radius: 12px; padding: 16px; color: #fff; background: linear-gradient(135deg, var(--water), var(--water-light)); display: flex; flex-direction: column; gap: 10px; }
-  .recap .top { display: flex; justify-content: space-between; font-size: 12px; font-weight: 600; opacity: .92; }
-  .recap .big { font: 700 24px/1.1 ui-rounded, -apple-system, Inter, sans-serif; }
-  .recap .small { font-size: 11px; opacity: .88; }
-  .recap .lines { font-size: 12px; line-height: 1.55; }
-  .share { display: flex; gap: 8px; margin-top: 8px; }
-  .btn { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: rgba(255, 255, 255, .1); border: 1px solid rgba(255, 255, 255, .08); }
-  .year { height: 110px; display: flex; align-items: flex-end; gap: 7px; position: relative; padding-bottom: 16px; }
-  .year .bar { flex: 1; border-radius: 3px 3px 0 0; position: relative; }
-  .year .bar span { position: absolute; bottom: -16px; left: 0; right: 0; text-align: center; font-size: 10px; color: var(--ink-2); }
-  .year .goal { position: absolute; left: 0; right: 0; border-top: 1px dashed rgba(235, 235, 245, .45); }
-  .streak { text-align: center; }
-  .streak b { display: block; font: 700 15px/1.3 ui-rounded, -apple-system, Inter, sans-serif; }
-  .streak span { font-size: 11px; font-weight: 500; color: var(--goal); }
+  .week { display: grid; grid-template-columns: 1fr 28px; gap: 0 6px; }
+  .week .plot { position: relative; height: 110px; display: flex; align-items: flex-end; gap: 7px; border-bottom: 1px solid var(--hair); }
+  .week .plot i { flex: 1; border-radius: 3px 3px 0 0; background: var(--goal); }
+  .week .plot i.under { background: var(--water); }
+  .week .plot::after { content: ""; position: absolute; left: 0; right: 0; bottom: 66.67%; border-top: 1px dashed rgba(235, 235, 245, .5); }
+  .week .axis { position: relative; height: 110px; font-size: 9px; color: var(--ink-2); }
+  .week .axis span { position: absolute; left: 0; transform: translateY(50%); }
+  .week .days { display: flex; gap: 7px; margin-top: 5px; font-size: 10px; color: var(--ink-2); }
+  .week .days span { flex: 1; text-align: center; white-space: nowrap; }
+  .week .days .now { color: var(--ink); font-weight: 700; }
+  .hours .plot { height: 80px; display: flex; align-items: flex-end; gap: 3px; border-bottom: 1px solid var(--hair); }
+  .hours .plot i { flex: 1; border-radius: 2px 2px 0 0; background: #2f6bff; }
+  .hours .ticks { position: relative; height: 13px; margin-top: 4px; font-size: 9px; color: var(--ink-2); }
+  .hours .ticks span { position: absolute; top: 0; white-space: nowrap; }
+  .heat { display: grid; grid-template-columns: repeat(7, 34px); gap: 7px; }
+  .heat b { font-size: 10px; font-weight: 500; color: var(--ink-2); text-align: center; }
+  .heat i { height: 34px; border-radius: 6px; }
+  .heat i.zero { background: rgba(255, 255, 255, .09); }
+  .heat i.out { box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
+  .legend { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 8px; font-size: 10px; color: var(--ink-2); }
+  .legend i { width: 11px; height: 11px; border-radius: 3px; }
+  .popover.scrolls { max-height: 610px; }
+  .popover.scrolls::after { content: ""; position: absolute; right: 3px; top: 52px; width: 6px; height: 150px; border-radius: 3px; background: rgba(255, 255, 255, .28); }
 
   /* ---------- Notification ---------- */
   .notif {
@@ -418,20 +429,28 @@ const screens = {
   stats() {
     menubar(true);
     const S = D.stats;
-    const max = Math.max(...S.months.map((m) => m.value)) * 1.08;
-    const bars = S.months.map((m) => `<div class="bar" style="height:${(m.value / max) * 94}px; background:${m.value >= 1 ? 'var(--goal)' : 'var(--water)'}"><span>${esc(m.label)}</span></div>`).join('');
+    const KPI_ICON = {
+      trend: '<svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2v12h12"/><path d="m5 10 3-3 2 2 4-5"/></svg>',
+      drop: ICON.drop,
+    };
+    const green = (a) => `rgba(48, 209, 88, ${a})`;
     const body = `
-      <div class="pad"><div class="kpis">${S.kpis.map(([k, v]) => `<div class="kpi"><div class="k">${esc(k)}</div><div class="v">${esc(v)}</div></div>`).join('')}</div></div>
-      <div class="section">${esc(S.thisMonth)}</div>
-      <div class="pad"><div class="recap">
-        <div class="top"><span>● HydroBar</span><span>${esc(S.month)}</span></div>
-        <div><div class="big">${esc(S.average)}</div><div class="small">${esc(S.aDay)}</div></div>
-        <div class="lines">${esc(S.goalDays)}<br>${esc(S.bestDay)}<br>${esc(S.streak)}</div></div>
-        <div class="share"><span class="btn">${esc(S.share)}</span><span class="btn">${esc(S.copy)}</span></div></div>
-      <div class="section">${esc(S.year)}</div>
-      <div class="pad"><div class="year">${bars}<div class="goal" style="bottom:${16 + (1 / max) * 94}px"></div></div></div>
-      <div class="streak"><b>${esc(S.streakBig)}</b><span>${esc(S.unstoppable)}</span></div>`;
-    popover({ body, title: D.popover.statsTitle, statsOn: true });
+      <div class="pad"><div class="kpis">${S.kpis.map(([k, v, unit, icon]) => `<div class="kpi"><div class="k">${KPI_ICON[icon]}${esc(k)}</div><div class="v">${esc(v)}<small>${esc(unit)}</small></div></div>`).join('')}</div></div>
+      <div class="section">${esc(S.thisWeek)}</div>
+      <div class="pad"><div class="week">
+        <div class="plot">${S.week.map((d) => `<i class="${d.value >= 1 ? '' : 'under'}" style="height:${Math.min(d.value, 1.5) / 1.5 * 100}%"></i>`).join('')}</div>
+        <div class="axis">${[0, 50, 100, 150].map((p) => `<span style="bottom:${p / 1.5}%">${p}%</span>`).join('')}</div>
+        <div class="days">${S.week.map((d) => `<span class="${d.today ? 'now' : ''}">${esc(d.label)}</span>`).join('')}</div><span></span>
+      </div></div>
+      <div class="section">${esc(S.whenYouDrink)}</div>
+      <div class="pad"><div class="hours">
+        <div class="plot">${S.hours.map((v) => `<i style="height:${v * 100}%"></i>`).join('')}</div>
+        <div class="ticks">${S.hourTicks.map((x) => `<span style="left:${x.at / 24 * 100}%">${esc(x.label)}</span>`).join('')}</div>
+      </div></div>
+      <div class="section">${esc(S.consistency)}</div>
+      <div class="pad"><div class="heat">${S.header.map((d) => `<b>${esc(d)}</b>`).join('')}${'<i class="out"></i>'.repeat(S.lead)}${S.levels.map((a) => (a ? `<i style="background:${green(a)}"></i>` : '<i class="zero"></i>')).join('')}</div>
+        <div class="legend">${esc(S.less)} ${[.18, .4, .65, 1].map((a) => `<i style="background:${green(a)}"></i>`).join('')} ${esc(S.more)}</div></div>`;
+    popover({ body, title: D.popover.statsTitle, statsOn: true }).classList.add('scrolls');
   },
 
   everywhere() {
