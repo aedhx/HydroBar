@@ -188,7 +188,10 @@ SIGNED="$WORK/notarized/HydroBar.app"
 # ── 6. Vérifier ce qu'un utilisateur vivra ───────────────────────────────────
 echo "→ Vérifications"
 codesign --verify --deep --strict "$SIGNED"
-if ! codesign -dvvv "$SIGNED" 2>&1 | grep -q "Notarization Ticket=stapled"; then
+# Dans une variable d'abord : avec `pipefail`, un `grep -q` qui s'arrête au
+# premier résultat coupe codesign, et le test échouait sur une app en règle.
+signature=$(codesign -dvvv "$SIGNED" 2>&1 || true)
+if ! grep -q "Notarization Ticket=stapled" <<<"$signature"; then
   echo "✗ Le ticket de notarisation n'est pas agrafé à l'app."
   exit 1
 fi

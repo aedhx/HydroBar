@@ -100,25 +100,29 @@ function build(locale, screen) {
       } };
     }
     case 'stats': {
+      // Le haut de la vue Statistiques, dans l'ordre de l'app : tuiles, semaine,
+      // heures, régularité. Mardi 13 octobre est « aujourd'hui ».
       const avg = s.target * 0.96;
-      const months = [0.78, 0.82, 0.8, 0.88, 0.91, 0.86, 0.95, 1.02, 0.97, 1.04, 0.99, 0.96];
+      const [value, unit] = fmt(avg).split(' ');
+      const [weekValue] = fmt(avg * 7).split(' ');
+      const weekday = (d) => new Intl.DateTimeFormat(intl, { weekday: 'short' }).format(d);
+      const week = [0.92, 1.05, 0.8, 0.75, 1.1, 0.97, 0.68].map((v, i) => ({ value: v, label: weekday(new Date(2026, 9, 7 + i)), today: i === 6 }));
+      const hours = [0, 0, 0, 0, 0, 0, 0, 0.12, 1, 0.34, 0.5, 0.62, 0.7, 0.38, 0.3, 0.46, 0.58, 0.4, 0.52, 0.36, 0.44, 0.3, 0.12, 0];
+      // Régularité : trente jours jusqu'à aujourd'hui, en colonnes de jours de la
+      // semaine, la semaine commençant comme dans la locale.
+      const loc = new Intl.Locale(intl);
+      const firstDay = ((loc.getWeekInfo ? loc.getWeekInfo() : loc.weekInfo) || { firstDay: 1 }).firstDay % 7; // 0 = dimanche
+      const levels = [0.65, 1, 0.4, 1, 1, 0.65, 0.4, 1, 1, 0.65, 1, 0, 1, 0.4, 1, 0.65, 1, 1, 0.4, 1, 1, 0.65, 1, 1, 0.18, 1, 0.65, 1, 1, 0.4];
+      const start = new Date(2026, 8, 14);
+      const lead = (start.getDay() - firstDay + 7) % 7;
+      const header = Array.from({ length: 7 }, (_, i) => new Intl.DateTimeFormat(intl, { weekday: 'narrow' }).format(new Date(2026, 8, 6 + firstDay + i)));
       return { ...common, stats: {
-        kpis: [[t('Average'), fmt(avg)], [t('Weekly Total'), fmt(avg * 7)]],
-        thisMonth: t('This Month'),
-        month: new Intl.DateTimeFormat(intl, { month: 'long', year: 'numeric' }).format(at(12)),
-        average: fmt(avg),
-        aDay: t('a day on average'),
-        goalDays: t('Goal reached %lld of %lld days', 9, 12),
-        bestDay: t('Best day: %@, %@', new Intl.DateTimeFormat(intl, { day: 'numeric', month: 'short' }).format(new Date(2026, 9, 7)), fmt(s.target * 1.24)),
-        streak: t('Current streak: %lld days.', 9),
-        share: t('Share'), copy: t('Copy Image'),
-        year: t('Your Year'),
-        months: months.map((v, i) => ({
-          value: v,
-          label: new Intl.DateTimeFormat(intl, { month: 'narrow' }).format(new Date(2025, 10 + i, 1)),
-        })),
-        streakBig: t('Current streak: %lld days 🔥', 9),
-        unstoppable: t("You're unstoppable!"),
+        kpis: [[t('Average'), value, unit, 'trend'], [t('Weekly Total'), weekValue, unit, 'drop']],
+        thisWeek: t('This Week'), week,
+        whenYouDrink: t('When You Drink (30 days)'), hours,
+        hourTicks: [0, 6, 12, 18].map((h) => ({ at: h, label: time(at(h)) })),
+        consistency: t('Consistency (30 days)'), header, lead, levels,
+        less: t('Less'), more: t('More'),
       } };
     }
     case 'bottle': {

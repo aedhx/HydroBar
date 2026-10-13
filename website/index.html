@@ -377,6 +377,40 @@
   .p-recap .lines { font-size: 12px; line-height: 1.55; }
   .p-share { display: flex; gap: 8px; margin-top: 8px; }
   .p-share span { font-size: 11px; padding: 3px 9px; border-radius: 5px; background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .08); }
+  /* La vue défile dans le popover, comme dans l'app. */
+  .p-scroll { max-height: 548px; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(255, 255, 255, .28) transparent; border-radius: 0 0 16px 16px; }
+  .p-kpi .k { display: flex; align-items: center; gap: 5px; }
+  .p-kpi .k svg { width: 11px; height: 11px; }
+  .p-kpi .v small { font-size: 13px; font-weight: 600; color: var(--p-ink-2); margin-left: 3px; }
+  /* Cette semaine : sept barres, l'objectif en pointillés, l'axe à droite. */
+  .p-week { display: grid; grid-template-columns: 1fr 30px; gap: 0 6px; }
+  .p-week .plot { position: relative; height: 112px; display: flex; align-items: flex-end; gap: 8px; border-bottom: 1px solid var(--p-hair); }
+  .p-week .plot i { flex: 1; height: calc(var(--v) / 1.5 * 100%); min-height: 3px; border-radius: 3px 3px 0 0; background: var(--goal); transform-origin: bottom; transition: filter .2s; }
+  .p-week .plot i.under { background: var(--water); }
+  .p-week .plot i.none { background: rgba(255, 255, 255, .16); }
+  .p-week .plot i:hover { filter: brightness(1.2); }
+  .p-week .plot::after { content: ""; position: absolute; left: 0; right: 0; bottom: calc(100% / 1.5); border-top: 1px dashed rgba(235, 235, 245, .5); }
+  .p-week .axis { position: relative; height: 112px; font-size: 9px; color: var(--p-ink-2); font-variant-numeric: tabular-nums; }
+  .p-week .axis span { position: absolute; left: 0; transform: translateY(50%); }
+  .p-week .days { display: flex; gap: 8px; margin-top: 5px; font-size: 10px; color: var(--p-ink-2); }
+  .p-week .days span { flex: 1; text-align: center; }
+  .p-week .days .now { color: var(--p-ink); font-weight: 700; }
+  /* Quand vous buvez : la moyenne par heure. */
+  .p-hours .plot { height: 84px; display: flex; align-items: flex-end; gap: 3px; border-bottom: 1px solid var(--p-hair); }
+  .p-hours .plot i { flex: 1; height: calc(var(--v) * 100%); border-radius: 2px 2px 0 0; background: #2f6bff; transform-origin: bottom; }
+  .p-hours .ticks { position: relative; height: 14px; margin-top: 4px; font-size: 9px; color: var(--p-ink-2); font-variant-numeric: tabular-nums; }
+  .p-hours .ticks span { position: absolute; top: 0; }
+  /* Régularité : un calendrier de trente jours. */
+  .p-heat { display: grid; grid-template-columns: repeat(7, 1fr); gap: 7px; }
+  .p-heat b { font-size: 10px; font-weight: 500; color: var(--p-ink-2); text-align: center; }
+  .p-heat i { aspect-ratio: 1; border-radius: 6px; background: rgba(48, 209, 88, var(--a)); transition: transform .2s var(--ease-out); }
+  .p-heat i:hover { transform: scale(1.12); }
+  .p-heat i.zero { background: rgba(255, 255, 255, .09); }
+  .p-heat i.out { background: none; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); }
+  .p-legend { display: flex; justify-content: flex-end; align-items: center; gap: 4px; margin-top: 8px; font-size: 10px; color: var(--p-ink-2); }
+  .p-legend i { width: 11px; height: 11px; border-radius: 3px; background: rgba(48, 209, 88, var(--a)); }
+  .js .p-week .plot i, .js .p-hours .plot i { transform: scaleY(0); }
+  .js .in .p-week .plot i, .js .p-view .p-week .plot i, .js .in .p-hours .plot i, .js .p-view .p-hours .plot i { transform: none; transition: transform .8s var(--ease-out) calc(var(--n) * 30ms + 150ms), filter .2s; }
   .p-year { height: 110px; display: flex; align-items: flex-end; gap: 7px; position: relative; padding-bottom: 16px; }
   .p-year .bar { flex: 1; height: calc(var(--v) * 87px); border-radius: 3px 3px 0 0; position: relative; background: var(--water); transform-origin: bottom; transition: filter .2s; }
   .p-year .bar.met { background: var(--goal); }
@@ -461,6 +495,7 @@
   .stat-list strong { color: var(--ink); font-weight: 650; }
   .stats-desk { padding: clamp(28px, 4vw, 56px) clamp(24px, 5vw, 72px); display: grid; place-items: center; }
   .stats-desk .popover { zoom: 1.12; }
+  .js-view-stats.p-scroll { max-height: 434px; }
   @media (max-width: 560px) { .stats-desk { padding: 20px 10px; } .stats-desk .popover { zoom: .95; } }
 
   /* Partout sur le Mac */
@@ -717,7 +752,7 @@
             </div>
             <button class="p-reset js-reset" type="button"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6"/><path d="M3 2v3h3"/></svg><span>Reset my day</span></button>
           </div>
-          <div class="p-body p-view js-view-stats" hidden></div>
+          <div class="p-body p-view p-scroll js-view-stats" hidden></div>
         </div>
       </div>
     </div>
@@ -789,8 +824,8 @@
   <div class="glass" aria-hidden="true"></div>
   <div class="wrap progress">
     <div>
-      <h2 data-reveal>A month on one card. A year at a glance.</h2>
-      <p class="lede" data-reveal style="--i:1">Click the chart icon in HydroBar and this is what opens. Here, an example year: the green months went all the way around.</p>
+      <h2 data-reveal>Your week, your month, your year.</h2>
+      <p class="lede" data-reveal style="--i:1">Click the chart icon in HydroBar and this is what opens: your week, the hours you drink at, a month of consistency, then your month and your year. Scroll it, it's all there.</p>
       <ul class="stat-list">
         <li data-reveal style="--i:2"><strong>A monthly recap card</strong> you can share or copy as an image.</li>
         <li data-reveal style="--i:3"><strong>Your streak</strong> of days on goal, and a summary every week.</li>
@@ -800,10 +835,19 @@
       </ul>
     </div>
     <div class="desk stats-desk" data-reveal>
-      <div class="popover" role="img" aria-label="HydroBar's Statistics view: 1.92 L a day on average this month, goal reached 9 of 12 days, a 9-day streak, and twelve monthly bars of which two reach the goal">
+      <div class="popover" role="group" tabindex="0" aria-label="HydroBar's Statistics view, scrollable: this week's bars against the goal, the hours you drink at, thirty days of consistency, then 1.92 L a day on average this month, goal reached 9 of 12 days, a 9-day streak, and twelve monthly bars of which two reach the goal">
         <div class="p-head"><span class="p-ic" style="color: var(--water)"><svg viewBox="0 0 16 16" fill="currentColor"><rect x="1" y="8" width="3.5" height="7" rx="1"/><rect x="6.25" y="4" width="3.5" height="11" rx="1"/><rect x="11.5" y="1" width="3.5" height="14" rx="1"/></svg></span><span class="p-title">Statistics</span><span class="p-ic"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M19.4 13a7.6 7.6 0 0 0 0-2l2.1-1.6-2-3.5-2.5 1a7.4 7.4 0 0 0-1.7-1L15 3h-4l-.4 2.9a7.4 7.4 0 0 0-1.7 1l-2.5-1-2 3.5L6.5 11a7.6 7.6 0 0 0 0 2l-2.1 1.6 2 3.5 2.5-1c.5.4 1.1.7 1.7 1L11 21h4l.4-2.9c.6-.3 1.2-.6 1.7-1l2.5 1 2-3.5zM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7z"/></svg></span></div>
-        <div class="p-body js-stats-src" aria-hidden="true">
-          <div class="p-pad"><div class="p-kpis"><div class="p-kpi"><div class="k">Average</div><div class="v">1.92 L</div></div><div class="p-kpi"><div class="k">Weekly Total</div><div class="v">13.44 L</div></div></div></div>
+        <div class="p-body p-scroll js-stats-src" aria-hidden="true">
+          <div class="p-pad"><div class="p-kpis">
+            <div class="p-kpi"><div class="k"><svg viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M2 2v12h12"/><path d="m5 10 3-3 2 2 4-5"/></svg>Average</div><div class="v">1.92<small>L</small></div></div>
+            <div class="p-kpi"><div class="k"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5s-7 7.6-7 12.3A7 7 0 0 0 19 14.8C19 10.1 12 2.5 12 2.5z"/></svg>Weekly Total</div><div class="v">13.44<small>L</small></div></div>
+          </div></div>
+          <div class="p-section">This Week</div>
+          <div class="p-pad"><div class="p-week js-week"></div></div>
+          <div class="p-section">When You Drink (30 days)</div>
+          <div class="p-pad"><div class="p-hours js-hours"></div></div>
+          <div class="p-section">Consistency (30 days)</div>
+          <div class="p-pad"><div class="p-heat js-heat"></div><div class="p-legend">Less <i style="--a:.18"></i><i style="--a:.4"></i><i style="--a:.65"></i><i style="--a:1"></i> More</div></div>
           <div class="p-section">This Month</div>
           <div class="p-pad">
             <div class="p-recap"><div class="top"><span>● HydroBar</span><span>October 2026</span></div><div><div class="big">1.92 L</div><div class="small">a day on average</div></div><div class="lines">Goal reached 9 of 12 days<br>Best day: Oct 7, 2.48 L<br>Current streak: 9 days.</div></div>
@@ -1479,6 +1523,28 @@
       drunk = f * CAP;
       draw(f === 1 ? `Bottle finished: ${logged} ml logged. Tap Done again for a new one.` : `${logged} ml logged. ${CAP - drunk} ml left in your bottle.`);
     }));
+  })();
+
+  // ---------- Statistiques : la semaine, les heures, la régularité ----------
+  (() => {
+    // Mercredi → mardi : « aujourd'hui » est le mardi de la démonstration, à 68 %.
+    const week = [['Wed', .92], ['Thu', 1.05], ['Fri', .8], ['Sat', .75], ['Sun', 1.1], ['Mon', .97], ['Tue', .68]];
+    const weekHtml = `<div class="plot">${week.map(([, v], n) => `<i class="${v >= 1 ? '' : 'under'}" style="--v:${Math.min(v, 1.5)}; --n:${n}"></i>`).join('')}</div>`
+      + `<div class="axis">${[0, 50, 100, 150].map((t) => `<span style="bottom:${t / 1.5}%">${t}%</span>`).join('')}</div>`
+      + `<div class="days">${week.map(([d], n) => `<span class="${n === 6 ? 'now' : ''}">${d}</span>`).join('')}</div><span></span>`;
+    // Moyenne par heure sur trente jours : rien la nuit, un pic au réveil.
+    const hours = [0, 0, 0, 0, 0, 0, 0, .12, 1, .34, .5, .62, .7, .38, .3, .46, .58, .4, .52, .36, .44, .3, .12, 0];
+    const hoursHtml = `<div class="plot">${hours.map((v, n) => `<i style="--v:${v}; --n:${n}"></i>`).join('')}</div>`
+      + `<div class="ticks">${[[0, '12 AM'], [6, '6 AM'], [12, '12 PM'], [18, '6 PM']].map(([h, t]) => `<span style="left:${h / 24 * 100}%">${t}</span>`).join('')}</div>`;
+    // Trente jours jusqu'au mardi 13 octobre, rangés par jour de la semaine (dimanche en tête, comme aux États-Unis).
+    const levels = [.65, 1, .4, 1, 1, .65, .4, 1, 1, .65, 1, 0, 1, .4, 1, .65, 1, 1, .4, 1, 1, .65, 1, 1, .18, 1, .65, 1, 1, .4];
+    const first = new Date(2026, 8, 14).getDay(); // lundi 14 septembre
+    let cells = 'SMTWTFS'.split('').map((d) => `<b>${d}</b>`).join('') + '<i class="out"></i>'.repeat(first);
+    cells += levels.map((a) => (a ? `<i style="--a:${a}"></i>` : '<i class="zero"></i>')).join('');
+    cells += '<i class="out"></i>'.repeat((7 - (first + levels.length) % 7) % 7);
+    $$('.js-week').forEach((node) => { node.innerHTML = weekHtml; });
+    $$('.js-hours').forEach((node) => { node.innerHTML = hoursHtml; });
+    $$('.js-heat').forEach((node) => { node.innerHTML = cells; });
   })();
 
   // ---------- Ton année : douze barres ----------
