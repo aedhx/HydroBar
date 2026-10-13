@@ -1,6 +1,6 @@
 # Spécification — Deep links `hydrobar://`
 
-> **Statut : implémentée** (branche `v2`).
+> **Statut : implémentée**, livrée dans la 2.0.
 > Code : `HydroBar/DeepLink.swift` (parsing), `HydroBar/DeepLinkRouter.swift`
 > (exécution), `HydroBar/Info.plist` (enregistrement), `HydroBarTests/DeepLinkParserTests.swift`.
 > **Résout :** [AUDIT_TECHNIQUE.md § P0-1](../AUDIT_TECHNIQUE.md#p0-1--le-schéma-durl-hydrobar-nexiste-pas--lextension-raycast-ne-peut-pas-fonctionner)
