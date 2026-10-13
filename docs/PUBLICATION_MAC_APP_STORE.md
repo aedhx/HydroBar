@@ -20,31 +20,27 @@ les deux variantes à chaque push.
 
 ## 0. Où on en est (13 octobre 2026)
 
-`./build-appstore.sh` a été lancé pour la première fois sur un vrai Mac. Il
-compile, puis s'arrête à la signature sur un réglage du compte développeur :
+`./build-appstore.sh` va au bout sur un vrai Mac : archive, vérifications
+(sandbox, pas de réseau, pas de vérificateur GitHub) et export de
+`build/appstore/export/HydroBar.pkg`, signé pour le Store.
 
-> Provisioning profile "Mac Team Provisioning Profile:
-> com.adxcool.HydroBar.HydroBarWidget" doesn't match the entitlements file's
-> value for the com.apple.security.application-groups entitlement.
+Le seul blocage rencontré est levé : l'identifiant du **widget**
+(`com.adxcool.HydroBar.HydroBarWidget`) n'avait pas le groupe d'apps
+`group.com.adxcool.HydroBar` sur developer.apple.com, et l'archive s'arrêtait à
+la signature (« Provisioning profile … doesn't match the entitlements file's
+value for the com.apple.security.application-groups entitlement »). Il se règle
+dans Identifiers › l'identifiant du widget › App Groups › Configure, puis
+**Save** en haut de la page : sans ce Save, rien n'est appliqué.
 
-L'identifiant du **widget** n'a pas le groupe d'apps `group.com.adxcool.HydroBar`
-sur developer.apple.com ; celui de l'app l'a. C'est le deuxième point du § 2,
-et c'est le seul blocage connu avant l'envoi. Deux façons de le lever :
-
-- sur developer.apple.com › Identifiers › `com.adxcool.HydroBar.HydroBarWidget`
-  › App Groups › Configure, cocher `group.com.adxcool.HydroBar`, puis
-  enregistrer ;
-- ou dans Xcode, cible HydroBarWidgetExtension › Signing & Capabilities ›
-  App Groups : vérifier que `group.com.adxcool.HydroBar` est coché. Xcode met
-  alors l'identifiant à jour.
-
-Ensuite, dans l'ordre : § 2.3 (créer la fiche), § 5 (envoyer la build),
-§ 3 et § 4 (fiche et captures), § 6 (TestFlight), § 7 (soumettre).
+Reste, dans l'ordre : § 2.3 (créer la fiche dans App Store Connect), § 5
+(envoyer la build avec `UPLOAD=1`), § 3 et § 4 (fiche et captures), § 6
+(TestFlight), § 7 (soumettre).
 
 **Quel Xcode.** Le projet compile avec Xcode 16, mais le bouton du Centre de
-contrôle et le Liquid Glass ne sont compilés qu'avec le SDK macOS 26. Pour la
-version du Store, utilise Xcode 26 (le script prévient sinon) ; la fiche et les
-notes de review parlent du bouton du Centre de contrôle.
+contrôle et le Liquid Glass ne sont compilés qu'avec le SDK macOS 26. Le paquet
+obtenu avec Xcode 16 est valide mais ne les contient pas ; pour la version du
+Store, utilise Xcode 26 (le script prévient sinon). La fiche et les notes de
+review parlent du bouton du Centre de contrôle.
 
 ---
 
