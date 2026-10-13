@@ -46,7 +46,7 @@
 **La réponse courte : oui pour la périphérie, non pour le cœur.** Tout ce qui
 touche à la donnée bute sur le même prérequis — et ce constat est partagé,
 indépendamment, par le backlog produit de la branche
-`claude/macos-menu-bar-backlog-xbv1px`.
+`docs/product-backlog`.
 
 > **Mise à jour (revue n°3).** La passe de corrections a soldé l'audit : l'unité
 > ml, R2-7, R2-8 et la dette du widget sont livrés, et le widget fonctionne enfin

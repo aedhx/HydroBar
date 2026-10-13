@@ -111,7 +111,7 @@ sont les plus graves de l'application : des **pertes de données silencieuses**.
 > depuis l'audit initial (deep links, allure, lancement au démarrage, Focus Mode,
 > persistance) : c'était le code le moins relu, puisque je suis le seul à l'avoir
 > écrit. Croisée avec le backlog produit d'une autre session
-> (`origin/claude/macos-menu-bar-backlog-xbv1px`, `docs/PRODUCT_BACKLOG.md`).
+> (`origin/docs/product-backlog`, `docs/PRODUCT_BACKLOG.md`).
 
 ### Corrigé dans cette passe — défauts dans mon propre code
 
@@ -154,7 +154,7 @@ toujours déclenchées 20 fois par seconde pendant « Hold to Add »,
 ### Rapprochement avec le backlog produit
 
 Le backlog d'août (`docs/PRODUCT_BACKLOG.md`, branche
-`claude/macos-menu-bar-backlog-xbv1px`) et ce document sont arrivés
+`docs/product-backlog`) et ce document sont arrivés
 **indépendamment** aux mêmes conclusions techniques : journal d'événements
 horodaté, purge destructrice à 30 jours, double store, écritures en rafale,
 notarisation. C'est rassurant sur le diagnostic.
