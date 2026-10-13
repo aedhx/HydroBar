@@ -18,7 +18,9 @@ Le script `deploy-website.sh`, à la racine du dépôt, fait tout depuis ton Mac
 ./deploy-website.sh           # ensuite, à chaque mise à jour de la page
 ```
 
-Le compte SSH se règle avec `DEPLOY_HOST=utilisateur@185.97.144.4`. Il faut nginx et
+Le site est en ligne depuis le 13 octobre 2026 : `--setup` n'est plus à refaire, sauf
+pour changer la config nginx. Par défaut le script se connecte en `root@185.97.144.4` ;
+un autre compte se règle avec `DEPLOY_HOST=utilisateur@185.97.144.4`. Il faut nginx et
 certbot sur le VPS (`sudo apt install nginx certbot python3-certbot-nginx`).
 
 Ce que fait le script, si tu préfères le faire à la main :

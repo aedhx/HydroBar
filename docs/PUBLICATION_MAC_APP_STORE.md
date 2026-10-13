@@ -18,6 +18,36 @@ les deux variantes à chaque push.
 
 ---
 
+## 0. Où on en est (13 octobre 2026)
+
+`./build-appstore.sh` a été lancé pour la première fois sur un vrai Mac. Il
+compile, puis s'arrête à la signature sur un réglage du compte développeur :
+
+> Provisioning profile "Mac Team Provisioning Profile:
+> com.adxcool.HydroBar.HydroBarWidget" doesn't match the entitlements file's
+> value for the com.apple.security.application-groups entitlement.
+
+L'identifiant du **widget** n'a pas le groupe d'apps `group.com.adxcool.HydroBar`
+sur developer.apple.com ; celui de l'app l'a. C'est le deuxième point du § 2,
+et c'est le seul blocage connu avant l'envoi. Deux façons de le lever :
+
+- sur developer.apple.com › Identifiers › `com.adxcool.HydroBar.HydroBarWidget`
+  › App Groups › Configure, cocher `group.com.adxcool.HydroBar`, puis
+  enregistrer ;
+- ou dans Xcode, cible HydroBarWidgetExtension › Signing & Capabilities ›
+  App Groups : vérifier que `group.com.adxcool.HydroBar` est coché. Xcode met
+  alors l'identifiant à jour.
+
+Ensuite, dans l'ordre : § 2.3 (créer la fiche), § 5 (envoyer la build),
+§ 3 et § 4 (fiche et captures), § 6 (TestFlight), § 7 (soumettre).
+
+**Quel Xcode.** Le projet compile avec Xcode 16, mais le bouton du Centre de
+contrôle et le Liquid Glass ne sont compilés qu'avec le SDK macOS 26. Pour la
+version du Store, utilise Xcode 26 (le script prévient sinon) ; la fiche et les
+notes de review parlent du bouton du Centre de contrôle.
+
+---
+
 ## 1. Déjà prêt dans le dépôt
 
 - **Sandbox** pour l'app et le widget. L'accès aux fichiers se limite à ceux
@@ -36,8 +66,11 @@ les deux variantes à chaque push.
   `python3 fastlane/check_metadata.py`.
 - **Notes pour l'équipe de review** : `fastlane/metadata/review_information/notes.txt`.
 - **Politique de confidentialité** : [`PRIVACY.md`](../PRIVACY.md), publiée à
-  `https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md` une fois la branche
-  fusionnée dans `main`.
+  `https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md`.
+- **URL marketing** de la fiche : `https://hydrobar.adx.cool/`, la landing
+  (`website/`, publiée par `./deploy-website.sh`). Une fois l'app en vente,
+  colle le lien de la fiche dans `APP_STORE_URL`, en bas de
+  `website/index.html`, et relance le script.
 
 ---
 
@@ -149,6 +182,9 @@ UPLOAD=1 ./build-appstore.sh
 - Le script utilise le compte connecté dans Xcode (Réglages › Comptes). Sur
   une machine sans Xcode connecté, passe la clé d'API : `ASC_KEY_PATH`,
   `ASC_KEY_ID`, `ASC_ISSUER_ID`.
+- L'archive est d'abord signée en développement, et un profil de développement
+  ne couvre que des Mac enregistrés sur le compte. Si le script dit que ce Mac
+  ne l'est pas, relance avec `REGISTER_DEVICE=1`.
 - La build apparaît dans **TestFlight** après le traitement d'Apple, en
   général 10 à 30 minutes.
 

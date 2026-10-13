@@ -116,7 +116,9 @@ REMOTE
 
 publish() {
   echo "→ Envoi de website/ vers $DEPLOY_HOST:$WEBROOT"
-  rsync -avz --delete --exclude README.md --exclude .DS_Store website/ "$DEPLOY_HOST:$WEBROOT/"
+  # -rlpt plutôt que -a : sans propriétaire ni groupe, pour que les fichiers
+  # appartiennent au compte du serveur et non à l'identifiant numérique du Mac.
+  rsync -rlptvz --delete --exclude README.md --exclude .DS_Store website/ "$DEPLOY_HOST:$WEBROOT/"
   echo "✓ https://$DOMAIN/"
 }
 
