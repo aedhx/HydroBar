@@ -66,9 +66,12 @@ enum Theme {
 
         static let caption = SwiftUI.Font.system(size: 11)
         static let captionMedium = SwiftUI.Font.system(size: 11, weight: .medium)
+        /// Titres de section en capitales.
+        static let sectionTitle = SwiftUI.Font.system(size: 11, weight: .semibold)
 
         static let footnote = SwiftUI.Font.system(size: 10)
         static let footnoteEmphasis = SwiftUI.Font.system(size: 10, weight: .semibold)
+        static let micro = SwiftUI.Font.system(size: 9)
 
         static let mono = SwiftUI.Font.system(size: 12, design: .monospaced)
     }
@@ -103,6 +106,35 @@ enum Theme {
         /// même sur un écran non Retina. À 4 pt, la largeur ne se divisait pas :
         /// les cases faisaient 36 ou 37 pt selon la colonne.
         static let cell: CGFloat = 7
+    }
+
+    // MARK: - Verre
+    //
+    // Le verre du site et du popover : un matériau translucide, jamais dessiné
+    // sans son liseré (DESIGN.md, « The Rim Rule ») — reflet clair en haut,
+    // filet intérieur, ombre douce. Les valeurs sont celles du site.
+
+    enum Glass {
+        /// Voile posé sur le matériau : la carte se détache du fond de la
+        /// fenêtre, plus claire que lui dans les deux apparences.
+        static let veil = dynamic(light: NSColor(white: 1, alpha: 0.5), dark: NSColor(white: 1, alpha: 0.07))
+        /// Reflet du bord supérieur.
+        static let rimHighlight = dynamic(light: NSColor(white: 1, alpha: 0.9), dark: NSColor(white: 1, alpha: 0.26))
+        /// Filet intérieur, tout autour.
+        static let rimHairline = dynamic(light: NSColor(white: 1, alpha: 0.55), dark: NSColor(white: 1, alpha: 0.12))
+        static let rimWidth: CGFloat = 1
+        static let shadow = dynamic(light: NSColor(white: 0, alpha: 0.10), dark: NSColor(white: 0, alpha: 0.22))
+        static let shadowRadius: CGFloat = 10
+        static let shadowOffset: CGFloat = 4
+        /// Filet entre deux lignes d'une carte.
+        static let separator = dynamic(light: NSColor(red: 60 / 255, green: 60 / 255, blue: 67 / 255, alpha: 0.16),
+                                       dark: NSColor(white: 1, alpha: 0.12))
+
+        private static func dynamic(light: NSColor, dark: NSColor) -> Color {
+            Color(nsColor: NSColor(name: nil) { appearance in
+                appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+            })
+        }
     }
 
     // MARK: - Animations

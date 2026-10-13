@@ -2,8 +2,9 @@
 //  GeneralSettingsPage.swift
 //  HydroBar
 //
-//  Page « Général » des réglages : ouverture de session, langue, unité, icône
-//  de la barre des menus, données, version et mises à jour.
+//  Page « Général » des réglages : icône de la barre des menus (avec son
+//  aperçu), ouverture de session, langue, unité, données, version et mises
+//  à jour.
 //
 
 import SwiftUI
@@ -20,102 +21,18 @@ struct GeneralSettingsPage: View {
 
     var body: some View {
         SettingsPage {
-            appSection
-            menuBarSection
+            MenuBarPreview(manager: manager)
+            menuBarCard
+            appCard
             DataSettingsSection(manager: manager)
-            aboutSection
-        }
-    }
-
-    // MARK: - App
-
-    private var appSection: some View {
-        Section {
-            Toggle(isOn: Binding(
-                get: { launchAtLogin.isEnabled },
-                set: { launchAtLogin.setEnabled($0) }
-            )) {
-                Text("Launch at login", comment: "Toggle label for launching the app at login")
-            }
-
-            // macOS 13+ : l'app est enregistrée mais ne démarrera pas tant que
-            // l'utilisateur n'a pas validé l'élément d'ouverture.
-            if launchAtLogin.needsApproval {
-                SettingsLink(title: Text("Approval needed in System Settings",
-                                         comment: "Warning when the login item awaits user approval"),
-                             isWarning: true,
-                             action: { launchAtLogin.openLoginItemsSettings() })
-            }
-
-            // Un échec silencieux serait pire que l'absence de la fonctionnalité :
-            // l'utilisateur croirait l'option active.
-            if let failure = launchAtLogin.failureMessage {
-                SettingsWarning(message: failure)
-            }
-
-            languagePicker
-
-            Picker(selection: Binding(
-                get: { manager.selectedUnit },
-                set: { manager.selectedUnit = $0 }
-            )) {
-                ForEach(AppUnit.allCases, id: \.self) { unit in
-                    Text(verbatim: unit.pickerLabel).tag(unit)
-                }
-            } label: {
-                Text("Unit", comment: "Settings row: unit used to display amounts")
-            }
-
-            // Problème de persistance : délibérément visible hors mode debug.
-            // Un historique mis de côté pour corruption doit se savoir — c'est
-            // le genre de perte qu'on ne découvre sinon jamais.
-            if let issue = manager.lastDataIssue {
-                SettingsWarning(message: issue)
-            }
-        }
-    }
-
-    private var languagePicker: some View {
-        Picker(selection: Binding(
-            get: { manager.appLanguage },
-            set: { newValue in
-                guard newValue != manager.appLanguage else { return }
-                manager.appLanguage = newValue
-                // Hors de la mise à jour de la vue : une alerte modale
-                // ouverte depuis le setter d'un Binding bloquait le rendu.
-                DispatchQueue.main.async { promptToApplyLanguage() }
-            }
-        )) {
-            ForEach(AppLanguage.allCases, id: \.self) { language in
-                Text(verbatim: language.fullDisplayName)
-                    .tag(language.rawValue)
-            }
-        } label: {
-            Text("Language", comment: "Settings row: app language")
-        }
-    }
-
-    /// L'ancienne alerte annonçait un redémarrage, mais l'app se contentait de
-    /// quitter, sans laisser le choix. Relancer soi-même une app sandboxée
-    /// impose un processus auxiliaire ; on laisse plutôt l'utilisateur quitter
-    /// maintenant ou plus tard.
-    private func promptToApplyLanguage() {
-        let alert = NSAlert()
-        alert.messageText = String(localized: "Language Changed", comment: "Language change alert title")
-        alert.informativeText = String(localized: "HydroBar will use the new language the next time it opens.",
-                                       comment: "Language change alert message")
-        alert.alertStyle = .informational
-        alert.addButton(withTitle: String(localized: "Quit Now", comment: "Quit to apply the new language"))
-        alert.addButton(withTitle: String(localized: "Later", comment: "Apply the new language at next launch"))
-        if alert.runModal() == .alertFirstButtonReturn {
-            NSApplication.shared.terminate(nil)
+            aboutCard
         }
     }
 
     // MARK: - Barre des menus
 
-    private var menuBarSection: some View {
-        Section {
+    private var menuBarCard: some View {
+        SettingsCard {
             LabeledContent {
                 Picker(selection: Binding(
                     get: { manager.menuBarIconStyle },
@@ -145,46 +62,154 @@ struct GeneralSettingsPage: View {
         Text("Menu bar icon", comment: "Settings row: style of the menu bar icon")
     }
 
-    // MARK: - Version et mises à jour
+    // MARK: - App
 
-    @ViewBuilder
-    private var aboutSection: some View {
-        #if APP_STORE
-        Section {
-            versionRow
-        } footer: {
-            SettingsFooter(Text("Updates are installed by the App Store.",
-                                comment: "Settings: App Store build, no update check"))
+    private var appCard: some View {
+        SettingsCard {
+            Toggle(isOn: Binding(
+                get: { launchAtLogin.isEnabled },
+                set: { launchAtLogin.setEnabled($0) }
+            )) {
+                Text("Launch at login", comment: "Toggle label for launching the app at login")
+            }
+
+            // macOS 13+ : l'app est enregistrée mais ne démarrera pas tant que
+            // l'utilisateur n'a pas validé l'élément d'ouverture.
+            if launchAtLogin.needsApproval {
+                SettingsLink(title: Text("Approval needed in System Settings",
+                                         comment: "Warning when the login item awaits user approval"),
+                             isWarning: true,
+                             action: { launchAtLogin.openLoginItemsSettings() })
+            }
+
+            // Un échec silencieux serait pire que l'absence de la fonctionnalité :
+            // l'utilisateur croirait l'option active.
+            if let failure = launchAtLogin.failureMessage {
+                SettingsWarning(message: failure)
+            }
+
+            LabeledContent {
+                languagePicker
+            } label: {
+                languageLabel
+            }
+
+            LabeledContent {
+                Picker(selection: Binding(
+                    get: { manager.selectedUnit },
+                    set: { manager.selectedUnit = $0 }
+                )) {
+                    ForEach(AppUnit.allCases, id: \.self) { unit in
+                        Text(verbatim: unit.pickerLabel).tag(unit)
+                    }
+                } label: {
+                    unitLabel
+                }
+                .labelsHidden()
+                .fixedSize()
+            } label: {
+                unitLabel
+            }
+
+            // Problème de persistance : délibérément visible hors mode debug.
+            // Un historique mis de côté pour corruption doit se savoir — c'est
+            // le genre de perte qu'on ne découvre sinon jamais.
+            if let issue = manager.lastDataIssue {
+                SettingsWarning(message: issue)
+            }
         }
-        #else
-        Section {
-            versionRow
-            updateRows
-        }
-        #endif
     }
 
-    private var versionRow: some View {
-        LabeledContent {
-            HStack(spacing: 6) {
-                if manager.debugModeEnabled {
-                    Image(systemName: "ladybug.fill")
-                        .foregroundStyle(Theme.warning)
-                }
-                // Cinq clics sur la version ouvrent ou referment la section
-                // de débogage, page Raccourcis.
-                Text(verbatim: Self.appVersion)
-                    .onTapGesture {
-                        debugTapCount += 1
-                        if debugTapCount >= 5 {
-                            debugTapCount = 0
-                            manager.debugModeEnabled.toggle()
-                        }
-                    }
+    private var languageLabel: Text {
+        Text("Language", comment: "Settings row: app language")
+    }
+
+    private var unitLabel: Text {
+        Text("Unit", comment: "Settings row: unit used to display amounts")
+    }
+
+    private var languagePicker: some View {
+        Picker(selection: Binding(
+            get: { manager.appLanguage },
+            set: { newValue in
+                guard newValue != manager.appLanguage else { return }
+                manager.appLanguage = newValue
+                // Hors de la mise à jour de la vue : une alerte modale
+                // ouverte depuis le setter d'un Binding bloquait le rendu.
+                DispatchQueue.main.async { promptToApplyLanguage() }
+            }
+        )) {
+            ForEach(AppLanguage.allCases, id: \.self) { language in
+                Text(verbatim: language.displayName)
+                    .tag(language.rawValue)
             }
         } label: {
-            Text("Version", comment: "Label for current app version")
+            languageLabel
         }
+        .labelsHidden()
+        .fixedSize()
+    }
+
+    /// L'ancienne alerte annonçait un redémarrage, mais l'app se contentait de
+    /// quitter, sans laisser le choix. Relancer soi-même une app sandboxée
+    /// impose un processus auxiliaire ; on laisse plutôt l'utilisateur quitter
+    /// maintenant ou plus tard.
+    private func promptToApplyLanguage() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Language Changed", comment: "Language change alert title")
+        alert.informativeText = String(localized: "HydroBar will use the new language the next time it opens.",
+                                       comment: "Language change alert message")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: String(localized: "Quit Now", comment: "Quit to apply the new language"))
+        alert.addButton(withTitle: String(localized: "Later", comment: "Apply the new language at next launch"))
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSApplication.shared.terminate(nil)
+        }
+    }
+
+    // MARK: - Version et mises à jour
+
+    private var aboutCard: some View {
+        SettingsCard(footer: Self.updatesFooter) {
+            LabeledContent {
+                #if !APP_STORE
+                Button(action: { updateChecker.checkForUpdates() }) {
+                    Text("Check for Updates", comment: "Button to check for app updates")
+                }
+                .disabled(updateChecker.isChecking)
+                #endif
+            } label: {
+                HStack(spacing: 6) {
+                    Text("Version", comment: "Label for current app version")
+                    // Cinq clics sur le numéro ouvrent ou referment la section
+                    // de débogage, page Raccourcis.
+                    Text(verbatim: Self.appVersion)
+                        .foregroundStyle(.secondary)
+                        .onTapGesture {
+                            debugTapCount += 1
+                            if debugTapCount >= 5 {
+                                debugTapCount = 0
+                                manager.debugModeEnabled.toggle()
+                            }
+                        }
+                    if manager.debugModeEnabled {
+                        Image(systemName: "ladybug.fill")
+                            .foregroundStyle(Theme.warning)
+                    }
+                }
+                #if !APP_STORE
+                updateStatus
+                #endif
+            }
+        }
+    }
+
+    private static var updatesFooter: Text? {
+        #if APP_STORE
+        return Text("Updates are installed by the App Store.", comment: "Settings: App Store build, no update check")
+        #else
+        return nil
+        #endif
     }
 
     /// Version affichée, avec le numéro de build : « 2.0.1 (5) ».
@@ -196,41 +221,13 @@ struct GeneralSettingsPage: View {
     }
 
     #if !APP_STORE
-    @ViewBuilder
-    private var updateRows: some View {
-        if case .updateAvailable(let version, let url) = updateChecker.result {
-            LabeledContent {
-                Button(action: { updateChecker.openUpdateURL(url) }) {
-                    Text("Open Download Page", comment: "Button to open GitHub release page")
-                }
-            } label: {
-                Label {
-                    Text(String(format: String(localized: "Version %@ is available.",
-                                               comment: "Message when update is available"), version))
-                } icon: {
-                    Image(systemName: "arrow.down.circle.fill")
-                        .foregroundStyle(Theme.water)
-                }
-            }
-        }
-
-        LabeledContent {
-            Button(action: { updateChecker.checkForUpdates() }) {
-                Text("Check for Updates", comment: "Button to check for app updates")
-            }
-            .disabled(updateChecker.isChecking)
-        } label: {
-            updateStatus
-        }
-    }
-
-    /// Résultat de la dernière vérification, à gauche du bouton.
+    /// Résultat de la dernière vérification, sous la version.
     @ViewBuilder
     private var updateStatus: some View {
         if updateChecker.isChecking {
             HStack(spacing: 6) {
                 ProgressView()
-                    .controlSize(.small)
+                    .controlSize(.mini)
                 Text("Checking…", comment: "Button label while checking for updates")
             }
         } else {
@@ -242,9 +239,23 @@ struct GeneralSettingsPage: View {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(Theme.goal)
                 }
+            case .updateAvailable(let version, let url):
+                Label {
+                    Text(String(format: String(localized: "Version %@ is available.",
+                                               comment: "Message when update is available"), version))
+                } icon: {
+                    Image(systemName: "arrow.down.circle.fill")
+                        .foregroundStyle(Theme.water)
+                }
+                Button(action: { updateChecker.openUpdateURL(url) }) {
+                    Text("Open Download Page", comment: "Button to open GitHub release page")
+                        // Un sous-titre de ligne est gris : le lien garde sa couleur.
+                        .foregroundStyle(Color(nsColor: .linkColor))
+                }
+                .buttonStyle(.link)
             case .error(let message):
                 SettingsWarning(message: message)
-            case .updateAvailable, nil:
+            case nil:
                 EmptyView()
             }
         }
