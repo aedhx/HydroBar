@@ -2,7 +2,9 @@
 //  DaysSettingsSection.swift
 //  HydroBar
 //
-//  Onglet « Jours » des réglages : jours off, journée en cours, congés.
+//  Carte « Jours off » de la page Rappels : un interrupteur, et sous lui,
+//  quand il est allumé, tout ce qui distingue un jour off — journée en cours,
+//  jours de la semaine, plage, rappels, objectif, congés, automatisation.
 //
 
 import SwiftUI
@@ -10,24 +12,38 @@ import AppKit
 
 struct DaysSettingsSection: View {
     @ObservedObject var manager: HydrationManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
 
     @State private var leaveStart = Date()
     @State private var leaveEnd = Calendar.current.date(byAdding: .day, value: 6, to: Date()) ?? Date()
     @State private var editingLeave = false
+    @State private var showsAutomation = false
 
     private var plan: DayPlan { manager.dayPlan }
 
     var body: some View {
-        VStack(alignment: .leading, spacing: 20) {
-            enableSection
+        SettingsCard {
+            Toggle(isOn: Binding(get: { plan.enabled },
+                                 set: { enabled in update { $0.enabled = enabled } })) {
+                Text("Different settings on days off", comment: "Toggle: enable day profiles")
+                // Allumé, les lignes qui suivent le disent d'elles-mêmes.
+                if !plan.enabled {
+                    Text("Your usual settings describe a work day. Days off can start later, remind you less often and have their own goal.",
+                         comment: "Explanation of days off")
+                }
+            }
+
             if plan.enabled {
-                todaySection
-                weekdaysSection
-                offDaySection
-                leaveSection
-                automationSection
+                todayRow
+                weekdaysRow
+                hoursRow
+                remindersRow
+                ownGoalRow
+                leaveRows
+                automationRow
             }
         }
+        .animation(Theme.motion(Theme.Motion.quick, reduceMotion: reduceMotion), value: plan.enabled)
     }
 
     private func update(_ change: (inout DayPlan) -> Void) {
@@ -36,57 +52,33 @@ struct DaysSettingsSection: View {
         manager.dayPlan = plan
     }
 
-    private func sectionTitle(_ title: Text) -> some View {
-        title
-            .font(Theme.Font.sectionTitle)
-            .foregroundColor(.secondary)
-    }
-
-    private func caption(_ text: Text) -> some View {
-        text
-            .font(Theme.Font.caption)
-            .foregroundColor(.secondary)
-            .fixedSize(horizontal: false, vertical: true)
-    }
-
-    // MARK: Activation
-
-    private var enableSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            sectionTitle(Text("DAYS OFF", comment: "Settings section title for days off"))
-            Toggle(isOn: Binding(get: { plan.enabled },
-                                 set: { enabled in update { $0.enabled = enabled } })) {
-                Text("Different settings on days off", comment: "Toggle: enable day profiles")
-                    .font(Theme.Font.body)
-            }
-            .toggleStyle(.switch)
-            caption(Text("Your usual settings describe a work day. Days off can start later, remind you less often and have their own goal.",
-                         comment: "Explanation of days off"))
-        }
-    }
-
     // MARK: Aujourd'hui
 
-    private var todaySection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            sectionTitle(Text("TODAY", comment: "Settings section title: today's day type"))
-            Picker("", selection: Binding(get: { manager.todayKind },
-                                          set: { manager.setTodayKind($0) })) {
+    private var todayLabel: Text {
+        Text("Today", comment: "Settings row: today's day type")
+    }
+
+    private var todayRow: some View {
+        LabeledContent {
+            Picker(selection: Binding(get: { manager.todayKind },
+                                      set: { manager.setTodayKind($0) })) {
                 Text("Work Day", comment: "Day type").tag(DayKind.work)
                 Text("Day Off", comment: "Day type").tag(DayKind.off)
+            } label: {
+                todayLabel
             }
             .pickerStyle(.segmented)
             .labelsHidden()
-            .frame(width: 220)
+            .fixedSize()
             .disabled(manager.todayKindSetByFocus)
-
+        } label: {
+            todayLabel
             if manager.todayKindSetByFocus {
-                caption(Text("Set by your current Focus.", comment: "Day type chosen by a macOS Focus"))
-            } else {
-                caption(Text("Only for today. Tomorrow follows your week again.",
-                             comment: "Explanation of today's day type override"))
+                Text("Set by your current Focus.", comment: "Day type chosen by a macOS Focus")
             }
         }
+        .help(Text("Only for today. Tomorrow follows your week again.",
+                   comment: "Explanation of today's day type override"))
     }
 
     // MARK: Semaine
@@ -97,52 +89,44 @@ struct DaysSettingsSection: View {
         return (0..<7).map { (first - 1 + $0) % 7 + 1 }
     }
 
-    private var weekdaysSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            sectionTitle(Text("MY DAYS OFF", comment: "Settings section title: weekdays that are days off"))
-            HStack(spacing: 6) {
+    private var weekdaysRow: some View {
+        LabeledContent {
+            HStack(spacing: 4) {
                 ForEach(orderedWeekdays, id: \.self) { weekday in
-                    weekdayChip(weekday)
+                    weekdayToggle(weekday)
                 }
             }
+        } label: {
+            Text("My days off", comment: "Settings row: weekdays that are days off")
         }
     }
 
-    private func weekdayChip(_ weekday: Int) -> some View {
+    private func weekdayToggle(_ weekday: Int) -> some View {
         let isOff = plan.offWeekdays.contains(weekday)
         let calendar = Calendar.current
-        return Button {
-            update { plan in
-                if isOff { plan.offWeekdays.remove(weekday) } else { plan.offWeekdays.insert(weekday) }
+        return Toggle(isOn: Binding(
+            get: { isOff },
+            set: { off in
+                update { plan in
+                    if off { plan.offWeekdays.insert(weekday) } else { plan.offWeekdays.remove(weekday) }
+                }
             }
-        } label: {
+        )) {
             Text(verbatim: calendar.shortWeekdaySymbols[weekday - 1])
-                .font(Theme.Font.calloutMedium)
-                .frame(width: 40, height: 26)
-                .background(
-                    RoundedRectangle(cornerRadius: Theme.Radius.row)
-                        .fill(isOff ? Theme.water.opacity(0.25) : Color.primary.opacity(0.06))
-                )
         }
-        .buttonStyle(.plain)
+        .toggleStyle(.button)
         .accessibilityLabel(Text(verbatim: calendar.weekdaySymbols[weekday - 1]))
         .accessibilityValue(isOff
                             ? Text("Day Off", comment: "Day type")
                             : Text("Work Day", comment: "Day type"))
-        .accessibilityAddTraits(isOff ? .isSelected : [])
     }
 
-    // MARK: Réglages des jours off
+    // MARK: Plage, rappels, objectif
 
-    private var offDaySection: some View {
-        VStack(alignment: .leading, spacing: 10) {
-            sectionTitle(Text("ON DAYS OFF", comment: "Settings section title: settings used on days off"))
-
-            HStack(spacing: 8) {
-                Text("Active hours", comment: "Days off: active hours label")
-                    .font(Theme.Font.body)
-                    .frame(width: 120, alignment: .leading)
-                Picker("", selection: Binding(
+    private var hoursRow: some View {
+        LabeledContent {
+            HourRangePicker(
+                start: Binding(
                     get: { plan.offStartHour },
                     set: { start in
                         update { plan in
@@ -151,167 +135,149 @@ struct DaysSettingsSection: View {
                             if plan.offEndHour <= start { plan.offEndHour = min(start + 1, 24) }
                         }
                     }
-                )) {
-                    ForEach(HydrationPace.selectableStartHours, id: \.self) { hour in
-                        Text(verbatim: hourLabel(hour)).tag(hour)
-                    }
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .frame(width: 90)
-                Text("to", comment: "Separator between start and end hour")
-                    .font(Theme.Font.callout)
-                    .foregroundColor(.secondary)
-                Picker("", selection: Binding(get: { plan.offEndHour },
-                                              set: { end in update { $0.offEndHour = end } })) {
-                    ForEach(HydrationPace.selectableEndHours.filter { $0 > plan.offStartHour }, id: \.self) { hour in
-                        Text(verbatim: hourLabel(hour)).tag(hour)
-                    }
-                }
-                .pickerStyle(.menu)
-                .labelsHidden()
-                .frame(width: 90)
-            }
+                ),
+                end: Binding(get: { plan.offEndHour },
+                             set: { end in update { $0.offEndHour = end } })
+            )
+        } label: {
+            Text("Active hours", comment: "Days off: active hours label")
+        }
+    }
 
-            Toggle(isOn: Binding(get: { plan.offRemindersEnabled },
-                                 set: { enabled in update { $0.offRemindersEnabled = enabled } })) {
-                Text("Reminders on days off", comment: "Toggle: reminders on days off")
-                    .font(Theme.Font.body)
-            }
-            .toggleStyle(.switch)
+    private var remindersLabel: Text {
+        Text("Reminders on days off", comment: "Toggle: reminders on days off")
+    }
 
-            if plan.offRemindersEnabled {
-                HStack(spacing: 8) {
-                    Text("Remind me", comment: "Days off: reminder interval label")
-                        .font(Theme.Font.body)
-                        .frame(width: 120, alignment: .leading)
-                    Picker("", selection: Binding(get: { plan.offIntervalMinutes },
-                                                  set: { minutes in update { $0.offIntervalMinutes = minutes } })) {
+    /// L'interrupteur et, allumé, la cadence à sa gauche.
+    private var remindersRow: some View {
+        LabeledContent {
+            HStack(spacing: 10) {
+                if plan.offRemindersEnabled {
+                    Picker(selection: Binding(get: { plan.offIntervalMinutes },
+                                              set: { minutes in update { $0.offIntervalMinutes = minutes } })) {
                         ForEach(DayPlan.selectableIntervals, id: \.self) { minutes in
                             Text(verbatim: intervalLabel(minutes)).tag(minutes)
                         }
+                    } label: {
+                        Text("Remind me", comment: "Reminder interval label")
                     }
-                    .pickerStyle(.menu)
                     .labelsHidden()
-                    .frame(width: 160)
+                    .fixedSize()
                 }
+                Toggle(isOn: Binding(get: { plan.offRemindersEnabled },
+                                     set: { enabled in update { $0.offRemindersEnabled = enabled } })) {
+                    remindersLabel
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .labelsHidden()
             }
+        } label: {
+            remindersLabel
+        }
+    }
 
-            HStack(spacing: 8) {
+    private var ownGoalLabel: Text {
+        Text("Own goal", comment: "Toggle: a different goal on days off")
+    }
+
+    private var ownGoalRow: some View {
+        LabeledContent {
+            HStack(spacing: 10) {
+                if let goal = plan.offGoalMl {
+                    AmountField(manager: manager, valueMl: goal, rangeMl: HydrationLimits.goal) { goal in
+                        update { $0.offGoalMl = goal }
+                    }
+                }
                 Toggle(isOn: Binding(
                     get: { plan.offGoalMl != nil },
                     set: { enabled in update { $0.offGoalMl = enabled ? manager.defaultTargetMl : nil } }
                 )) {
-                    Text("Own goal", comment: "Toggle: a different goal on days off")
-                        .font(Theme.Font.body)
-                        .frame(width: 100, alignment: .leading)
+                    ownGoalLabel
                 }
-                .toggleStyle(.checkbox)
-
-                if let goal = plan.offGoalMl {
-                    ValidatedNumberField(
-                        value: manager.selectedUnit.fromMl(goal),
-                        range: goalRange,
-                        format: { NumberInput.fieldText($0, fractionDigits: manager.selectedUnit.inputFractionDigits) },
-                        onCommit: { value in update { $0.offGoalMl = manager.mlValue(from: value) } }
-                    )
-                    .frame(width: 90)
-                    Text(verbatim: manager.selectedUnit.symbol)
-                        .font(Theme.Font.caption)
-                        .foregroundColor(.secondary)
-                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
+                .labelsHidden()
             }
-            caption(Text("Without its own goal, a day off uses your goal for that day of the week.",
-                         comment: "Explanation of the days off goal"))
+        } label: {
+            ownGoalLabel
         }
-    }
-
-    /// Bornes de l'objectif, dans l'unité affichée.
-    private var goalRange: ClosedRange<Double> {
-        let unit = manager.selectedUnit
-        return unit.fromMl(HydrationLimits.goal.lowerBound)...unit.fromMl(HydrationLimits.goal.upperBound)
+        .help(Text("Without its own goal, a day off uses your goal for that day of the week.",
+                   comment: "Explanation of the days off goal"))
     }
 
     // MARK: Congés
 
     @ViewBuilder
-    private var leaveSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            sectionTitle(Text("TIME OFF", comment: "Settings section title: leave period"))
-
-            if let end = plan.leaveEndDate(after: Date(), calendar: .current), !editingLeave {
-                HStack {
-                    Image(systemName: "beach.umbrella")
-                        .foregroundColor(.secondary)
-                    Text(String(format: String(localized: "Days off until %@",
-                                               comment: "Leave period status; %@ is a date"),
-                                end.formatted(.dateTime.weekday(.wide).day().month(.wide))))
-                        .font(Theme.Font.body)
-                    Spacer()
-                    Button(String(localized: "End", comment: "Button: end the leave period")) {
-                        update { $0.clearLeave() }
-                    }
-                    .controlSize(.small)
+    private var leaveRows: some View {
+        if let end = plan.leaveEndDate(after: Date(), calendar: .current), !editingLeave {
+            LabeledContent {
+                Button(String(localized: "End", comment: "Button: end the leave period")) {
+                    update { $0.clearLeave() }
                 }
-            } else if editingLeave {
-                HStack(spacing: 8) {
-                    DatePicker(String(localized: "From", comment: "Leave period start"),
-                               selection: $leaveStart, displayedComponents: .date)
-                    DatePicker(String(localized: "To", comment: "Leave period end"),
-                               selection: $leaveEnd, in: leaveStart..., displayedComponents: .date)
+            } label: {
+                Label(String(format: String(localized: "Days off until %@",
+                                            comment: "Leave period status; %@ is a date"),
+                             end.formatted(.dateTime.weekday(.wide).day().month(.wide))),
+                      systemImage: "beach.umbrella")
+            }
+        } else if editingLeave {
+            HStack(spacing: 10) {
+                DatePicker(String(localized: "From", comment: "Leave period start"),
+                           selection: $leaveStart, displayedComponents: .date)
+                DatePicker(String(localized: "To", comment: "Leave period end"),
+                           selection: $leaveEnd, in: leaveStart..., displayedComponents: .date)
+                Spacer(minLength: 0)
+                Button(String(localized: "Cancel", comment: "Cancel button")) { editingLeave = false }
+                Button(String(localized: "Save", comment: "Save the leave period")) {
+                    update { $0.setLeave(from: leaveStart, to: leaveEnd, calendar: .current) }
+                    editingLeave = false
                 }
-                .datePickerStyle(.field)
-                HStack {
-                    Button(String(localized: "Cancel", comment: "Cancel button")) { editingLeave = false }
-                    Button(String(localized: "Save", comment: "Save the leave period")) {
-                        update { $0.setLeave(from: leaveStart, to: leaveEnd, calendar: .current) }
-                        editingLeave = false
-                    }
-                    .keyboardShortcut(.defaultAction)
-                }
-                .controlSize(.small)
-            } else {
-                Button {
+                .keyboardShortcut(.defaultAction)
+            }
+            .datePickerStyle(.field)
+            .fixedSize(horizontal: false, vertical: true)
+        } else {
+            LabeledContent {
+                Button(String(localized: "Add Time Off…", comment: "Button: add a leave period")) {
                     leaveStart = Date()
                     leaveEnd = Calendar.current.date(byAdding: .day, value: 6, to: Date()) ?? Date()
                     editingLeave = true
-                } label: {
-                    Label(String(localized: "Add Time Off…", comment: "Button: add a leave period"),
-                          systemImage: "beach.umbrella")
                 }
-                .controlSize(.small)
+            } label: {
+                Text("Time off", comment: "Settings row: leave period")
             }
-            caption(Text("Every day of your time off follows your day-off settings.",
-                         comment: "Explanation of the leave period"))
+            .help(Text("Every day of your time off follows your day-off settings.",
+                       comment: "Explanation of the leave period"))
         }
     }
 
     // MARK: Automatique
 
-    private var automationSection: some View {
-        VStack(alignment: .leading, spacing: 6) {
-            sectionTitle(Text("AUTOMATIC", comment: "Settings section title: automatic day type"))
-            caption(Text("A Focus can choose the day type: add the HydroBar filter to your Work Focus. The Shortcuts app can also set it with “Set Today's Day Type”.",
-                         comment: "Explanation of the automatic day type"))
-            Button(String(localized: "Open Focus Settings…", comment: "Button opening macOS Focus settings")) {
-                if let url = URL(string: "x-apple.systempreferences:com.apple.Focus-Settings.extension") {
-                    NSWorkspace.shared.open(url)
+    /// Replié par défaut : c'est une explication et un raccourci vers
+    /// Réglages Système, pas un réglage de HydroBar.
+    private var automationRow: some View {
+        DisclosureGroup(isExpanded: $showsAutomation.animation(Theme.motion(Theme.Motion.quick, reduceMotion: reduceMotion))) {
+            VStack(alignment: .leading, spacing: 8) {
+                Text("A Focus can choose the day type: add the HydroBar filter to your Work Focus. The Shortcuts app can also set it with “Set Today's Day Type”.",
+                     comment: "Explanation of the automatic day type")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                    .fixedSize(horizontal: false, vertical: true)
+                Button(String(localized: "Open Focus Settings…", comment: "Button opening macOS Focus settings")) {
+                    if let url = URL(string: "x-apple.systempreferences:com.apple.Focus-Settings.extension") {
+                        NSWorkspace.shared.open(url)
+                    }
                 }
             }
-            .controlSize(.small)
+            .frame(maxWidth: .infinity, alignment: .leading)
+            .padding(.top, 6)
+        } label: {
+            Text("Automatic", comment: "Settings row: automatic day type")
         }
     }
 
     // MARK: Formats
-
-    /// Heure formatée selon la locale (« 8 AM » ou « 08:00 »).
-    private func hourLabel(_ hour: Int) -> String {
-        let normalized = hour == 24 ? 0 : hour
-        guard let date = Calendar.current.date(bySettingHour: normalized, minute: 0, second: 0, of: Date()) else {
-            return String(format: "%02d:00", normalized)
-        }
-        return date.formatted(.dateTime.hour().minute())
-    }
 
     private func intervalLabel(_ minutes: Int) -> String {
         let formatter = DateComponentsFormatter()

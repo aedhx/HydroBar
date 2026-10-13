@@ -31,7 +31,7 @@ HydroBar 2.0 is the biggest update since the first release, and the first built 
 - A new **monochrome menu bar icon**, livelier animations and a real **Settings window**.
 - **Your data is safer**: one entry per drink, an unlimited history, CSV export and JSON backup. Two bugs that could erase your history are fixed.
 
-Full details in the [release notes](RELEASE_NOTES_v2.0.md).
+Full details in the [release notes](RELEASE_NOTES_v2.0.md); the latest changes are in [2.0.1](RELEASE_NOTES_v2.0.1.md).
 
 ---
 
@@ -65,7 +65,7 @@ Full details in the [release notes](RELEASE_NOTES_v2.0.md).
 
 ### Work days. Days off.
 
-<img src="Resources/v2/days.jpg" alt="The Days tab of HydroBar's settings: days off, today's day type, weekdays and time off" width="560" align="right">
+<img src="Resources/v2/days.jpg" alt="The Days off section of HydroBar's Reminders settings: today's day type, weekdays, hours and time off" width="560" align="right">
 
 - Days off get their own **active hours**, **reminder cadence** (or none at all) and **goal**.
 - Weekends by default, or pick your own days.
@@ -162,13 +162,9 @@ Coming soon. The link will be here and on [hydrobar.adx.cool](https://hydrobar.a
 
 ### Direct download
 
-1. Download `HydroBar-v2.0.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
+1. Download `HydroBar-v2.0.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
 2. Open it and drag **HydroBar** into Applications.
-3. If macOS says the app "is damaged" or "cannot be opened", the build is not notarized. Run this once, then open it normally:
-
-   ```bash
-   xattr -cr /Applications/HydroBar.app
-   ```
+3. Open it. HydroBar is signed with an Apple Developer ID and notarized by Apple.
 
 The direct download checks for updates on GitHub from **Settings › General**. It doesn't include the desktop widget or the Control Center button: macOS only loads them from a build signed by Apple, so they come with the Mac App Store version.
 
@@ -193,7 +189,10 @@ You need Xcode 16 or later; the Control Center button and the Liquid Glass prese
 
 | Script | What it does |
 |---|---|
-| `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP, optionally signed and notarized |
+| `./build-dmg.sh` | Release build, packaged as a DMG and a ZIP (ad-hoc signed unless given a certificate) |
+| `./notarize-release.sh v2.0.1` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
+| `./package-dmg.sh` | Puts a signed app in the disk image, with its window layout |
+| `./deploy-website.sh` | Publishes `website/` to hydrobar.adx.cool |
 | `./build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |
 | `node marketing/render.cjs` | App Store screenshots in 9 languages, and the images of this README (`--readme`) |
 | `python3 fastlane/check_metadata.py` | Checks the App Store listing in every language |

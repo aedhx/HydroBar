@@ -20,31 +20,27 @@ les deux variantes à chaque push.
 
 ## 0. Où on en est (13 octobre 2026)
 
-`./build-appstore.sh` a été lancé pour la première fois sur un vrai Mac. Il
-compile, puis s'arrête à la signature sur un réglage du compte développeur :
+`./build-appstore.sh` va au bout sur un vrai Mac : archive, vérifications
+(sandbox, pas de réseau, pas de vérificateur GitHub) et export de
+`build/appstore/export/HydroBar.pkg`, signé pour le Store.
 
-> Provisioning profile "Mac Team Provisioning Profile:
-> com.adxcool.HydroBar.HydroBarWidget" doesn't match the entitlements file's
-> value for the com.apple.security.application-groups entitlement.
+Le seul blocage rencontré est levé : l'identifiant du **widget**
+(`com.adxcool.HydroBar.HydroBarWidget`) n'avait pas le groupe d'apps
+`group.com.adxcool.HydroBar` sur developer.apple.com, et l'archive s'arrêtait à
+la signature (« Provisioning profile … doesn't match the entitlements file's
+value for the com.apple.security.application-groups entitlement »). Il se règle
+dans Identifiers › l'identifiant du widget › App Groups › Configure, puis
+**Save** en haut de la page : sans ce Save, rien n'est appliqué.
 
-L'identifiant du **widget** n'a pas le groupe d'apps `group.com.adxcool.HydroBar`
-sur developer.apple.com ; celui de l'app l'a. C'est le deuxième point du § 2,
-et c'est le seul blocage connu avant l'envoi. Deux façons de le lever :
-
-- sur developer.apple.com › Identifiers › `com.adxcool.HydroBar.HydroBarWidget`
-  › App Groups › Configure, cocher `group.com.adxcool.HydroBar`, puis
-  enregistrer ;
-- ou dans Xcode, cible HydroBarWidgetExtension › Signing & Capabilities ›
-  App Groups : vérifier que `group.com.adxcool.HydroBar` est coché. Xcode met
-  alors l'identifiant à jour.
-
-Ensuite, dans l'ordre : § 2.3 (créer la fiche), § 5 (envoyer la build),
-§ 3 et § 4 (fiche et captures), § 6 (TestFlight), § 7 (soumettre).
+Reste, dans l'ordre : § 2.3 (créer la fiche dans App Store Connect), § 5
+(envoyer la build avec `UPLOAD=1`), § 3 et § 4 (fiche et captures), § 6
+(TestFlight), § 7 (soumettre).
 
 **Quel Xcode.** Le projet compile avec Xcode 16, mais le bouton du Centre de
-contrôle et le Liquid Glass ne sont compilés qu'avec le SDK macOS 26. Pour la
-version du Store, utilise Xcode 26 (le script prévient sinon) ; la fiche et les
-notes de review parlent du bouton du Centre de contrôle.
+contrôle et le Liquid Glass ne sont compilés qu'avec le SDK macOS 26. Le paquet
+obtenu avec Xcode 16 est valide mais ne les contient pas ; pour la version du
+Store, utilise Xcode 26 (le script prévient sinon). La fiche et les notes de
+review parlent du bouton du Centre de contrôle.
 
 ---
 
@@ -65,8 +61,9 @@ notes de review parlent du bouton du Centre de contrôle.
   URL de support et de confidentialité. Vérification des longueurs :
   `python3 fastlane/check_metadata.py`.
 - **Notes pour l'équipe de review** : `fastlane/metadata/review_information/notes.txt`.
-- **Politique de confidentialité** : [`PRIVACY.md`](../PRIVACY.md), publiée à
-  `https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md`.
+- **Politique de confidentialité** : [`PRIVACY.md`](../PRIVACY.md), en anglais, publiée
+  à `https://hydrobar.adx.cool/privacy/` (`website/privacy/index.html` reprend son texte :
+  les deux se mettent à jour ensemble). Version française : `PRIVACY.fr.md`.
 - **URL marketing** de la fiche : `https://hydrobar.adx.cool/`, la landing
   (`website/`, publiée par `./deploy-website.sh`). Une fois l'app en vente,
   colle le lien de la fiche dans `APP_STORE_URL`, en bas de
@@ -101,7 +98,7 @@ notes de review parlent du bouton du Centre de contrôle.
 | Rubrique | Réponse |
 |---|---|
 | **Confidentialité de l'app** | « Aucune donnée collectée » (Data Not Collected) |
-| **URL de politique de confidentialité** | `https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md` |
+| **URL de politique de confidentialité** | `https://hydrobar.adx.cool/privacy/` |
 | **Classification par âge** | « Aucun » partout → 4+ |
 | **Catégories** | Principale : Santé et forme. Secondaire : Productivité |
 | **Droits sur le contenu** | Pas de contenu tiers |
@@ -144,7 +141,7 @@ App Store Connect.
 |---|---|---|
 | 1 | Popover du jour | Boire assez, sans y penser |
 | 2 | Notification et ses actions | Des rappels utiles |
-| 3 | Onglet Jours des réglages | Jours de travail, jours off |
+| 3 | Réglages › Rappels, section Jours off | Jours de travail, jours off |
 | 4 | Statistiques | Bilan du mois, année |
 | 5 | Mode gourde | |
 | 6 | Menu de l'icône et widget | Partout sur le Mac, rien ailleurs |
@@ -158,7 +155,7 @@ Apple demande que la fiche montre l'app telle qu'elle est (règle 2.3). Si un
 
 Pour remplacer un écran par une vraie capture, utilise une build **Debug** :
 clique 5 fois sur le numéro de version dans Réglages › Général, puis
-**Generate Fake History Data** dans Réglages › Intégrations › Debug.
+**Generate Fake History Data** dans Réglages › Raccourcis › Debug.
 
 **Aperçu social GitHub** : `Resources/v2/social-preview.jpg` (1280 × 640), à
 déposer dans Settings › General › Social preview du dépôt.

@@ -1,1 +1,1 @@
-acqua,bere,idratazione,barra dei menu,salute,abitudine,borraccia,obiettivo,bicchiere,h2o
+bere,idratazione,barra,menu,abitudine,borraccia,obiettivo,bicchiere,h2o,giornaliero,registro,widget

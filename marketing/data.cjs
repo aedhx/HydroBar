@@ -72,25 +72,31 @@ function build(locale, screen) {
         label: new Intl.DateTimeFormat(intl, { weekday: 'short' }).format(new Date(2026, 9, 11 + d)),
         off: d === 0 || d === 6,
       }));
+      // Réglages › Rappels, tel qu'il s'ouvre dans la version du Mac App Store :
+      // la frise des deux types de journée, puis les cartes, jusqu'aux jours off.
+      const minutes = (n) => new Intl.NumberFormat(intl, { style: 'unit', unit: 'minute', unitDisplay: 'short' }).format(n);
+      const hour = (h) => new Intl.DateTimeFormat(intl, { hour: 'numeric' }).format(at(h));
       return { ...common, settings: {
-        tabs: [['General', 'gear'], ['Hydration', 'drop'], ['Reminders', 'bell'], ['Days', 'calendar'],
-          ['Keyboard Shortcuts', 'keyboard'], ['Data', 'drive'], ['Integrations', 'puzzle']]
-          .map(([key, icon]) => ({ label: t(key), icon, selected: key === 'Days' })),
-        title: t('Days'),
-        daysOff: t('DAYS OFF'),
+        tabs: [['General', 'gear'], ['Hydration', 'drop'], ['Reminders', 'bell'], ['Shortcuts', 'keyboard']]
+          .map(([key, icon]) => ({ label: t(key), icon, selected: key === 'Reminders' })),
+        title: t('Reminders'),
+        timeline: {
+          hours: [0, 6, 12, 18].map((h) => ({ at: h, label: hour(h) })),
+          work: { label: t('Work Day'), start: 8, end: 22, every: 45 },
+          off: { label: t('Day Off'), start: 10, end: 22, every: 90 },
+        },
+        enableReminders: t('Enable reminders'), cadence: minutes(45),
+        activeHours: t('Active hours'), from: time(at(8)), to: t('to'), until: time(at(22)),
+        adapt: t('Adapt to my pace'),
+        adaptHelp: t("Reminders follow your active hours, stop once your goal is reached, and come a bit more often when you're behind."),
+        lastCall: t('Last call'), lastCallHelp: t("One hour before your day ends, if your goal isn't reached yet."),
+        calls: t('Hold during calls'), weekly: t('Weekly summary'),
+        pause: t('Pause reminders'), pauseMenu: t('Pause…'),
+        dnd: t('Do Not Disturb Mode'),
+        focusLink: t('Choose per Focus in System Settings › Focus › Focus Filters'),
         enable: t('Different settings on days off'),
-        enableHelp: t('Your usual settings describe a work day. Days off can start later, remind you less often and have their own goal.'),
-        today: t('TODAY'), work: t('Work Day'), off: t('Day Off'),
-        todayHelp: t('Only for today. Tomorrow follows your week again.'),
-        myDays: t('MY DAYS OFF'), weekdays,
-        onDaysOff: t('ON DAYS OFF'),
-        activeHours: t('Active hours'), from: time(at(10)), to: t('to'), until: time(at(22)),
-        reminders: t('Reminders on days off'),
-        remindMe: t('Remind me'), interval: t('Every %@', NINETY_MINUTES[locale]),
-        ownGoal: t('Own goal'), goal: fmt(s.offGoal).split(' ')[0], unit: fmt(s.offGoal).split(' ')[1],
-        timeOff: t('TIME OFF'),
-        leave: t('Days off until %@', new Intl.DateTimeFormat(intl, { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date(2026, 9, 23))),
-        end: t('End'),
+        today: t('Today'), work: t('Work Day'), off: t('Day Off'),
+        myDays: t('My days off'), weekdays,
       } };
     }
     case 'stats': {
@@ -126,7 +132,7 @@ function build(locale, screen) {
     }
     case 'everywhere':
       return { ...common, menu: {
-        version: `${t('Version')} 2.0`,
+        version: `${t('Version')} 2.0.1`,
         add: s.presets.map((p) => t('Add %@', fmt(p))),
         undo: t('Undo'),
         dayOff: t('Today Is a Day Off'),

@@ -66,7 +66,7 @@ enum Theme {
 
         static let caption = SwiftUI.Font.system(size: 11)
         static let captionMedium = SwiftUI.Font.system(size: 11, weight: .medium)
-        /// Titres de section en capitales des réglages.
+        /// Titres de section en capitales.
         static let sectionTitle = SwiftUI.Font.system(size: 11, weight: .semibold)
 
         static let footnote = SwiftUI.Font.system(size: 10)
@@ -83,6 +83,58 @@ enum Theme {
         static let row: CGFloat = 6
         static let card: CGFloat = 12
         static let popover: CGFloat = 16
+    }
+
+    // MARK: - Espacements
+    //
+    // Une marge et un rythme vertical, d'abord pour les statistiques : leurs
+    // blocs avaient chacun leur retrait (16 ou 20 pt) et leurs écarts (de 2 à
+    // 16 pt), et rien ne tombait sur la même ligne.
+
+    enum Spacing {
+        /// Marge du contenu : tout bloc commence et finit là.
+        static let inset: CGFloat = 20
+        /// Entre deux sections.
+        static let section: CGFloat = 20
+        /// Entre un titre de section et son contenu, ou entre deux éléments
+        /// d'un même bloc (grille et légende, phrase et graphique).
+        static let title: CGFloat = 8
+        /// Entre deux tuiles côte à côte.
+        static let tile: CGFloat = 12
+        /// Entre les cases de la heatmap. Avec la marge ci-dessus, le contenu
+        /// fait 280 pt : 7 cases de 34 pt et 6 écarts de 7 pt, au pixel près
+        /// même sur un écran non Retina. À 4 pt, la largeur ne se divisait pas :
+        /// les cases faisaient 36 ou 37 pt selon la colonne.
+        static let cell: CGFloat = 7
+    }
+
+    // MARK: - Verre
+    //
+    // Le verre du site et du popover : un matériau translucide, jamais dessiné
+    // sans son liseré (DESIGN.md, « The Rim Rule ») — reflet clair en haut,
+    // filet intérieur, ombre douce. Les valeurs sont celles du site.
+
+    enum Glass {
+        /// Voile posé sur le matériau : la carte se détache du fond de la
+        /// fenêtre, plus claire que lui dans les deux apparences.
+        static let veil = dynamic(light: NSColor(white: 1, alpha: 0.5), dark: NSColor(white: 1, alpha: 0.07))
+        /// Reflet du bord supérieur.
+        static let rimHighlight = dynamic(light: NSColor(white: 1, alpha: 0.9), dark: NSColor(white: 1, alpha: 0.26))
+        /// Filet intérieur, tout autour.
+        static let rimHairline = dynamic(light: NSColor(white: 1, alpha: 0.55), dark: NSColor(white: 1, alpha: 0.12))
+        static let rimWidth: CGFloat = 1
+        static let shadow = dynamic(light: NSColor(white: 0, alpha: 0.10), dark: NSColor(white: 0, alpha: 0.22))
+        static let shadowRadius: CGFloat = 10
+        static let shadowOffset: CGFloat = 4
+        /// Filet entre deux lignes d'une carte.
+        static let separator = dynamic(light: NSColor(red: 60 / 255, green: 60 / 255, blue: 67 / 255, alpha: 0.16),
+                                       dark: NSColor(white: 1, alpha: 0.12))
+
+        private static func dynamic(light: NSColor, dark: NSColor) -> Color {
+            Color(nsColor: NSColor(name: nil) { appearance in
+                appearance.bestMatch(from: [.aqua, .darkAqua]) == .darkAqua ? dark : light
+            })
+        }
     }
 
     // MARK: - Animations
