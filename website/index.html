@@ -1,0 +1,811 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>HydroBar · Drink enough water, right from your menu bar</title>
+<meta name="description" content="HydroBar is a free hydration tracker for the Mac menu bar. One click logs a glass, a ring shows where your day stands, and reminders come only when they make sense. No account, nothing leaves your Mac.">
+<link rel="canonical" href="https://hydrobar.adx.cool/">
+<meta name="theme-color" content="#3a6fc4">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://hydrobar.adx.cool/">
+<meta property="og:title" content="HydroBar · Drink enough water, right from your menu bar">
+<meta property="og:description" content="A free Mac menu bar app: one click logs a glass, reminders that respect your day, and nothing leaves your Mac.">
+<meta property="og:image" content="https://hydrobar.adx.cool/assets/og.jpg">
+<meta name="twitter:card" content="summary_large_image">
+<link rel="icon" type="image/png" href="assets/favicon-64.png">
+<link rel="apple-touch-icon" href="assets/icon-256.png">
+<link rel="preload" href="assets/fonts/bricolage-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/instrument-latin.woff2" as="font" type="font/woff2" crossorigin>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "HydroBar",
+  "operatingSystem": "macOS 15.1 or later",
+  "applicationCategory": "HealthApplication",
+  "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+  "description": "A hydration tracker for the Mac menu bar.",
+  "url": "https://hydrobar.adx.cool/",
+  "author": { "@type": "Person", "name": "Antoine Deshoux", "url": "https://adx.cool/" }
+}
+</script>
+<script>document.documentElement.classList.add('js');</script>
+<style>
+  @font-face { font-family: "Bricolage Grotesque"; src: url(assets/fonts/bricolage-latin.woff2) format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: "Bricolage Grotesque"; src: url(assets/fonts/bricolage-latin-ext.woff2) format("woff2"); font-weight: 200 800; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C4, U+2C60-2C7F, U+A720-A7FF; }
+  @font-face { font-family: "Instrument Sans"; src: url(assets/fonts/instrument-latin.woff2) format("woff2"); font-weight: 400 700; font-display: swap; unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD; }
+  @font-face { font-family: "Instrument Sans"; src: url(assets/fonts/instrument-latin-ext.woff2) format("woff2"); font-weight: 400 700; font-display: swap; unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+1E00-1E9F, U+20A0-20AB, U+20AD-20C4, U+2C60-2C7F, U+A720-A7FF; }
+
+  /* ---------- Jetons : ceux de l'app (Theme.swift) ---------- */
+  :root {
+    /* L'eau et l'objectif : couleurs système de macOS, comme dans l'app. */
+    --water: #0a84ff;         /* systemBlue */
+    --water-light: #64d2ff;   /* systemCyan */
+    --goal: #30d158;          /* systemGreen */
+    --goal-light: #66d4cf;    /* systemMint */
+    --track: rgba(142, 142, 147, .3);
+    --action: #0068d6;        /* bleu des boutons portant du texte : contraste AA */
+    /* Le bureau et ses matières, comme le popover de l'app. */
+    --wallpaper: url(assets/wallpaper.jpg) center / cover no-repeat, linear-gradient(150deg, #6aa98f, #3f86a6 40%, #3060c0 70%, #22389e);
+    --mat-dark: rgba(24, 26, 33, .62);
+    --mat-deep: rgba(14, 16, 22, .72);
+    --mat-light: rgba(250, 250, 252, .72);
+    --glass: blur(28px) saturate(170%);
+    /* Le liseré du verre de l'app : un reflet en haut, un filet tout autour. */
+    --rim-dark: inset 0 1px 0 rgba(255, 255, 255, .26), inset 0 0 0 1px rgba(255, 255, 255, .12), 0 24px 60px rgba(0, 0, 0, .22);
+    --rim-light: inset 0 1px 0 rgba(255, 255, 255, .9), inset 0 0 0 1px rgba(255, 255, 255, .55), 0 24px 60px rgba(0, 0, 0, .14);
+    --label-on-dark: #ffffff;
+    --label-on-dark-2: #c9d6ee;   /* secondaire teinté du bleu des fenêtres */
+    --ink: #1d1d1f;
+    --ink-2: #48484d;
+    --fill: rgba(120, 120, 128, .14);   /* systemFill */
+    --line: rgba(60, 60, 67, .16);
+    --bar-light: rgba(250, 250, 252, .97);
+    --blue: var(--water);
+    --green: var(--goal);
+    --navy: #1c1d22;
+    --display: "Bricolage Grotesque", ui-rounded, system-ui, sans-serif;
+    --rounded: "SF Pro Rounded", ui-rounded, "Bricolage Grotesque", system-ui, sans-serif;
+    --text: "Instrument Sans", system-ui, -apple-system, sans-serif;
+    --ease-out: cubic-bezier(.16, 1, .3, 1);
+    color-scheme: light;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root:not([data-theme="light"]) {
+      --mat-light: rgba(36, 38, 46, .7);
+      --rim-light: var(--rim-dark);
+      --bar-light: rgba(36, 38, 46, .97);
+      --ink: #f5f5f7; --ink-2: #c9d6ee;
+      --fill: rgba(120, 120, 128, .32); --line: rgba(255, 255, 255, .12);
+      color-scheme: dark;
+    }
+  }
+
+  /* ---------- Base ---------- */
+  *, *::before, *::after { box-sizing: border-box; }
+  html { -webkit-text-size-adjust: 100%; scrollbar-color: var(--water) transparent; background: #3060c0; }
+  /* Le bureau : une image fixe derrière toutes les fenêtres de verre. */
+  body::before { content: ""; position: fixed; inset: 0; z-index: -1; background: var(--wallpaper); }
+  body { margin: 0; color: var(--ink); font: 400 18px/1.6 var(--text); -webkit-font-smoothing: antialiased; caret-color: var(--water); }
+  ::selection { background: var(--water); color: #fff; }
+  h1, h2, h3 { font-family: var(--display); margin: 0; line-height: 1.02; letter-spacing: -.025em; text-wrap: balance; font-weight: 760; }
+  h2 { font-size: clamp(38px, 5.4vw, 80px); }
+  h3 { font-size: 24px; letter-spacing: -.01em; line-height: 1.2; font-weight: 680; }
+  p { margin: 0; text-wrap: pretty; }
+  a { color: inherit; text-underline-offset: .22em; text-decoration-thickness: 1.5px; }
+  :focus-visible { outline: 3px solid currentColor; outline-offset: 4px; border-radius: 8px; }
+  .num { font-variant-numeric: tabular-nums; }
+  .wrap { width: min(1240px, 100%); margin-inline: auto; }
+  section:not(.story), footer { padding-inline: clamp(20px, 4vw, 56px); }
+  /* Chaque section est une fenêtre de verre posée sur le bureau. */
+  main > section:not(.story), footer { margin: 14px; border-radius: 30px; }
+  main > section:not(.story):not(.light-section), footer, .stage { box-shadow: var(--rim-dark); }
+  .light-section { box-shadow: var(--rim-light); }
+  footer { margin-top: 0; }
+  @media (max-width: 760px) { main > section:not(.story), footer { margin: 8px; border-radius: 24px; } }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+  section { position: relative; }
+
+  /* ---------- Boutons ---------- */
+  .btn { display: inline-flex; align-items: center; gap: 10px; min-height: 56px; padding: 0 28px; border-radius: 14px; font: 650 18px/1 var(--text); text-decoration: none; cursor: pointer; border: 0; transition: transform .2s var(--ease-out), background-color .2s; }
+  .btn:hover { transform: translateY(-1px); }
+  .btn:active { transform: translateY(1px); }
+  .btn-light, .btn-blue { background: var(--action); color: #fff; }
+  .btn-light:hover, .btn-blue:hover { background: #005ec2; }
+  .btn-dark { background: rgba(255, 255, 255, .14); color: #fff; box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .22); backdrop-filter: var(--glass); }
+  .btn[aria-disabled="true"] { background: transparent; color: #fff; box-shadow: inset 0 0 0 1.5px rgba(255, 255, 255, .6); cursor: default; transform: none; }
+  .link-arrow { display: inline-flex; align-items: center; gap: 8px; font-weight: 600; text-decoration: none; }
+  .link-arrow svg { width: 18px; height: 18px; transition: transform .3s var(--ease-out); }
+  .link-arrow:hover svg { transform: translateY(3px); }
+
+  /* ---------- Barre de menus du site ---------- */
+  .menubar {
+    position: fixed; inset: 0 0 auto; z-index: 30; height: 44px; display: flex; align-items: center; gap: 28px; padding: 0 22px;
+    font: 500 15px var(--text); color: #fff; background: rgba(28, 30, 38, .9); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass);
+    transition: background-color .35s, color .35s;
+  }
+  .menubar.light { color: var(--ink); background: var(--bar-light); box-shadow: 0 1px 0 var(--line); }
+  .menubar .brand { display: flex; align-items: center; gap: 9px; font: 760 17px var(--display); text-decoration: none; letter-spacing: -.01em; }
+  .menubar .brand img { width: 22px; height: 22px; border-radius: 5px; }
+  .menubar nav ul { display: flex; gap: 22px; list-style: none; margin: 0; padding: 0; }
+  .menubar nav a { text-decoration: none; opacity: .92; }
+  .menubar nav a:hover { opacity: 1; text-decoration: underline; }
+  .menubar .status { margin-left: auto; display: flex; align-items: center; gap: 14px; }
+  .menubar .mini { display: grid; place-items: center; width: 30px; height: 24px; border-radius: 6px; background: rgba(255, 255, 255, .2); }
+  .menubar.light .mini { background: var(--fill); }
+  .menubar .mini circle { transition: stroke-dasharray .5s var(--ease-out); }
+  .menubar .clock { min-width: 8.5em; text-align: right; }
+  .menubar .get { min-height: 32px; padding: 0 14px; border-radius: 9px; font-size: 14px; }
+  @media (max-width: 900px) { .menubar nav, .menubar .clock { display: none; } }
+
+  /* ---------- L'histoire : l'anneau et la journée ---------- */
+  .story { color: var(--label-on-dark); }
+  .stage { background: var(--mat-dark); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); transition: background-color .6s; }
+  .story.goal .stage { background: rgba(14, 40, 30, .66); }
+  .js .story { height: 940vh; }
+  .stage { position: relative; min-height: calc(100vh - 72px); margin: 58px 14px 14px; border-radius: 30px; overflow: hidden; }
+  .js .stage { position: sticky; top: 58px; height: calc(100vh - 72px); }
+  @media (max-width: 760px) {
+    .stage { margin: 52px 8px 8px; border-radius: 24px; min-height: calc(100svh - 60px); }
+    .js .stage { top: 52px; height: calc(100svh - 60px); }
+  }
+
+  .ring-wrap {
+    --d: max(calc((100vh - 72px) * 1.08), 760px);
+    position: absolute; width: var(--d); height: var(--d);
+    right: calc(var(--d) * -.21); top: calc(var(--d) * -.02);
+  }
+  .ring-wrap > svg { position: absolute; inset: 0; width: 100%; height: 100%; overflow: visible; }
+  .ring-wrap .arc { transition: stroke-dasharray .9s var(--ease-out); }
+  .ring-wrap .tick { transition: transform .9s var(--ease-out); }
+  .ring-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; }
+  .pct { font: 700 calc(var(--d) * .2)/.86 var(--rounded); letter-spacing: -.04em; }
+  .pct-sub { margin-top: calc(var(--d) * .025); font: 600 clamp(17px, 1.7vw, 24px)/1.3 var(--text); color: var(--label-on-dark-2); }
+  .pct-check { display: block; width: calc(var(--d) * .1); height: calc(var(--d) * .1); margin: 0 auto calc(var(--d) * .02); opacity: 0; transform: scale(.6); transition: opacity .4s, transform .5s var(--ease-out); }
+  .story.goal .pct-check { opacity: 1; transform: none; }
+  .tick-label { position: absolute; font: 600 15px/1.25 var(--text); color: #fff; white-space: nowrap; transform: translate(-50%, -50%); transition: left .9s var(--ease-out), top .9s var(--ease-out); }
+  .tick-label small { display: block; font-weight: 500; color: var(--label-on-dark-2); }
+
+  .hero-copy, .js .event-panel { position: absolute; left: max(24px, calc((100vw - 1240px) / 2)); width: min(540px, 42vw); }
+  html:not(.js) .event-panel { position: relative; padding: 100vh max(24px, calc((100vw - 1240px) / 2)) 0; }
+  .hero-copy { top: 50%; transform: translateY(-46%); transition: opacity .5s, transform .6s var(--ease-out); }
+  .hero-copy h1 { font-size: clamp(48px, 6.4vw, 96px); letter-spacing: -.035em; }
+  .hero-copy p { margin-top: 26px; font-size: clamp(18px, 1.5vw, 21px); color: var(--label-on-dark-2); max-width: 30em; }
+  .hero-copy .ctas { display: flex; flex-wrap: wrap; align-items: center; gap: 26px; margin-top: 40px; }
+  .hero-copy .meta { margin-top: 22px; font-size: 15px; color: var(--label-on-dark-2); }
+  .story.past-hero .hero-copy { opacity: 0; transform: translateY(-60%); pointer-events: none; }
+
+  /* Sans JS : la journée se lit comme une liste. Avec JS : un seul moment à la fois. */
+  .events { list-style: none; margin: 0; padding: 48px 24px 96px; }
+  .js .events { padding: 0; }
+  .event { padding: 32px 0; }
+  .js .event { position: absolute; inset: auto 0 auto 0; top: 50%; transform: translateY(-42%); opacity: 0; visibility: hidden; transition: opacity .45s, transform .6s var(--ease-out), visibility 0s .45s; }
+  .js .event.on { opacity: 1; visibility: visible; transform: translateY(-50%); transition: opacity .45s, transform .6s var(--ease-out); }
+  .js .event-panel { top: 0; bottom: 0; }
+  .event time { display: block; font: 700 clamp(56px, 6vw, 92px)/.9 var(--rounded); letter-spacing: -.035em; font-variant-numeric: tabular-nums; }
+  .event time small { font-size: clamp(21px, 2.3vw, 35px); letter-spacing: 0; margin-left: .2em; color: var(--label-on-dark-2); }
+  .event .what { margin-top: 18px; font-size: clamp(18px, 1.5vw, 21px); color: var(--label-on-dark-2); max-width: 28em; }
+  .event .what strong { color: #fff; font-weight: 600; }
+  .event .plate { margin-top: 26px; }
+
+  /* Plaques macOS : recréations fidèles de l'interface de l'app. */
+  .note { width: min(400px, 100%); display: grid; grid-template-columns: 38px 1fr auto; gap: 12px; padding: 14px 16px; border-radius: 18px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); color: #f5f5f7; box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); font-family: -apple-system, BlinkMacSystemFont, var(--text); }
+  .note img { width: 38px; height: 38px; border-radius: 9px; }
+  .note b { font-size: 14px; font-weight: 650; }
+  .note .body { font-size: 14px; line-height: 1.38; margin-top: 1px; }
+  .note .when { font-size: 12px; color: rgba(235, 235, 245, .66); }
+  .note .actions { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px; margin-top: 4px; }
+  .note .actions span { font-size: 13px; font-weight: 550; padding: 5px 11px; border-radius: 8px; background: rgba(255, 255, 255, .12); }
+  .note .actions .typed { background: rgba(0, 0, 0, .28); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .2); min-width: 110px; display: flex; justify-content: space-between; gap: 18px; }
+  .note .actions .typed em { font-style: normal; color: #64d2ff; font-weight: 650; }
+  .presets-plate { display: inline-flex; gap: 8px; padding: 12px; border-radius: 16px; background: rgba(48, 50, 60, .66); backdrop-filter: var(--glass); -webkit-backdrop-filter: var(--glass); box-shadow: 0 18px 40px rgba(0, 0, 0, .26), inset 0 1px 0 rgba(255, 255, 255, .2), inset 0 0 0 1px rgba(255, 255, 255, .12); }
+  .presets-plate span { font: 550 14px -apple-system, var(--text); color: #f5f5f7; padding: 10px 18px; border-radius: 9px; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .12); }
+  .presets-plate span.hit { background: var(--action); }
+  .held { display: inline-flex; align-items: center; gap: 12px; padding: 12px 16px; border-radius: 14px; background: rgba(255, 255, 255, .1); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); font-weight: 600; }
+  .held svg { width: 22px; height: 22px; }
+
+  @media (max-width: 760px) {
+    .ring-wrap { --d: 124vw; right: -26vw; top: auto; bottom: -38vw; }
+    .pct { font-size: calc(var(--d) * .15); }
+    .hero-copy, .js .event-panel { left: 20px; right: 20px; width: auto; }
+    .hero-copy { top: 32px; transform: none; }
+    .hero-copy h1 { font-size: 40px; }
+    .hero-copy p { margin-top: 16px; font-size: 17px; }
+    .hero-copy .ctas { margin-top: 24px; gap: 18px; }
+    .hero-copy .meta { display: none; }
+    .story.past-hero .hero-copy { transform: translateY(-8%); }
+    .js .event { top: 28px; transform: translateY(8px); }
+    .js .event.on { transform: none; }
+    .tick-label { font-size: 13px; }
+    .pct-sub { font-size: 15px; }
+  }
+
+  /* ---------- Sections claires ---------- */
+  .light-section { padding-block: clamp(96px, 13vw, 176px); background: var(--mat-light); backdrop-filter: var(--glass); }
+  .lede { font-size: clamp(19px, 1.6vw, 22px); color: var(--ink-2); margin-top: 24px; max-width: 34em; }
+
+  /* Jours off : un cadran de 24 heures */
+  .days { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 6vw, 96px); align-items: center; }
+  @media (max-width: 900px) { .days { grid-template-columns: 1fr; } }
+  .dial { position: relative; width: min(100%, 560px); aspect-ratio: 1; margin-inline: auto; }
+  .dial svg { width: 100%; height: 100%; overflow: visible; }
+  .dial .active { transition: stroke-dasharray .8s var(--ease-out), stroke-dashoffset .8s var(--ease-out); }
+  .dial .dot { transition: opacity .4s, transform .8s var(--ease-out); }
+  .dial-center { position: absolute; inset: 0; display: grid; place-content: center; text-align: center; gap: 4px; }
+  .dial-center strong { font: 760 clamp(34px, 4vw, 54px)/1 var(--display); letter-spacing: -.03em; }
+  .dial-center span { color: var(--ink-2); font-weight: 500; }
+  .seg { display: inline-flex; padding: 5px; border-radius: 14px; background: var(--fill); margin-top: 36px; }
+  .seg button { font: 650 16px var(--text); color: var(--ink-2); background: none; border: 0; padding: 12px 22px; border-radius: 10px; cursor: pointer; }
+  .seg button[aria-pressed="true"] { background: var(--action); color: #fff; box-shadow: 0 2px 6px rgba(0, 0, 0, .14); }
+  .ways { list-style: none; padding: 0; margin: 44px 0 0; display: grid; gap: 22px; }
+  .ways li { display: grid; grid-template-columns: 180px 1fr; gap: 20px; padding-top: 22px; border-top: 1px solid var(--line); }
+  .ways b { font: 680 19px/1.3 var(--display); }
+  .ways span { color: var(--ink-2); }
+  @media (max-width: 560px) { .ways li { grid-template-columns: 1fr; gap: 6px; } }
+
+  /* Gourde : bande bleue */
+  .bottle-band { background: var(--mat-dark); backdrop-filter: var(--glass); color: #fff; padding-block: clamp(96px, 12vw, 160px); }
+  .bottle-grid { display: grid; grid-template-columns: auto 1fr; gap: clamp(48px, 8vw, 128px); align-items: center; }
+  @media (max-width: 760px) { .bottle-grid { grid-template-columns: 1fr; } }
+  .bottle { width: clamp(170px, 18vw, 240px); aspect-ratio: 150 / 280; }
+  .bottle svg { width: 100%; height: 100%; overflow: visible; }
+  .bottle .water { transition: y .8s var(--ease-out), height .8s var(--ease-out); }
+  .bottle-band .lede { color: var(--label-on-dark-2); }
+  .marks { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 36px; }
+  .marks button { font: 700 22px var(--rounded); min-width: 72px; height: 60px; padding: 0 20px; border-radius: 14px; border: 0; background: rgba(10, 132, 255, .25); box-shadow: inset 0 0 0 1px rgba(255, 255, 255, .14); color: #fff; cursor: pointer; transition: background-color .2s; }
+  .marks button:hover { background: rgba(10, 132, 255, .4); }
+  .marks button[aria-pressed="true"] { background: rgba(255, 255, 255, .1); color: var(--label-on-dark-2); }
+  .bottle-status { margin-top: 20px; min-height: 1.6em; color: var(--label-on-dark-2); font-weight: 500; }
+
+  /* Progrès : douze anneaux */
+  .progress-head { max-width: 46em; }
+  .months { display: grid; grid-template-columns: repeat(12, 1fr); gap: clamp(8px, 1.4vw, 22px); margin-top: 64px; }
+  .month { text-align: center; }
+  .month svg { width: 100%; aspect-ratio: 1; display: block; }
+  .month span { display: block; margin-top: 10px; font-weight: 600; color: var(--ink-2); font-size: 15px; }
+  @media (max-width: 760px) { .months { grid-template-columns: repeat(6, 1fr); } }
+  .progress-foot { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(40px, 6vw, 96px); margin-top: 72px; align-items: start; }
+  @media (max-width: 900px) { .progress-foot { grid-template-columns: 1fr; } }
+  /* La carte du bilan de l'app (eau → eau claire), assombrie pour le contraste AA du texte. */
+  .recap { border-radius: 22px; padding: 30px; background: linear-gradient(135deg, #0058c4, #0a6cd6); color: #fff; box-shadow: 0 24px 50px rgba(0, 0, 0, .14); }
+  .recap .top { display: flex; justify-content: space-between; font-weight: 600; font-size: 15px; color: rgba(255, 255, 255, .88); }
+  .recap .big { font: 700 64px/1 var(--rounded); letter-spacing: -.035em; margin-top: 30px; }
+  .recap .small { color: rgba(255, 255, 255, .88); margin-top: 6px; }
+  .recap ul { list-style: none; padding: 0; margin: 26px 0 0; display: grid; gap: 6px; }
+  .stat-list { list-style: none; padding: 0; margin: 0; display: grid; gap: 18px; font-size: 19px; color: var(--ink-2); }
+  .stat-list strong { color: var(--ink); font-weight: 650; }
+
+  /* Partout sur le Mac */
+  .everywhere { display: grid; grid-template-columns: repeat(2, 1fr); gap: 0 clamp(40px, 6vw, 96px); margin-top: 56px; }
+  @media (max-width: 860px) { .everywhere { grid-template-columns: 1fr; } }
+  .everywhere div { padding: 28px 0; border-top: 1px solid var(--line); }
+  .everywhere p { color: var(--ink-2); margin-top: 10px; }
+  .everywhere pre { margin: 16px 0 0; padding: 14px 18px; border-radius: 12px; background: var(--fill); overflow-x: auto; font: 500 15px/1.6 ui-monospace, "SF Mono", Menlo, monospace; }
+  kbd { font: 650 14px var(--text); padding: 3px 8px; border-radius: 7px; background: var(--fill); box-shadow: inset 0 0 0 1px var(--line); }
+
+  /* Confidentialité : bande marine */
+  .privacy { background: var(--mat-deep); backdrop-filter: var(--glass); color: #fff; padding-block: clamp(96px, 12vw, 168px); }
+  .privacy-grid { display: grid; grid-template-columns: 1fr 1fr; gap: clamp(40px, 7vw, 112px); }
+  @media (max-width: 900px) { .privacy-grid { grid-template-columns: 1fr; } }
+  .privacy .lede { color: var(--label-on-dark-2); }
+  .privacy dl { margin: 0; display: grid; gap: 30px; }
+  .privacy dt { font: 680 22px var(--display); }
+  .privacy dd { margin: 8px 0 0; color: var(--label-on-dark-2); }
+
+  /* FAQ */
+  .faq { max-width: 860px; margin-top: 48px; }
+  .faq details { border-top: 1px solid var(--line); }
+  .faq details:last-child { border-bottom: 1px solid var(--line); }
+  .faq summary { list-style: none; cursor: pointer; padding: 26px 48px 26px 0; font: 680 21px/1.3 var(--display); position: relative; }
+  .faq summary::-webkit-details-marker { display: none; }
+  .faq summary::after { content: ""; position: absolute; right: 8px; top: 50%; width: 12px; height: 12px; border-right: 2.5px solid var(--ink-2); border-bottom: 2.5px solid var(--ink-2); transform: translateY(-70%) rotate(45deg); transition: transform .3s var(--ease-out); }
+  .faq details[open] summary::after { transform: translateY(-25%) rotate(225deg); }
+  .faq details p { color: var(--ink-2); padding: 0 0 28px; max-width: 44em; }
+
+  /* Fin : l'anneau plein */
+  .close { background: var(--mat-dark); backdrop-filter: var(--glass); color: #fff; overflow: hidden; padding-block: clamp(110px, 14vw, 190px); }
+  .close-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 48px; align-items: center; }
+  @media (max-width: 860px) { .close-grid { grid-template-columns: 1fr; } }
+  .close h2 { font-size: clamp(44px, 6vw, 92px); }
+  .close .lede { color: var(--label-on-dark-2); }
+  .close .ctas { display: flex; flex-wrap: wrap; gap: 14px; margin-top: 40px; }
+  .close .meta { margin-top: 20px; color: var(--label-on-dark-2); font-size: 15px; }
+  .close .meta a { color: #fff; }
+  .close-ring { width: min(100%, 460px); margin-inline: auto; }
+
+  footer { background: var(--mat-deep); backdrop-filter: var(--glass); color: var(--label-on-dark-2); padding-block: 34px; font-size: 15px; }
+  footer .wrap { display: flex; flex-wrap: wrap; gap: 14px 28px; align-items: center; }
+  footer nav { display: flex; flex-wrap: wrap; gap: 22px; margin-left: auto; }
+  footer a { text-decoration: none; }
+  footer a:hover { color: #fff; text-decoration: underline; }
+
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after { transition-duration: .01ms !important; animation-duration: .01ms !important; }
+  }
+</style>
+</head>
+<body>
+<!-- Dégradés de l'app : eau (bleu → cyan), objectif (vert → menthe), gourde. -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true" focusable="false">
+  <defs>
+    <linearGradient id="g-water" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0a84ff"/><stop offset="1" stop-color="#64d2ff"/></linearGradient>
+    <linearGradient id="g-goal" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#30d158"/><stop offset="1" stop-color="#66d4cf"/></linearGradient>
+    <linearGradient id="g-bottle" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#64d2ff"/><stop offset="1" stop-color="#0a84ff"/></linearGradient>
+  </defs>
+</svg>
+
+<header class="menubar" id="menubar">
+  <a class="brand" href="#top"><img src="assets/favicon-64.png" alt="" width="22" height="22">HydroBar</a>
+  <nav aria-label="Main">
+    <ul>
+      <li><a href="#day">A day</a></li>
+      <li><a href="#days-off">Days off</a></li>
+      <li><a href="#progress">Progress</a></li>
+      <li><a href="#privacy">Privacy</a></li>
+      <li><a href="#faq">FAQ</a></li>
+    </ul>
+  </nav>
+  <div class="status">
+    <span class="mini" aria-hidden="true"><svg width="18" height="18" viewBox="0 0 18 18"><circle cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-opacity=".35" stroke-width="2.4"/><circle class="js-mini" cx="9" cy="9" r="7" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" transform="rotate(-90 9 9)" stroke-dasharray="30 44"/></svg></span>
+    <span class="clock num js-clock" aria-hidden="true">Tue 3:20 PM</span>
+    <a class="btn btn-light get js-get" href="#download">Get it free</a>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- L'anneau, puis la journée qui le remplit -->
+<section class="story js-story" aria-label="HydroBar, and an example day with it" data-ground="story">
+  <div class="stage">
+    <div class="ring-wrap" aria-hidden="true">
+      <svg viewBox="0 0 1000 1000">
+        <circle cx="500" cy="500" r="440" fill="none" stroke="rgba(142,142,147,.3)" stroke-width="112"/>
+        <circle class="arc js-arc" cx="500" cy="500" r="440" fill="none" stroke="url(#g-water)" stroke-width="112" stroke-linecap="round" transform="rotate(-90 500 500)" stroke-dasharray="1880 2765"/>
+        <g class="tick js-tick" style="transform-origin: 500px 500px; transform: rotate(188deg)"><rect x="491" y="-12" width="18" height="160" rx="9" fill="rgba(245,245,247,.62)"/></g>
+      </svg>
+      <div class="ring-center">
+        <svg class="pct-check" viewBox="0 0 48 48" aria-hidden="true"><circle cx="24" cy="24" r="22" fill="#30d158"/><path d="M14 24.5 21 31l13-14" fill="none" stroke="#fff" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        <div class="pct num js-pct">68%</div>
+        <div class="pct-sub num js-pct-sub">1.36 L of 2 L · on track</div>
+      </div>
+      <div class="tick-label js-tick-label" style="left: 40%; top: 85%">3:20 PM<small>where you should be</small></div>
+    </div>
+
+    <div class="hero-copy">
+      <h1>Drink enough water, right from your menu bar.</h1>
+      <p>That little ring next to your clock, up close. One click logs a glass, the ring fills, and the light tick shows where your day should be by now.</p>
+      <div class="ctas">
+        <a class="btn btn-light js-primary" href="#download">Get HydroBar free</a>
+        <a class="link-arrow" href="#day">See how a day fills it <svg viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M10 4v12M4.5 10.5 10 16l5.5-5.5"/></svg></a>
+      </div>
+      <p class="meta">Free · macOS 15.1 or later · Apple silicon and Intel · 9 languages</p>
+    </div>
+
+    <div class="event-panel" id="day">
+      <ol class="events" aria-label="A day with HydroBar">
+        <li class="event" data-at="480">
+          <time class="num">8:00<small>AM</small></time>
+          <p class="what"><strong>The day starts at zero.</strong> Your active hours begin, and the tick starts walking around the ring.</p>
+        </li>
+        <li class="event" data-at="520">
+          <time class="num">8:40<small>AM</small></time>
+          <div class="plate presets-plate" aria-hidden="true"><span class="hit">250 ml</span><span>330 ml</span><span>500 ml</span></div>
+          <p class="what"><strong>One click, one glass.</strong> Your presets sit in the menu bar. A keyboard shortcut works too, from any app.</p>
+        </li>
+        <li class="event" data-at="605">
+          <time class="num">10:05<small>AM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">250 ml of 2 L · 1.75 L to go by 10:00 PM.</div></div><span class="when">now</span><div class="actions"><span>+250 ml</span><span>+330 ml</span><span>+500 ml</span><span>Other Amount…</span><span>Snooze 1 Hour</span></div></div>
+          <p class="what"><strong>A reminder that says where you are.</strong> It's planned from your last glass, and its buttons are your own presets.</p>
+        </li>
+        <li class="event" data-at="690">
+          <time class="num">11:30<small>AM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Other Amount</div></div><span class="when">now</span><div class="actions"><span class="typed">330 <em>Log</em></span></div></div>
+          <p class="what"><strong>Your bottle holds 33 cl?</strong> Type 330 right in the notification. Done, without opening anything.</p>
+        </li>
+        <li class="event" data-at="840">
+          <time class="num">2:00<small>PM</small></time>
+          <div class="plate held"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m16 13 5.2 3.5a.5.5 0 0 0 .8-.4V7.9a.5.5 0 0 0-.8-.4L16 11"/><rect x="2" y="6" width="14" height="12" rx="2"/><path d="m2 2 20 20"/></svg>Video call. Reminders wait.</div>
+          <p class="what"><strong>Nothing pops up during your call.</strong> HydroBar only checks that your microphone or camera is in use, and holds the reminder until you hang up.</p>
+        </li>
+        <li class="event" data-at="905">
+          <time class="num">3:05<small>PM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">Call's over. Time for a glass?</div></div><span class="when">now</span></div>
+          <p class="what"><strong>A minute after you hang up,</strong> the reminder you missed arrives. And you're back on track.</p>
+        </li>
+        <li class="event" data-at="1110">
+          <time class="num">6:30<small>PM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>HydroBar</b><div class="body">You're at 1.36 L of 2 L. By now, you'd ideally be at 1.5 L.</div></div><span class="when">now</span></div>
+          <p class="what"><strong>Fall behind and it says so,</strong> with a sound this time. Reminders come a little sooner, never more than every 15 minutes.</p>
+        </li>
+        <li class="event" data-at="1260">
+          <time class="num">9:00<small>PM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>Last Call</b><div class="body">300 ml left to reach your goal today.</div></div><span class="when">now</span></div>
+          <p class="what"><strong>One hour before your day ends,</strong> a single last call. Only if your goal isn't reached yet.</p>
+        </li>
+        <li class="event" data-at="1280">
+          <time class="num">9:20<small>PM</small></time>
+          <div class="plate note"><img src="assets/favicon-64.png" alt=""><div><b>Goal reached!</b><div class="body">9 days in a row. Well done!</div></div><span class="when">now</span></div>
+          <p class="what"><strong>The ring closes.</strong> No more reminders today. Tomorrow starts at zero, and on Saturday, it starts later.</p>
+        </li>
+      </ol>
+    </div>
+  </div>
+</section>
+
+<!-- Jours off -->
+<section class="light-section" id="days-off" data-ground="light">
+  <div class="wrap days">
+    <div>
+      <h2>Your Saturday shouldn't run on Tuesday's clock.</h2>
+      <p class="lede">Days off get their own hours, their own reminder pace, or none at all, and a different goal if you want one.</p>
+      <div class="seg" role="group" aria-label="Day type">
+        <button type="button" aria-pressed="true" data-kind="work">Work day</button>
+        <button type="button" aria-pressed="false" data-kind="off">Day off</button>
+      </div>
+      <ul class="ways">
+        <li><b>Pick your days</b><span>Weekends by default. Four-day week? Choose your own.</span></li>
+        <li><b>One-off days</b><span>A holiday or a sick day: <em>Today Is a Day Off</em>, from the menu bar icon. Tomorrow goes back to normal.</span></li>
+        <li><b>Let your Focus decide</b><span>Add HydroBar's filter to your Work Focus. The schedule you already set tells HydroBar what kind of day it is.</span></li>
+      </ul>
+    </div>
+    <div class="dial js-dial" role="img" aria-label="24-hour dial: active hours from 8 AM to 10 PM, reminders every 45 minutes">
+      <svg viewBox="0 0 560 560" aria-hidden="true">
+        <circle cx="280" cy="280" r="192" fill="none" style="stroke: var(--fill)" stroke-width="52"/>
+        <circle class="active js-active" cx="280" cy="280" r="192" fill="none" stroke="url(#g-water)" stroke-width="52" transform="rotate(-90 280 280)"/>
+        <g class="js-dots"></g>
+        <g font-family="Instrument Sans, system-ui" font-size="17" font-weight="600" fill="var(--ink-2)">
+          <text x="280" y="40" text-anchor="middle">12 AM</text><text x="506" y="286">6 AM</text><text x="280" y="534" text-anchor="middle">12 PM</text><text x="54" y="286" text-anchor="end">6 PM</text>
+        </g>
+      </svg>
+      <div class="dial-center"><strong class="num js-dial-hours">8 AM–10 PM</strong><span class="js-dial-pace">every 45 min · goal 2 L</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- Gourde -->
+<section class="bottle-band" data-ground="blue">
+  <div class="wrap bottle-grid">
+    <div class="bottle" aria-hidden="true">
+      <svg viewBox="0 0 150 280">
+        <defs><clipPath id="bottle-clip"><rect x="50" y="0" width="50" height="46" rx="10"/><rect x="0" y="38" width="150" height="242" rx="44"/></clipPath></defs>
+        <g clip-path="url(#bottle-clip)"><rect width="150" height="280" fill="rgba(255,255,255,.12)"/><rect class="water js-water" x="0" y="40" width="150" height="240" fill="url(#g-bottle)"/></g>
+        <rect x="51" y="1" width="48" height="44" rx="10" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5"/>
+        <rect x="1.25" y="39.25" width="147.5" height="239.5" rx="43" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="2.5"/>
+      </svg>
+    </div>
+    <div>
+      <h2>Drinking from a bottle? Just say how much is gone.</h2>
+      <p class="lede">Turn on bottle mode, set its size, and tap where you're at. HydroBar logs the difference and draws the bottle emptying. Undo puts the water back.</p>
+      <div class="marks" role="group" aria-label="How much of the bottle is gone">
+        <button type="button" data-f="0.25" aria-pressed="false" aria-label="A quarter">¼</button>
+        <button type="button" data-f="0.5" aria-pressed="false" aria-label="Half">½</button>
+        <button type="button" data-f="0.75" aria-pressed="false" aria-label="Three quarters">¾</button>
+        <button type="button" data-f="1" aria-pressed="false">Done</button>
+      </div>
+      <p class="bottle-status js-bottle-status" aria-live="polite">A full 750 ml bottle. Tap how much is gone.</p>
+    </div>
+  </div>
+</section>
+
+<!-- Progrès -->
+<section class="light-section" id="progress" data-ground="light">
+  <div class="wrap">
+    <div class="progress-head">
+      <h2>Twelve rings make a year.</h2>
+      <p class="lede">Each month's daily average against the goal, here for an example year. The green ones went all the way around.</p>
+    </div>
+    <div class="months js-months" role="img" aria-label="An example year: average daily intake for each month, two months above the goal"></div>
+    <div class="progress-foot">
+      <div class="recap">
+        <div class="top"><span>HydroBar</span><span>October 2026</span></div>
+        <div class="big num">1.9 L</div>
+        <div class="small">a day on average</div>
+        <ul><li>Goal reached 9 of 12 days</li><li>Best day: Oct 7, 2.5 L</li><li>Current streak: 9 days</li></ul>
+      </div>
+      <ul class="stat-list">
+        <li><strong>A monthly recap card</strong> you can share or copy as an image, like this example.</li>
+        <li><strong>Your streak</strong> of days on goal, and a summary every week.</li>
+        <li><strong>When you drink</strong> during the day, and your longest dry spell.</li>
+        <li><strong>A goal for each day of the week</strong>, higher on sports days.</li>
+        <li><strong>Presets that learn.</strong> Log 33 cl often, and HydroBar offers to make it a preset.</li>
+      </ul>
+    </div>
+  </div>
+</section>
+
+<!-- Partout -->
+<section class="light-section" style="padding-top: clamp(64px, 8vw, 112px)" data-ground="light">
+  <div class="wrap">
+    <h2>Log a glass without leaving what you're doing.</h2>
+    <div class="everywhere">
+      <div><h3>Keyboard shortcuts</h3><p>One per preset, plus Undo and Open HydroBar, from any app or a Stream Deck. <kbd>⌃</kbd> <kbd>⌥</kbd> <kbd>1</kbd> and the glass is logged.</p></div>
+      <div><h3>Shortcuts, Siri and Spotlight</h3><p>Six actions: Log Water, Log a Preset, Get Hydration Status, Undo Last Drink, Set Daily Goal and Set Today's Day Type.</p></div>
+      <div><h3>Widget and Control Center</h3><p>A desktop widget that stays in sync with the app, and on macOS 26, an Add Water button in Control Center.</p></div>
+      <div><h3>Focus filter</h3><p>Any Focus can turn reminders into a quiet badge in the menu bar, and switch between a work day and a day off.</p></div>
+      <div><h3>Raycast and deep links</h3><p>A Raycast extension, and a URL scheme for Alfred, Keyboard Maestro or Terminal.</p><pre><code>open "hydrobar://add?ml=250"</code></pre></div>
+      <div><h3>The icon itself</h3><p>A monochrome ring that matches your menu bar, with a checkmark at your goal. Option-click it to log your first preset.</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- Confidentialité -->
+<section class="privacy" id="privacy" data-ground="navy">
+  <div class="wrap privacy-grid">
+    <div>
+      <h2>Your water is nobody else's business.</h2>
+      <p class="lede">No account, no analytics, no ads. The Mac App Store version can't even connect to the internet.</p>
+    </div>
+    <dl>
+      <div><dt>Everything stays on your Mac</dt><dd>Drinks, goals and settings live in HydroBar's sandbox. Export to CSV or back up to JSON whenever you want.</dd></div>
+      <div><dt>Your weight is never saved</dt><dd>Setup can suggest a goal from your weight, about 30 ml per kilogram. The number is used once, on your Mac, then forgotten.</dd></div>
+      <div><dt>Calls stay private</dt><dd>To hold reminders during a call, HydroBar only checks whether an app is using the microphone or camera. It never turns them on and receives nothing.</dd></div>
+      <div><dt>One permission, asked when it matters</dt><dd>Notifications, when you turn reminders on. Read the <a href="https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md">privacy policy</a>.</dd></div>
+    </dl>
+  </div>
+</section>
+
+<!-- FAQ -->
+<section class="light-section" id="faq" data-ground="light">
+  <div class="wrap">
+    <h2>Questions</h2>
+    <div class="faq">
+      <details><summary>Is it really free?</summary><p>Yes. HydroBar is free, with no subscription, no in-app purchase and no ads. Its code is open source under the MIT license.</p></details>
+      <details><summary>Which Macs does it run on?</summary><p>Any Mac with macOS 15.1 Sequoia or later, Apple silicon or Intel. The Control Center button needs macOS 26.</p></details>
+      <details><summary>How much water should I drink?</summary><p>It depends on you, your activity and the weather. HydroBar can suggest a starting point of about 30 ml per kilogram, and you can set a different goal for each day of the week. HydroBar isn't a medical device: ask a doctor about your own needs.</p></details>
+      <details><summary>Will the reminders bother me all day?</summary><p>No. They stay within your active hours, stop once you reach your goal, wait during calls and while your screen is asleep, and you can pause them for an hour, until this evening or until tomorrow.</p></details>
+      <details><summary>Is there an iPhone version? Does it sync with Apple Health?</summary><p>Not for now. HydroBar is built for the Mac menu bar, and Apple Health isn't available to Mac apps.</p></details>
+      <details><summary>Can I count coffee or tea?</summary><p>HydroBar counts amounts, not drink types: log whatever you count as water. Drink types are on the roadmap.</p></details>
+      <details><summary>What happens to my data if I change Mac?</summary><p>Back up to JSON from Settings › Data, then restore it on the new Mac. Restoring only adds what's missing, so doing it twice changes nothing.</p></details>
+      <details><summary>Which languages does it speak?</summary><p>English, French, German, Spanish, Italian, Japanese, Dutch, Portuguese and Simplified Chinese, following your Mac's language or the one you pick.</p></details>
+    </div>
+  </div>
+</section>
+
+<!-- Fin -->
+<section class="close" id="download" data-ground="green">
+  <div class="wrap close-grid">
+    <div>
+      <h2>Close your ring tomorrow.</h2>
+      <p class="lede">Set your goal in a minute. HydroBar takes care of the rest, quietly, from the corner of your menu bar.</p>
+      <div class="ctas">
+        <a class="btn btn-light js-appstore" href="#download">Get HydroBar free</a>
+        <a class="btn btn-dark js-dmg" href="https://github.com/aedhx/HydroBar/releases/latest">Download the DMG</a>
+      </div>
+      <p class="meta">Version 2.0 · macOS 15.1 or later · <a href="https://github.com/aedhx/HydroBar/blob/main/RELEASE_NOTES_v2.0.md">What's new</a></p>
+    </div>
+    <svg class="close-ring" viewBox="0 0 500 500" aria-hidden="true">
+      <circle cx="250" cy="250" r="200" fill="none" stroke="url(#g-goal)" stroke-width="56"/>
+      <circle cx="250" cy="250" r="78" fill="#30d158"/>
+      <path d="M205 252 238 285 298 220" fill="none" stroke="#fff" stroke-width="20" stroke-linecap="round" stroke-linejoin="round"/>
+    </svg>
+  </div>
+</section>
+
+</main>
+
+<footer data-ground="navy">
+  <div class="wrap">
+    <span>Made by <a href="https://adx.cool/">Antoine Deshoux</a></span>
+    <nav aria-label="Footer">
+      <a href="https://github.com/aedhx/HydroBar">GitHub</a>
+      <a href="https://github.com/aedhx/HydroBar/blob/main/PRIVACY.md">Privacy</a>
+      <a href="https://github.com/aedhx/HydroBar/issues">Support</a>
+      <a href="https://github.com/aedhx/HydroBar/blob/main/RELEASE_NOTES_v2.0.md">Release notes</a>
+    </nav>
+  </div>
+</footer>
+
+<script>
+  // Lien de la fiche Mac App Store, une fois l'app publiée. Vide : le DMG sert
+  // de téléchargement, et le bouton App Store dit qu'il arrive bientôt.
+  const APP_STORE_URL = '';
+  const DMG_URL = 'https://github.com/aedhx/HydroBar/releases/latest';
+
+  // ---------- Liens de téléchargement ----------
+  (() => {
+    const target = APP_STORE_URL || DMG_URL;
+    document.querySelectorAll('.js-primary, .js-get').forEach((a) => { a.href = target; });
+    document.querySelectorAll('.js-appstore').forEach((a) => {
+      if (APP_STORE_URL) { a.href = APP_STORE_URL; return; }
+      a.textContent = 'Mac App Store · soon';
+      a.setAttribute('aria-disabled', 'true');
+      a.removeAttribute('href');
+    });
+    if (!APP_STORE_URL) document.querySelectorAll('.js-dmg').forEach((a) => {
+      a.textContent = 'Get HydroBar free (DMG)';
+      a.classList.replace('btn-dark', 'btn-light');
+      a.parentElement.prepend(a);
+    });
+  })();
+
+  // ---------- L'anneau et la journée ----------
+  (() => {
+    const story = document.querySelector('.js-story');
+    const arc = document.querySelector('.js-arc');
+    const tick = document.querySelector('.js-tick');
+    const tickLabel = document.querySelector('.js-tick-label');
+    const ringWrap = document.querySelector('.ring-wrap');
+    const stage = story.querySelector('.stage');
+    const pct = document.querySelector('.js-pct');
+    const pctSub = document.querySelector('.js-pct-sub');
+    const mini = document.querySelector('.js-mini');
+    const clock = document.querySelector('.js-clock');
+    const events = [...document.querySelectorAll('.event')];
+    const GOAL = 2000, C = 2 * Math.PI * 440, MINI = 2 * Math.PI * 7;
+    const START = 480, END = 1320; // 8:00 → 22:00, la plage active
+
+    // Prises de la journée de démonstration (minutes, ml cumulés).
+    const DRINKS = [[0, 0], [520, 250], [606, 580], [691, 910], [790, 1160], [906, 1360], [1111, 1610], [1150, 1700], [1280, 2000]];
+    const intakeAt = (m) => DRINKS.filter(([t]) => t <= m).pop()[1];
+    const fmtL = (ml) => ml >= 1000 ? `${(ml / 1000).toFixed(2).replace(/0$/, '').replace(/\.0$/, '')} L` : `${ml} ml`;
+    const fmtTime = (m) => {
+      const h = Math.floor(m / 60), mm = String(Math.floor(m % 60)).padStart(2, '0');
+      return `${((h + 11) % 12) + 1}:${mm} ${h < 12 ? 'AM' : 'PM'}`;
+    };
+
+    let last = '';
+    function render(minutes, intake, { hero = false } = {}) {
+      const frac = Math.min(intake / GOAL, 1);
+      const pace = Math.min(Math.max((minutes - START) / (END - START), 0), 1);
+      const key = `${minutes}|${intake}`;
+      if (key === last) return;
+      last = key;
+      arc.setAttribute('stroke-dasharray', `${Math.max(C * frac, .01)} ${C}`);
+      mini.setAttribute('stroke-dasharray', `${MINI * frac} ${MINI}`);
+      tick.style.transform = `rotate(${pace * 360}deg)`;
+      const done = intake >= GOAL;
+      story.classList.toggle('goal', done);
+      arc.setAttribute('stroke', done ? 'url(#g-goal)' : 'url(#g-water)');
+      paintMenubar();
+      pct.textContent = `${Math.floor(frac * 100 + 1e-9)}%`;
+      const behind = !done && intake < pace * GOAL - 50;
+      pctSub.textContent = done ? `${fmtL(GOAL)} · goal reached`
+        : `${fmtL(intake)} of ${fmtL(GOAL)} · ${behind ? `${fmtL(Math.round((pace * GOAL - intake) / 10) * 10)} behind` : 'on track'}`;
+      clock.textContent = `Tue ${fmtTime(minutes)}`;
+      // L'étiquette du repère, à l'intérieur de l'anneau, face au repère.
+      const a = pace * 2 * Math.PI - Math.PI / 2;
+      // Repère couché (vers 9 h ou 3 h sur le cadran) : l'étiquette passe au-dessus de
+      // lui, entre l'anneau et le pourcentage ; sinon, face à lui vers le centre.
+      const flat = Math.abs(Math.cos(a)) > .7;
+      const rr = flat ? 31 : 30 - 7 * Math.abs(Math.cos(a));
+      const fx = 50 + rr * Math.cos(a), fy = 50 + rr * Math.sin(a);
+      const dy = flat ? -(tickLabel.offsetHeight / 2 + 14) : 0;
+      tickLabel.style.left = `${fx}%`;
+      tickLabel.style.top = `${fy}%`;
+      tickLabel.style.transform = `translate(-50%, calc(-50% + ${dy}px))`;
+      tickLabel.firstChild.textContent = fmtTime(minutes);
+      // Masquée si sa place d'arrivée sort de la fenêtre, avant la journée et à l'objectif.
+      const w = ringWrap.getBoundingClientRect(), box = stage.getBoundingClientRect();
+      const x = w.left + w.width * fx / 100, y = w.top + w.height * fy / 100 + dy;
+      const hw = tickLabel.offsetWidth / 2 + 16, hh = tickLabel.offsetHeight / 2 + 16;
+      const n = pct.getBoundingClientRect();
+      const clearOfNumeral = x + hw - 16 < n.left || x - hw + 16 > n.right || y + hh - 16 < n.top || y - hh + 16 > n.bottom;
+      const inView = clearOfNumeral && x + hw < box.right && x - hw > box.left && y + hh < box.bottom && y - hh > box.top;
+      tickLabel.style.opacity = !done && (hero || pace > 0) && inView ? 1 : 0;
+    }
+
+    const menubar = document.getElementById('menubar');
+    function onScroll() {
+      const top = story.offsetTop, span = story.offsetHeight - innerHeight;
+      const p = Math.min(Math.max((scrollY - top) / span, 0), 1);
+      const pastHero = p > .045;
+      story.classList.toggle('past-hero', pastHero);
+      if (!pastHero) {
+        render(920, 1360, { hero: true }); // « maintenant » : 15 h 20, 68 %
+        events.forEach((e) => e.classList.remove('on'));
+        return;
+      }
+      // Le défilement choisit le moment ; l'anneau, l'horloge et le repère en prennent l'heure.
+      const q = Math.min((p - .06) / .9, 1);
+      const scrub = START + Math.max(q, 0) * (END - START);
+      let current = events[0];
+      for (const e of events) if (Number(e.dataset.at) <= scrub) current = e;
+      const minutes = Number(current.dataset.at);
+      render(minutes, intakeAt(minutes));
+      events.forEach((e) => e.classList.toggle('on', e === current));
+    }
+
+    // La barre de menus prend la couleur du sol qu'elle survole.
+    const grounds = [...document.querySelectorAll('[data-ground]')];
+    function paintMenubar() {
+      const y = 22;
+      const over = grounds.find((s) => { const r = s.getBoundingClientRect(); return r.top <= y && r.bottom > y; });
+      const ground = over ? over.dataset.ground : 'story';
+      menubar.classList.toggle('light', ground === 'light');
+    }
+    const onScrollMenubar = paintMenubar;
+
+    let ticking = false;
+    addEventListener('scroll', () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => { onScroll(); onScrollMenubar(); ticking = false; });
+    }, { passive: true });
+    addEventListener('resize', onScroll);
+
+    // Entrée : l'anneau se remplit jusqu'à 68 %, une fois.
+    arc.setAttribute('stroke-dasharray', `.01 ${C}`);
+    requestAnimationFrame(() => requestAnimationFrame(() => { last = ''; onScroll(); onScrollMenubar(); }));
+
+    // « Voir une journée » : se place au début de la journée.
+    document.querySelectorAll('a[href="#day"]').forEach((a) => a.addEventListener('click', (e) => {
+      e.preventDefault();
+      scrollTo({ top: story.offsetTop + (story.offsetHeight - innerHeight) * .07, behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
+    }));
+  })();
+
+  // ---------- Cadran des jours ----------
+  (() => {
+    const PLANS = {
+      work: { start: 8, end: 22, every: 45, hours: '8 AM–10 PM', pace: 'every 45 min · goal 2 L' },
+      off: { start: 10, end: 23, every: 120, hours: '10 AM–11 PM', pace: 'every 2 hours · goal 1.5 L' },
+    };
+    const R = 192, C = 2 * Math.PI * R, CX = 280;
+    const active = document.querySelector('.js-active');
+    const dots = document.querySelector('.js-dots');
+    const dial = document.querySelector('.js-dial');
+    function show(kind) {
+      const p = PLANS[kind];
+      const len = ((p.end - p.start) / 24) * C;
+      active.setAttribute('stroke-dasharray', `${len} ${C}`);
+      active.setAttribute('stroke-dashoffset', `${-(p.start / 24) * C}`);
+      const times = [];
+      for (let m = p.start * 60 + p.every; m < (p.end - 1) * 60 - 10; m += p.every) times.push([m, false]);
+      times.push([(p.end - 1) * 60, true]);
+      dots.innerHTML = times.map(([m, last]) => {
+        const a = (m / 1440) * 2 * Math.PI - Math.PI / 2;
+        const x = CX + R * Math.cos(a), y = CX + R * Math.sin(a);
+        return last
+          ? `<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="13" fill="var(--green)" stroke="#fff" stroke-width="4"/>`
+          : `<circle class="dot" cx="${x.toFixed(1)}" cy="${y.toFixed(1)}" r="6" fill="#fff"/>`;
+      }).join('');
+      document.querySelector('.js-dial-hours').textContent = p.hours;
+      document.querySelector('.js-dial-pace').textContent = p.pace;
+      dial.setAttribute('aria-label', `24-hour dial: active hours ${p.hours}, ${p.pace}, last call in green`);
+      document.querySelectorAll('.seg button').forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.kind === kind)));
+    }
+    document.querySelectorAll('.seg button').forEach((b) => b.addEventListener('click', () => show(b.dataset.kind)));
+    show('work');
+  })();
+
+  // ---------- Gourde ----------
+  (() => {
+    const CAP = 750, TOP = 40, H = 240;
+    const water = document.querySelector('.js-water'), status = document.querySelector('.js-bottle-status');
+    const buttons = document.querySelectorAll('.marks button');
+    let drunk = 0;
+    function draw(text) {
+      const left = 1 - drunk / CAP;
+      water.setAttribute('y', TOP + H * (1 - left));
+      water.setAttribute('height', H * left);
+      buttons.forEach((b) => b.setAttribute('aria-pressed', String(drunk > 0 && Number(b.dataset.f) * CAP <= drunk)));
+      status.textContent = text;
+    }
+    buttons.forEach((b) => b.addEventListener('click', () => {
+      const f = Number(b.dataset.f);
+      if (f * CAP <= drunk) { if (f === 1) { drunk = 0; draw('A new bottle, full again.'); } return; }
+      const logged = f * CAP - drunk;
+      drunk = f * CAP;
+      draw(f === 1 ? `Bottle finished: ${logged} ml logged. Tap Done again for a new one.` : `${logged} ml logged. ${CAP - drunk} ml left in your bottle.`);
+    }));
+  })();
+
+  // ---------- Douze anneaux ----------
+  (() => {
+    const values = [.78, .82, .8, .88, .91, .86, .95, 1.02, .97, 1.04, .99, .96];
+    const months = ['Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct'];
+    const r = 40, c = 2 * Math.PI * r;
+    document.querySelector('.js-months').innerHTML = values.map((v, i) => {
+      const met = v >= 1;
+      return `<div class="month"><svg viewBox="0 0 100 100" aria-hidden="true">
+        <circle cx="50" cy="50" r="${r}" fill="none" style="stroke: var(--fill)" stroke-width="13"/>
+        <circle cx="50" cy="50" r="${r}" fill="none" stroke="${met ? 'url(#g-goal)' : 'url(#g-water)'}" stroke-width="13" stroke-linecap="round"
+          stroke-dasharray="${c * Math.min(v, 1)} ${c}" transform="rotate(-90 50 50)"/>
+        ${met ? '<path d="M38 51 47 60 63 42" fill="none" stroke="var(--green)" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>' : ''}
+      </svg><span>${months[i]}</span></div>`;
+    }).join('');
+  })();
+</script>
+</body>
+</html>

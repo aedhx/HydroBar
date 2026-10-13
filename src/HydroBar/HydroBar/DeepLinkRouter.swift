@@ -173,7 +173,7 @@ final class DeepLinkRouter: ObservableObject {
             try confirmIfNeeded(
                 title: String(localized: "Reset today's intake?",
                               comment: "Deep link confirmation title"),
-                message: String(localized: "A deep link is asking to reset today's intake to zero. This cannot be undone.",
+                message: String(localized: "A deep link is asking to reset today's intake to zero.",
                                 comment: "Deep link confirmation message for reset")
             )
             manager.resetDay()

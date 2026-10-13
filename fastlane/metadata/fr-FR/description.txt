@@ -1,0 +1,33 @@
+HydroBar vit dans votre barre des menus et vous aide à boire assez d'eau, sans jamais vous gêner.
+
+Ajoutez un verre en un clic, voyez votre journée d'un coup d'œil dans l'anneau, et recevez des rappels qui ont du sens.
+
+AJOUTER EN UNE SECONDE
+• Vos propres presets, un clic chacun
+• Appui long pour n'importe quelle quantité
+• Mode gourde : dites simplement où en est votre gourde
+• Raccourcis clavier, app Raccourcis, Siri, widget de bureau et Centre de contrôle
+
+DES RAPPELS QUI RESPECTENT VOTRE JOURNÉE
+• Seulement pendant votre plage active, et ils s'arrêtent une fois l'objectif atteint
+• Un peu plus fréquents quand vous êtes en retard sur votre allure
+• Ils disent où vous en êtes : « 1,2 L sur 2 L · encore 800 ml d'ici 22 h »
+• Ajoutez un verre, ou tapez une quantité, directement depuis la notification
+• Ils attendent la fin de vos appels et de vos visios
+• Ils suivent vos modes de concentration, et un dernier appel arrive avant la fin de la journée
+
+JOURS DE TRAVAIL ET JOURS OFF
+Les jours off ont leur propre plage, leurs rappels et leur objectif. Un férié en un clic, vos congés en deux dates, ou laissez votre concentration Travail décider.
+
+SUIVEZ VOS PROGRÈS
+• Séries, bilan de la semaine et bilan du mois à partager
+• Votre année en un coup d'œil
+• Vos heures de boisson dans la journée, et votre plus longue période sans boire
+• Un objectif différent pour chaque jour de la semaine
+
+CONFIDENTIEL PAR NATURE
+Pas de compte, pas de pistage, aucune donnée collectée. Tout reste sur votre Mac. Exportez en CSV ou sauvegardez en JSON quand vous voulez.
+
+Disponible en français, anglais, allemand, espagnol, italien, japonais, néerlandais, portugais et chinois simplifié.
+
+HydroBar donne des rappels d'hydratation généraux. Ce n'est pas un dispositif médical : demandez à un médecin quels sont vos besoins.

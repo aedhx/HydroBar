@@ -43,8 +43,22 @@ DMG_NAME="HydroBar-v${VERSION}.dmg"
 ZIP_NAME="HydroBar-v${VERSION}.zip"
 echo "→ Version $VERSION (lue depuis le projet)"
 
+if ! command -v create-dmg >/dev/null; then
+  echo "✗ create-dmg introuvable — brew install create-dmg"
+  exit 1
+fi
+
 echo "→ Cleaning previous build..."
 rm -rf "$BUILD_DIR" "$DMG_NAME" "$ZIP_NAME"
+
+# Sans identité Developer ID, le build ne signe rien : l'app est signée ad-hoc
+# plus bas de toute façon, et la signature automatique du projet exigerait un
+# certificat de développement et un profil que ni la CI ni un Mac non
+# enregistré sur le compte développeur ne possèdent.
+SIGNING_ARGS=()
+if [ -z "$SIGNING_IDENTITY" ]; then
+  SIGNING_ARGS=(CODE_SIGNING_ALLOWED=NO)
+fi
 
 echo "→ Building HydroBar (Release)..."
 # Pas de `| grep … || true` ici : ça masquait le code de sortie de xcodebuild et
@@ -56,8 +70,10 @@ xcodebuild build \
   -project "$PROJECT" \
   -scheme "$SCHEME" \
   -configuration Release \
+  -destination 'generic/platform=macOS' \
   -derivedDataPath "$BUILD_DIR" \
   ${DEVELOPMENT_TEAM:+DEVELOPMENT_TEAM="$DEVELOPMENT_TEAM"} \
+  ${SIGNING_ARGS[@]+"${SIGNING_ARGS[@]}"} \
   > "$BUILD_LOG" 2>&1
 BUILD_STATUS=$?
 set -e
@@ -73,6 +89,14 @@ if [ -z "$APP_PATH" ]; then
   exit 1
 fi
 echo "→ App built: $APP_PATH"
+
+# Le README promet Apple Silicon et Intel : sans destination générique, xcodebuild
+# ne compilait que l'architecture de la machine (la v1.2 est sortie en arm64 seul).
+ARCHS=$(lipo -archs "$APP_PATH/Contents/MacOS/HydroBar")
+case "$ARCHS" in
+  *arm64*x86_64*|*x86_64*arm64*) echo "→ Universal binary: $ARCHS" ;;
+  *) echo "✗ Binaire non universel ($ARCHS)"; exit 1 ;;
+esac
 
 # ── Signature ────────────────────────────────────────────────────────────────
 # Le profil de provisioning embarqué sert au développement, pas à la
@@ -112,18 +136,30 @@ fi
 
 # ── Packaging ────────────────────────────────────────────────────────────────
 echo "→ Creating DMG..."
-create-dmg \
-  --volname "HydroBar" \
-  --background "$DMG_BACKGROUND" \
-  --window-pos 200 120 \
-  --window-size 660 400 \
-  --icon-size 128 \
-  --icon "HydroBar.app" 180 185 \
-  --hide-extension "HydroBar.app" \
-  --app-drop-link 480 185 \
-  --add-file "README.txt" "Resources/README.txt" 330 310 \
-  "$DMG_NAME" \
-  "$APP_PATH"
+make_dmg() {
+  create-dmg \
+    --volname "HydroBar" \
+    --background "$DMG_BACKGROUND" \
+    --window-pos 200 120 \
+    --window-size 660 400 \
+    --icon-size 128 \
+    --icon "HydroBar.app" 180 185 \
+    --hide-extension "HydroBar.app" \
+    --app-drop-link 480 185 \
+    --add-file "README.txt" "Resources/README.txt" 330 310 \
+    "$@" \
+    "$DMG_NAME" \
+    "$APP_PATH"
+}
+# La mise en page de la fenêtre passe par un AppleScript adressé au Finder. Là
+# où il n'est pas autorisé (terminal sans permission d'automatisation, session
+# sans interface), on refait le DMG sans elle plutôt que d'échouer : le contenu
+# est identique, seule la disposition des icônes manque.
+if ! make_dmg; then
+  echo "⚠  Mise en page Finder impossible — DMG recréé sans disposition des icônes."
+  rm -f "$DMG_NAME" rw.*."$DMG_NAME"
+  make_dmg --skip-jenkins
+fi
 
 echo "→ Creating ZIP..."
 ditto -c -k --keepParent "$APP_PATH" "$ZIP_NAME"

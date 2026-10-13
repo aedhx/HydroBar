@@ -20,11 +20,11 @@ struct KPICardView: View {
             // Icône et Titre en haut
             HStack(spacing: 6) {
                 Image(systemName: icon)
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.secondary)
                 
                 Text(title)
-                    .font(.system(size: 11, weight: .medium))
+                    .font(Theme.Font.captionMedium)
                     .foregroundColor(.secondary)
             }
             
@@ -33,11 +33,11 @@ struct KPICardView: View {
             // Valeur en grand et gras au centre
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(value)
-                    .font(.system(size: 24, weight: .bold, design: .rounded))
+                    .font(Theme.Font.kpiValue)
                     .foregroundColor(.primary)
                 
                 Text(unit)
-                    .font(.system(size: 14, weight: .medium))
+                    .font(Theme.Font.controlMedium)
                     .foregroundColor(.secondary)
             }
         }
@@ -55,6 +55,7 @@ struct KPICardView: View {
 // MARK: - StatsHeaderView
 struct StatsHeaderView: View {
     @ObservedObject var manager: HydrationManager
+    @Environment(\.accessibilityReduceMotion) private var reduceMotion
     
     var body: some View {
         LazyVGrid(columns: [
@@ -84,8 +85,8 @@ struct StatsHeaderView: View {
         .padding(.horizontal, 20)
         .padding(.top, 4)
         .padding(.bottom, 4)
-        .animation(.easeOut(duration: 0.3).delay(0.1), value: manager.dailyAverage)
-        .animation(.easeOut(duration: 0.3).delay(0.15), value: manager.weeklyTotal)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.3).delay(0.1), value: manager.dailyAverage)
+        .animation(reduceMotion ? nil : .easeOut(duration: 0.3).delay(0.15), value: manager.weeklyTotal)
     }
     
     /// Toujours dans l'unité choisie. L'ancienne version basculait en litres
@@ -108,144 +109,102 @@ struct WeeklyChartView: View {
     }
     
     var body: some View {
-        if #available(macOS 13.0, *) {
-            Chart {
-                // Barres pour chaque jour
-                ForEach(weeklyData) { entry in
-                    let percentage = entry.targetMl > 0 ? min((entry.amountMl / entry.targetMl), 2.0) : 0 // Limiter à 200% pour l'affichage
-                    
-                    BarMark(
-                        x: .value("Day", entry.date, unit: .day),
-                        y: .value("Percentage", percentage)
-                    )
-                    .foregroundStyle(entry.amountMl >= entry.targetMl ? Color.green : Color.blue)
-                    .cornerRadius(4, style: .continuous)
-                    .opacity(selectedDay?.id == entry.id ? 1.0 : 0.8)
-                }
+        Chart {
+            // Barres pour chaque jour
+            ForEach(weeklyData) { entry in
+                let percentage = entry.targetMl > 0 ? min((entry.amountMl / entry.targetMl), 2.0) : 0 // Limiter à 200% pour l'affichage
+                
+                BarMark(
+                    x: .value("Day", entry.date, unit: .day),
+                    y: .value("Percentage", percentage)
+                )
+                .foregroundStyle(entry.amountMl >= entry.targetMl ? Theme.goal : Theme.water)
+                .cornerRadius(4, style: .continuous)
+                .opacity(selectedDay?.id == entry.id ? 1.0 : 0.8)
             }
-            .environment(\.locale, Locale(identifier: "fr_FR"))
-            .chartXAxis {
-                AxisMarks(values: .stride(by: .day)) { value in
-                    AxisValueLabel {
-                        if let date = value.as(Date.self) {
-                            Text(shortDayName(for: date))
-                                .font(.system(size: 10))
-                        }
+        }
+        .chartXAxis {
+            AxisMarks(values: .stride(by: .day)) { value in
+                AxisValueLabel {
+                    if let date = value.as(Date.self) {
+                        Text(shortDayName(for: date))
+                            .font(.system(size: 10,
+                                          weight: Calendar.current.isDateInToday(date) ? .bold : .regular))
                     }
-                    AxisGridLine()
                 }
+                AxisGridLine()
             }
-            .chartYAxis {
-                AxisMarks(position: .leading, values: .automatic) { value in
-                    AxisGridLine()
-                    AxisValueLabel {
-                        if let doubleValue = value.as(Double.self) {
-                            Text("\(Int(doubleValue * 100))%")
-                                .font(.system(size: 10))
-                        }
+        }
+        .chartYAxis {
+            AxisMarks(position: .leading, values: .automatic) { value in
+                AxisGridLine()
+                AxisValueLabel {
+                    if let doubleValue = value.as(Double.self) {
+                        Text("\(Int(doubleValue * 100))%")
+                            .font(Theme.Font.footnote)
                     }
                 }
             }
-            .frame(height: 140)
-            .chartBackground { chartProxy in
-                GeometryReader { geometry in
-                    Rectangle()
-                        .fill(Color.clear)
-                        .contentShape(Rectangle())
-                        .gesture(
-                            DragGesture(minimumDistance: 0)
-                                .onChanged { gesture in
-                                    // Trouver la barre la plus proche au survol
-                                    let location = gesture.location
-                                    if let date = chartProxy.value(atX: location.x, as: Date.self) {
-                                        selectedDay = weeklyData.first { entry in
-                                            Calendar.current.isDate(entry.date, inSameDayAs: date)
-                                        }
+        }
+        .frame(height: 140)
+        .chartBackground { chartProxy in
+            GeometryReader { geometry in
+                Rectangle()
+                    .fill(Color.clear)
+                    .contentShape(Rectangle())
+                    .gesture(
+                        DragGesture(minimumDistance: 0)
+                            .onChanged { gesture in
+                                // Trouver la barre la plus proche au survol
+                                let location = gesture.location
+                                if let date = chartProxy.value(atX: location.x, as: Date.self) {
+                                    selectedDay = weeklyData.first { entry in
+                                        Calendar.current.isDate(entry.date, inSameDayAs: date)
                                     }
                                 }
-                                .onEnded { _ in
-                                    // Garder la sélection même après le relâchement
-                                }
-                        )
-                }
+                            }
+                            .onEnded { _ in
+                                // Garder la sélection même après le relâchement
+                            }
+                    )
             }
-            .padding(.horizontal, 16)
-            .overlay(alignment: .topTrailing) {
-                if let selected = selectedDay {
-                    VStack(alignment: .trailing, spacing: 4) {
-                        Text(manager.displayValue(for: selected.amountMl))
-                            .font(.system(size: 12, weight: .semibold))
-                            .foregroundColor(.primary)
-                        Text(dayLabel(for: selected.date))
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary)
-                    }
-                    .padding(8)
-                    .background(.ultraThinMaterial)
-                    .cornerRadius(8)
-                    .padding(.trailing, 20)
-                    .padding(.top, 8)
-                    .transition(.opacity.combined(with: .scale))
+        }
+        .padding(.horizontal, 16)
+        .overlay(alignment: .topTrailing) {
+            if let selected = selectedDay {
+                VStack(alignment: .trailing, spacing: 4) {
+                    Text(manager.displayValue(for: selected.amountMl))
+                        .font(Theme.Font.calloutEmphasis)
+                        .foregroundColor(.primary)
+                    Text(dayLabel(for: selected.date))
+                        .font(Theme.Font.footnote)
+                        .foregroundColor(.secondary)
                 }
+                .padding(8)
+                .background(.ultraThinMaterial)
+                .cornerRadius(8)
+                .padding(.trailing, 20)
+                .padding(.top, 8)
+                .transition(.opacity.combined(with: .scale))
             }
-        } else {
-            Text("Chart not available\n(macOS 13+ required)", comment: "Message when chart is not available")
-                .font(.system(size: 12))
-                .foregroundColor(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(height: 200)
         }
     }
-    
+
+    /// Libellé du jour sélectionné, dans la langue de l'utilisateur.
+    /// Forcé en français auparavant, quelle que soit la langue de l'app.
     private func dayLabel(for date: Date) -> String {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let dateStart = calendar.startOfDay(for: date)
-        
-        if calendar.isDate(dateStart, inSameDayAs: today) {
+        if Calendar.current.isDateInToday(date) {
             return String(localized: "Today", comment: "Label for today's date")
         }
-        
-        let formatter = DateFormatter()
-        formatter.locale = Locale(identifier: "fr_FR")
-        formatter.dateFormat = "EEEE d MMM"
-        return formatter.string(from: date).capitalized
+        return date.formatted(.dateTime.weekday(.wide).day().month(.abbreviated))
     }
-    
+
+    /// Abréviation du jour sur l'axe (« Mo », « lu », « Mo »…), fournie par le
+    /// système pour chaque langue. L'ancienne version écrivait les noms à la main
+    /// en français et en anglais seulement, et tronquait « Today » à deux lettres
+    /// (« TO », « AU ») pour le jour courant.
     private func shortDayName(for date: Date) -> String {
-        let calendar = Calendar.current
-        let today = calendar.startOfDay(for: Date())
-        let dateStart = calendar.startOfDay(for: date)
-        
-        // Si c'est aujourd'hui, afficher "Aj" (2 lettres)
-        if calendar.isDate(dateStart, inSameDayAs: today) {
-            // Utiliser "Aj" pour "Aujourd'hui" ou les 2 premières lettres de "Today"
-            let todayText = String(localized: "Today", comment: "Label for today's date")
-            if todayText.count >= 2 {
-                return String(todayText.prefix(2)).uppercased()
-            }
-            return "Aj"
-        }
-        
-        // Obtenir le numéro du jour de la semaine (1 = dimanche, 2 = lundi, etc.)
-        let weekday = calendar.component(.weekday, from: date)
-        
-        // Mapping selon la locale (français par défaut)
-        let locale = Locale.current
-        let isFrench = locale.language.languageCode?.identifier == "fr" || locale.identifier.hasPrefix("fr")
-        
-        let dayNames: [String]
-        if isFrench {
-            // Français : lu, ma, me, je, ve, sa, di
-            dayNames = ["di", "lu", "ma", "me", "je", "ve", "sa"]
-        } else {
-            // Anglais : Su, Mo, Tu, We, Th, Fr, Sa
-            dayNames = ["Su", "Mo", "Tu", "We", "Th", "Fr", "Sa"]
-        }
-        
-        // weekday: 1 = dimanche, 2 = lundi, ..., 7 = samedi
-        let index = (weekday - 1) % 7
-        return dayNames[index]
+        date.formatted(.dateTime.weekday(.short))
     }
 }
 
@@ -260,13 +219,6 @@ struct MonthlyHeatmapView: View {
     
     var body: some View {
         VStack(alignment: .leading, spacing: 8) {
-            // Titre
-            Text("Consistency (30 days)", comment: "Title for 30-day consistency heatmap")
-                .font(.system(size: 13, weight: .semibold))
-                .foregroundColor(.primary)
-                .padding(.horizontal, 20)
-                .padding(.bottom, 4)
-            
             // Grille Heatmap
             LazyVGrid(columns: Array(repeating: GridItem(.flexible(), spacing: 4), count: 7), spacing: 4) {
                 // Ajouter des cellules vides au début si nécessaire pour aligner avec le jour de la semaine
@@ -295,40 +247,24 @@ struct MonthlyHeatmapView: View {
             // Légende
             HStack(spacing: 12) {
                 Text("Less", comment: "Legend label for less activity")
-                    .font(.system(size: 10))
+                    .font(Theme.Font.footnote)
                     .foregroundColor(.secondary)
                 
-                // Exemples de couleurs
+                // Échantillons tirés de colorForPercentage, comme les cellules :
+                // la légende affichait auparavant d'autres opacités (0,3 / 0,6)
+                // que les cellules qu'elle était censée expliquer (0,4 / 0,7).
                 HStack(spacing: 4) {
-                    Rectangle()
-                        .fill(colorScheme == .dark ? Color(white: 0.1, opacity: 1.0) : Color(white: 0.85, opacity: 1.0))
-                        .frame(width: 12, height: 12)
-                        .cornerRadius(3)
-                    
-                    Rectangle()
-                        .fill(Color.green.opacity(0.3))
-                        .frame(width: 12, height: 12)
-                        .cornerRadius(3)
-                    
-                    Rectangle()
-                        .fill(Color.green.opacity(0.6))
-                        .frame(width: 12, height: 12)
-                        .cornerRadius(3)
-                    
-                    Rectangle()
-                        .fill(Color.green)
-                        .frame(width: 12, height: 12)
-                        .cornerRadius(3)
-                    
-                    Rectangle()
-                        .fill(Color.green)
-                        .frame(width: 12, height: 12)
-                        .cornerRadius(3)
-                        .shadow(color: .green.opacity(0.5), radius: 2)
+                    ForEach([0.0, 0.25, 0.75, 1.0, 1.5], id: \.self) { sample in
+                        Rectangle()
+                            .fill(colorForPercentage(sample, colorScheme: colorScheme))
+                            .frame(width: 12, height: 12)
+                            .cornerRadius(3)
+                            .shadow(color: sample >= 1.5 ? Theme.goal.opacity(0.5) : .clear, radius: 2)
+                    }
                 }
                 
                 Text("More", comment: "Legend label for more activity")
-                    .font(.system(size: 10))
+                    .font(Theme.Font.footnote)
                     .foregroundColor(.secondary)
             }
             .padding(.horizontal, 20)
@@ -347,7 +283,7 @@ struct MonthlyHeatmapView: View {
             .fill(color)
             .aspectRatio(1, contentMode: .fit)
             .cornerRadius(4)
-            .shadow(color: hasGlow ? .green.opacity(0.5) : .clear, radius: 2)
+            .shadow(color: hasGlow ? Theme.goal.opacity(0.5) : .clear, radius: 2)
             .overlay(
                 RoundedRectangle(cornerRadius: 4)
                     .stroke(colorScheme == .dark ? Color.white.opacity(0.1) : Color.black.opacity(0.1), lineWidth: 0.5)
@@ -356,11 +292,9 @@ struct MonthlyHeatmapView: View {
     }
     
     private func heatmapTooltipText(for entry: HistoryEntry, manager: HydrationManager) -> String {
-        let formatter = DateFormatter()
-        formatter.dateStyle = .medium
-        formatter.timeStyle = .none
-        formatter.doesRelativeDateFormatting = false
-        let dateString = formatter.string(from: entry.date)
+        // FormatStyle met son formateur en cache : l'ancien code instanciait un
+        // DateFormatter par cellule, soit 30 à chaque rendu de la heatmap.
+        let dateString = entry.date.formatted(date: .abbreviated, time: .omitted)
         
         if entry.amountMl <= 0 {
             return String(format: String(localized: "No activity on %@", comment: "Heatmap tooltip when no hydration"), dateString)
@@ -370,7 +304,7 @@ struct MonthlyHeatmapView: View {
         let targetStr = manager.displayValue(for: entry.targetMl)
         let percentage = entry.targetMl > 0 ? Int(round((entry.amountMl / entry.targetMl) * 100)) : 0
         
-        return String(format: String(localized: "%@ / %@ (%d%% of goal) on %@", comment: "Heatmap tooltip with amount and date"), amountStr, targetStr, percentage, dateString)
+        return String(format: String(localized: "%@ / %@ (%lld%% of goal) on %@", comment: "Heatmap tooltip with amount and date"), amountStr, targetStr, percentage, dateString)
     }
     
     private func colorForPercentage(_ percentage: Double, colorScheme: ColorScheme) -> Color {
@@ -381,16 +315,16 @@ struct MonthlyHeatmapView: View {
                 : Color(white: 0.85, opacity: 1.0)
         } else if percentage < 0.5 {
             // 1-49% : vert clair
-            return Color.green.opacity(0.4)
+            return Theme.goal.opacity(0.4)
         } else if percentage < 1.0 {
             // 50-99% : vert moyen
-            return Color.green.opacity(0.7)
+            return Theme.goal.opacity(0.7)
         } else if percentage < 1.5 {
             // 100%+ : vert vif
-            return Color.green
+            return Theme.goal
         } else {
             // 150%+ : vert vif avec glow
-            return Color.green
+            return Theme.goal
         }
     }
 }

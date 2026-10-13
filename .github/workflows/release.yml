@@ -1,0 +1,112 @@
+name: Release
+
+# Construit le DMG et le ZIP de la version en cours avec build-dmg.sh.
+#
+#   - sur une pull request : le DMG est seulement conservé en artefact, pour
+#     vérifier que le packaging tient avant de poser un tag ;
+#   - sur un tag vX.Y : il est en plus attaché à un BROUILLON de release GitHub,
+#     avec RELEASE_NOTES_vX.Y.md comme notes. Le brouillon reste invisible tant
+#     qu'il n'est pas publié à la main — ni /releases/latest ni le bouton
+#     « Vérifier les mises à jour » des versions installées ne le voient.
+#
+# Le tag s'écrit en minuscules (v2.0, pas V2.0) : le vérificateur de mises à
+# jour ne retire qu'un « v » minuscule avant de comparer les versions.
+#
+# Pourquoi la CI et pas un Mac : le bouton du Centre de contrôle et le Liquid
+# Glass demandent le SDK macOS 26. Un Xcode plus ancien compile le projet, mais
+# sans eux (cf. les `#if compiler(>=6.2)`).
+
+on:
+  push:
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+permissions:
+  contents: write
+
+jobs:
+  dmg:
+    name: Package the DMG
+    runs-on: macos-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Show toolchain
+        run: xcodebuild -version
+
+      - name: Install create-dmg
+        run: command -v create-dmg >/dev/null || brew install create-dmg
+
+      # Sans SIGNING_IDENTITY, build-dmg.sh signe en ad-hoc : c'est la même
+      # distribution que les versions 1.x, avec la commande `xattr -cr` des
+      # notes d'installation.
+      - name: Build and package
+        run: ./build-dmg.sh
+
+      # Ce que le script ne peut pas savoir : que le tag et la version du projet
+      # disent la même chose, et que le DMG contient bien ce qu'il annonce.
+      - name: Check the package
+        id: package
+        run: |
+          set -euo pipefail
+          dmg=$(ls HydroBar-v*.dmg)
+          version=${dmg#HydroBar-v}; version=${version%.dmg}
+          echo "version=$version" >> "$GITHUB_OUTPUT"
+
+          if [ "$GITHUB_REF_TYPE" = "tag" ] && [ "$GITHUB_REF_NAME" != "v$version" ]; then
+            echo "::error::Le tag $GITHUB_REF_NAME ne correspond pas à MARKETING_VERSION ($version)."
+            exit 1
+          fi
+          test -f "RELEASE_NOTES_v$version.md"
+
+          mount=$(mktemp -d)
+          hdiutil attach -nobrowse -readonly -mountpoint "$mount" "$dmg" >/dev/null
+          app="$mount/HydroBar.app"
+          bundled=$(/usr/libexec/PlistBuddy -c 'Print :CFBundleShortVersionString' "$app/Contents/Info.plist")
+          archs=$(lipo -archs "$app/Contents/MacOS/HydroBar")
+          codesign --verify --deep --strict "$app"
+          # Construit avec le SDK 26 : le bouton du Centre de contrôle est dedans.
+          control=$(strings "$app/Contents/PlugIns/HydroBarWidgetExtension.appex/Contents/MacOS/HydroBarWidgetExtension" \
+                    | grep -c "AddWaterControl" || true)
+          hdiutil detach "$mount" >/dev/null
+
+          {
+            echo "### $dmg"
+            echo
+            echo "- version : $bundled"
+            echo "- architectures : $archs"
+            echo "- bouton du Centre de contrôle : $([ "$control" -gt 0 ] && echo présent || echo ABSENT)"
+            echo "- sha256 : \`$(shasum -a 256 "$dmg" | cut -d' ' -f1)\`"
+          } | tee -a "$GITHUB_STEP_SUMMARY"
+
+          [ "$bundled" = "$version" ]
+          [ "$control" -gt 0 ]
+
+      - name: Upload the package
+        uses: actions/upload-artifact@v4
+        with:
+          name: HydroBar-v${{ steps.package.outputs.version }}
+          path: |
+            HydroBar-v*.dmg
+            HydroBar-v*.zip
+          if-no-files-found: error
+          retention-days: 14
+
+      - name: Draft the GitHub release
+        if: github.ref_type == 'tag'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          VERSION: ${{ steps.package.outputs.version }}
+        run: |
+          gh release create "$GITHUB_REF_NAME" \
+            --draft \
+            --verify-tag \
+            --title "HydroBar $VERSION" \
+            --notes-file "RELEASE_NOTES_v$VERSION.md" \
+            "HydroBar-v$VERSION.dmg" "HydroBar-v$VERSION.zip"
