@@ -5,6 +5,11 @@
 //  Checks for new releases via GitHub Releases API and compares with current app version.
 //
 
+// Build DMG seulement : une app du Mac App Store ne doit pas chercher ses
+// mises à jour elle-même (règle 2.4.5), et la build App Store n'a pas accès
+// au réseau.
+#if !APP_STORE
+
 import Foundation
 import AppKit
 
@@ -70,7 +75,7 @@ private func versionComponents(_ version: String) -> [Int] {
 
 /// Compare two semantic versions (e.g. "1.0.0" and "1.1.0").
 /// Returns true if `latest` is strictly greater than `current`.
-private func isVersionNewer(current: String, latest: String) -> Bool {
+func isVersionNewer(current: String, latest: String) -> Bool {
     let cur = versionComponents(current)
     let lat = versionComponents(latest)
     let maxCount = max(cur.count, lat.count)
@@ -151,3 +156,5 @@ final class GitHubUpdateChecker: ObservableObject {
         result = nil
     }
 }
+
+#endif

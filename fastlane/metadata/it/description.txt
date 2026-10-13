@@ -1,0 +1,33 @@
+HydroBar vive nella barra dei menu e ti aiuta a bere abbastanza acqua, senza mai disturbarti.
+
+Registra un bicchiere con un clic, guarda la tua giornata a colpo d'occhio nell'anello e ricevi promemoria sensati.
+
+REGISTRA IN UN SECONDO
+• I tuoi preset, un clic ciascuno
+• Tieni premuto per qualsiasi quantità
+• Modalità borraccia: indica quanto ne hai bevuto
+• Abbreviazioni da tastiera, app Comandi, Siri, widget sulla scrivania e Centro di Controllo
+
+PROMEMORIA CHE RISPETTANO LA TUA GIORNATA
+• Solo durante le tue ore attive, e si fermano quando raggiungi l'obiettivo
+• Un po' più frequenti quando sei indietro sul tuo ritmo
+• Ti dicono a che punto sei: «1,2 L di 2 L · ancora 800 ml entro le 22:00»
+• Registra un bicchiere o scrivi una quantità direttamente dalla notifica
+• Aspettano mentre sei in chiamata o in videoconferenza
+• Seguono le tue modalità Full immersion, e un'ultima chiamata arriva prima di fine giornata
+
+GIORNI LAVORATIVI E GIORNI LIBERI
+I giorni liberi hanno orari, promemoria e obiettivo propri. Segna un festivo con un clic, aggiungi le ferie o lascia decidere alla tua modalità Lavoro.
+
+SEGUI I TUOI PROGRESSI
+• Serie, riepilogo settimanale e un riepilogo del mese da condividere
+• Il tuo anno a colpo d'occhio
+• Quando bevi durante la giornata, e la tua pausa più lunga
+• Un obiettivo diverso per ogni giorno della settimana
+
+PRIVATO PER SCELTA
+Nessun account, nessun tracciamento, nessun dato raccolto. Tutto resta sul tuo Mac. Esporta in CSV o salva in JSON quando vuoi.
+
+Disponibile in italiano, inglese, francese, tedesco, spagnolo, giapponese, olandese, portoghese e cinese semplificato.
+
+HydroBar offre promemoria generali di idratazione. Non è un dispositivo medico; chiedi a un medico quali sono le tue esigenze.

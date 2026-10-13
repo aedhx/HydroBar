@@ -120,50 +120,106 @@ enum NotificationInterval: String, CaseIterable {
     }
 }
 
+/// Onglets de la fenêtre de réglages (v2). Douze sections s'empilaient
+/// dans un popover de 320 px.
+enum SettingsTab: String {
+    case general, hydration, reminders, days, shortcuts, data, integrations
+}
+
 struct SettingsView: View {
     @ObservedObject var manager: HydrationManager
-    @Binding var currentView: ViewType
+    /// Onglet affiché, retrouvé à la réouverture de la fenêtre.
+    @AppStorage("settingsTab") private var selectedTab: SettingsTab = .general
+    #if !APP_STORE
+    // Build DMG seulement : sur le Mac App Store, c'est le Store qui met à jour.
     @StateObject private var updateChecker = GitHubUpdateChecker()
+    #endif
     @ObservedObject private var deepLinkRouter = DeepLinkRouter.shared
     @ObservedObject private var launchAtLogin = LaunchAtLoginManager.shared
     @ObservedObject private var focusMonitor = FocusModeMonitor.shared
-    @State private var targetValue: String = ""
-    @State private var presetValues: [String] = ["", "", ""]
-    @State private var customMinutes: String = "60"
     @State private var debugTapCount: Int = 0
+    /// Le système a refusé les notifications à l'activation des rappels.
+    @State private var notificationsDenied = false
 
     var body: some View {
-        ScrollView {
-        VStack(alignment: .leading, spacing: 14) {
-            generalSection
+        TabView(selection: $selectedTab) {
+            page { generalSection; appearanceSection; languageSection; updatesSection }
+                .tabItem { Label(String(localized: "General", comment: "Settings tab"), systemImage: "gearshape") }
+                .tag(SettingsTab.general)
+            page { goalSection; activeHoursSection; presetsSection; bottleSection }
+                .tabItem { Label(String(localized: "Hydration", comment: "Settings tab"), systemImage: "drop") }
+                .tag(SettingsTab.hydration)
+            page { remindersSection }
+                .tabItem { Label(String(localized: "Reminders", comment: "Onboarding step title"), systemImage: "bell") }
+                .tag(SettingsTab.reminders)
+            page { DaysSettingsSection(manager: manager) }
+                .tabItem { Label(String(localized: "Days", comment: "Settings tab for work days and days off"), systemImage: "calendar") }
+                .tag(SettingsTab.days)
+            page { shortcutsSection }
+                .tabItem { Label(String(localized: "Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts"), systemImage: "keyboard") }
+                .tag(SettingsTab.shortcuts)
+            page { DataSettingsSection(manager: manager) }
+                .tabItem { Label(String(localized: "Data", comment: "Settings tab"), systemImage: "externaldrive") }
+                .tag(SettingsTab.data)
+            page { integrationsSection; debugSection }
+                .tabItem { Label(String(localized: "Integrations", comment: "Settings tab"), systemImage: "puzzlepiece.extension") }
+                .tag(SettingsTab.integrations)
+        }
+        .frame(width: 620, height: 580)
+        .onAppear {
+            // La source de vérité du lancement au démarrage est le système :
+            // l'utilisateur a pu le changer dans Réglages Système entre-temps.
+            launchAtLogin.refresh()
+        }
+    }
 
+    /// Une page d'onglet : défilante, avec les marges d'une fenêtre de réglages.
+    private func page<Content: View>(@ViewBuilder _ content: () -> Content) -> some View {
+        ScrollView {
+            VStack(alignment: .leading, spacing: 20) {
+                content()
+            }
+            .padding(24)
+            .frame(maxWidth: .infinity, alignment: .leading)
+        }
+    }
+
+    // MARK: - Sections des onglets
+
+    @ViewBuilder
+    private var appearanceSection: some View {
             // Section Style Icône Menu Bar + Unités (groupées)
             VStack(alignment: .leading, spacing: 6) {
                 Text("MENU BAR ICON STYLE", comment: "Settings section title for menu bar icon style")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
                 Picker("", selection: Binding(
                     get: { manager.menuBarIconStyle },
                     set: { manager.menuBarIconStyle = $0 }
                 )) {
                     ForEach(MenuBarIconStyle.allCases, id: \.self) { style in
-                        Text(style.rawValue).tag(style)
+                        Text(verbatim: style.localizedName).tag(style)
                     }
                 }
                 .pickerStyle(.segmented)
                 .frame(maxWidth: .infinity)
+
+                Toggle(isOn: Binding(get: { manager.coloredMenuBarIcon },
+                                     set: { manager.coloredMenuBarIcon = $0 })) {
+                    Text("Colored icon", comment: "Toggle: show the menu bar icon in color instead of monochrome")
+                        .font(Theme.Font.body)
+                }
+                .toggleStyle(.switch)
+                .controlSize(.small)
             }
 
             VStack(alignment: .leading, spacing: 6) {
                 Text("UNITS", comment: "Settings section title for units")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
                 Picker("", selection: Binding(
                     get: { manager.selectedUnit },
-                    set: { newValue in
-                        manager.selectedUnit = newValue
-                        updateDisplayValues()
-                    }
+                    set: { manager.selectedUnit = $0 }
                 )) {
                     ForEach(AppUnit.allCases, id: \.self) { unit in
                         Text(verbatim: unit.pickerLabel).tag(unit)
@@ -172,70 +228,157 @@ struct SettingsView: View {
                 .pickerStyle(.segmented)
                 .frame(maxWidth: .infinity)
             }
-            
+    }
+
+    @ViewBuilder
+    private var goalSection: some View {
             // Section Objectif
             VStack(alignment: .leading, spacing: 6) {
                 Text("DAILY GOAL", comment: "Settings section title for daily goal")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
-                HStack(spacing: 8) {
-                    TextField("", text: $targetValue)
-                        .textFieldStyle(.roundedBorder)
-                        .font(.system(size: 15))
-                        .onChange(of: targetValue) { oldValue, newValue in
-                            if let value = Double(newValue) {
-                                let mlValue = manager.mlValue(from: value)
-                                manager.targetMl = mlValue
-                            }
-                        }
-                    
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    ValidatedNumberField(
+                        value: manager.selectedUnit.fromMl(manager.defaultTargetMl),
+                        range: displayRange(HydrationLimits.goal),
+                        format: formatForInput,
+                        onCommit: { manager.targetMl = manager.mlValue(from: $0) }
+                    )
+                    .font(.system(size: 15))
+
                     Text(verbatim: manager.selectedUnit.symbol)
-                        .font(.system(size: 13, weight: .medium))
+                        .font(Theme.Font.bodyMedium)
                         .foregroundColor(.secondary)
                         .frame(width: 35, alignment: .leading)
                 }
             }
 
-            activeHoursSection
+            weekdayGoalsSection
+    }
 
+    // MARK: - Mode gourde
+
+    private var bottleSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("BOTTLE", comment: "Settings section title for bottle mode")
+                .font(Theme.Font.sectionTitle)
+                .foregroundColor(.secondary)
+
+            Toggle(isOn: Binding(get: { manager.bottleModeEnabled },
+                                 set: { manager.bottleModeEnabled = $0 })) {
+                Text("Bottle mode", comment: "Toggle: bottle mode")
+                    .font(Theme.Font.body)
+            }
+            .toggleStyle(.switch)
+
+            Text("Drink from a bottle? Log how much of it you've had — a quarter, half, three quarters — and HydroBar records the difference.",
+                 comment: "Explanation of bottle mode")
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            if manager.bottleModeEnabled {
+                HStack(spacing: 8) {
+                    Text("Bottle size", comment: "Bottle mode: capacity label")
+                        .font(Theme.Font.body)
+                    ValidatedNumberField(
+                        value: manager.selectedUnit.fromMl(manager.bottleCapacityMl),
+                        range: displayRange(Bottle.capacityRange),
+                        format: formatForInput,
+                        onCommit: { manager.bottleCapacityMl = manager.mlValue(from: $0) }
+                    )
+                    .frame(width: 90)
+                    Text(verbatim: manager.selectedUnit.symbol)
+                        .font(Theme.Font.caption)
+                        .foregroundColor(.secondary)
+                }
+            }
+        }
+    }
+
+    // MARK: - Objectif par jour de la semaine
+
+    /// Jours dans l'ordre de la locale (lundi d'abord en France).
+    private var orderedWeekdays: [Int] {
+        let first = Calendar.current.firstWeekday
+        return (0..<7).map { (first - 1 + $0) % 7 + 1 }
+    }
+
+    private var weekdayGoalsSection: some View {
+        VStack(alignment: .leading, spacing: 6) {
+            Text("GOAL BY DAY OF THE WEEK", comment: "Settings section title for per-weekday goals")
+                .font(Theme.Font.sectionTitle)
+                .foregroundColor(.secondary)
+            Text("Higher on sports days, lower on weekends. Days without their own goal use the daily goal.",
+                 comment: "Explanation of per-weekday goals")
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+
+            ForEach(orderedWeekdays, id: \.self) { weekday in
+                weekdayRow(weekday)
+            }
+        }
+    }
+
+    private func weekdayRow(_ weekday: Int) -> some View {
+        let override = manager.weekdayGoals.overrides[weekday]
+        return HStack(spacing: 10) {
+            Toggle(isOn: Binding(
+                get: { override != nil },
+                set: { enabled in
+                    var goals = manager.weekdayGoals
+                    goals.overrides[weekday] = enabled ? manager.defaultTargetMl : nil
+                    manager.weekdayGoals = goals
+                }
+            )) {
+                Text(verbatim: Calendar.current.weekdaySymbols[weekday - 1].capitalized)
+                    .font(Theme.Font.body)
+                    .frame(width: 100, alignment: .leading)
+            }
+            .toggleStyle(.checkbox)
+
+            if let override {
+                ValidatedNumberField(
+                    value: manager.selectedUnit.fromMl(override),
+                    range: displayRange(HydrationLimits.goal),
+                    format: formatForInput,
+                    onCommit: { value in
+                        var goals = manager.weekdayGoals
+                        goals.overrides[weekday] = manager.mlValue(from: value)
+                        manager.weekdayGoals = goals
+                    }
+                )
+                .frame(width: 90)
+                Text(verbatim: manager.selectedUnit.symbol)
+                    .font(Theme.Font.caption)
+                    .foregroundColor(.secondary)
+            }
+            Spacer(minLength: 0)
+        }
+    }
+
+    @ViewBuilder
+    private var presetsSection: some View {
             // Section Verres Rapides
             VStack(alignment: .leading, spacing: 6) {
                 Text("QUICK PRESETS", comment: "Settings section title for quick presets")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
 
                 HStack(spacing: 10) {
                     ForEach(Array(manager.presetsMl.enumerated()), id: \.offset) { index, preset in
                         VStack(spacing: 6) {
-                            TextField("", text: Binding(
-                                get: {
-                                    if presetValues.count <= index {
-                                        presetValues = Array(repeating: "", count: max(3, manager.presetsMl.count))
-                                        updateDisplayValues()
-                                    }
-                                    return index < presetValues.count ? presetValues[index] : formatPresetValue(preset)
-                                },
-                                set: { newValue in
-                                    if presetValues.count <= index {
-                                        presetValues = Array(repeating: "", count: max(3, manager.presetsMl.count))
-                                    }
-                                    presetValues[index] = newValue
-                                    
-                                    if let value = Double(newValue) {
-                                        let mlValue = manager.mlValue(from: value)
-                                        var presets = manager.presetsMl
-                                        if presets.count > index {
-                                            presets[index] = mlValue
-                                            manager.presetsMl = presets
-                                        }
-                                    }
-                                }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 14, weight: .medium))
-                            .multilineTextAlignment(.center)
+                            ValidatedNumberField(
+                                value: manager.selectedUnit.fromMl(preset),
+                                range: displayRange(HydrationLimits.single),
+                                format: formatForInput,
+                                alignment: .center,
+                                onCommit: { updatePreset(at: index, displayValue: $0) }
+                            )
+                            .font(Theme.Font.controlMedium)
                             .frame(maxWidth: .infinity)
                             
                             Image(systemName: iconForPreset(at: index))
@@ -245,59 +388,57 @@ struct SettingsView: View {
                     }
                 }
             }
-            
+    }
+
+    @ViewBuilder
+    private var shortcutsSection: some View {
             // Section Raccourcis clavier
             VStack(alignment: .leading, spacing: 6) {
                 Text("Keyboard Shortcuts", comment: "Settings section title for keyboard shortcuts")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
                     .textCase(.uppercase)
 
                 VStack(alignment: .leading, spacing: 6) {
-                    ForEach(Array(manager.presetsMl.enumerated()), id: \.offset) { index, _ in
-                        HStack(alignment: .center, spacing: 12) {
-                            Text(String(format: String(localized: "Preset %lld", comment: "Preset label with index"), index + 1))
-                                .font(.system(size: 13, weight: .regular))
-                                .foregroundColor(.primary)
-                                .frame(width: 70, alignment: .leading)
-                            
-                            ShortcutRecorderView(presetIndex: index)
-                            
-                            Spacer(minLength: 0)
-                        }
+                    ForEach(Array(manager.presetsMl.indices), id: \.self) { index in
+                        shortcutRow(for: .preset(index))
+                    }
+                    // Au-delà des presets (F20).
+                    ForEach(HotkeyAction.general, id: \.self) { action in
+                        shortcutRow(for: action)
                     }
                 }
             }
-            
-            Divider()
+    }
 
+    @ViewBuilder
+    private var remindersSection: some View {
             // Section Rappels
             VStack(alignment: .leading, spacing: 6) {
                 Text("REMINDERS", comment: "Settings section title for reminders")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
 
                 // Toggle Activer les rappels
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "bell.fill")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .foregroundColor(.secondary)
                         .frame(width: 20, alignment: .leading)
                     
                     Text("Enable reminders", comment: "Toggle label to enable reminders")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                     
                     Spacer()
                     
                     Toggle("", isOn: Binding(
                         get: { manager.notificationsEnabled },
                         set: { newValue in
-                            manager.notificationsEnabled = newValue
-                            if newValue {
-                                manager.scheduleNotifications()
-                            } else {
-                                UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
+                            // Le didSet de notificationsEnabled programme ou
+                            // annule les rappels.
+                            manager.setRemindersEnabled(newValue) { granted in
+                                notificationsDenied = newValue && !granted
                             }
                         }
                     ))
@@ -305,6 +446,25 @@ struct SettingsView: View {
                     .labelsHidden()
                 }
                 
+                // Refus visible et rattrapable, au lieu d'un interrupteur qui
+                // revient en arrière sans explication.
+                if notificationsDenied {
+                    Button(action: { manager.openNotificationSettings() }) {
+                        HStack(spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(Theme.Font.caption)
+                                .foregroundColor(.orange)
+                            Text("Notifications are turned off for HydroBar in System Settings.",
+                                 comment: "Shown when the user enables reminders but notifications are denied")
+                                .font(Theme.Font.caption)
+                                .underline()
+                                .fixedSize(horizontal: false, vertical: true)
+                        }
+                    }
+                    .buttonStyle(.plain)
+                    .padding(.leading, 28)
+                }
+
                 // Picker Intervalle (segmented)
                 if manager.notificationsEnabled {
                     Picker("", selection: Binding(
@@ -324,68 +484,106 @@ struct SettingsView: View {
                     // Champ Custom si Perso sélectionné
                     if manager.notificationInterval == .custom {
                         HStack(spacing: 8) {
-                            TextField("", text: Binding(
-                                get: { String(manager.customNotificationMinutes) },
-                                set: { newValue in
-                                    if let minutes = Int(newValue) {
-                                        manager.customNotificationMinutes = minutes
-                                        manager.scheduleNotifications()
-                                    }
-                                    customMinutes = newValue
+                            ValidatedNumberField(
+                                value: Double(manager.reminderIntervalMinutes),
+                                range: Double(HydrationLimits.reminderMinutes.lowerBound)...Double(HydrationLimits.reminderMinutes.upperBound),
+                                format: { NumberInput.fieldText($0, fractionDigits: 0...0) },
+                                onCommit: { minutes in
+                                    manager.customNotificationMinutes = Int(minutes.rounded())
+                                    manager.scheduleNotifications()
                                 }
-                            ))
-                            .textFieldStyle(.roundedBorder)
-                            .font(.system(size: 13))
+                            )
+                            .font(Theme.Font.body)
                             .frame(width: 80)
                             
                             Text("minutes", comment: "Unit label for custom notification minutes")
-                                .font(.system(size: 12))
+                                .font(Theme.Font.callout)
                                 .foregroundColor(.secondary)
                         }
                     }
                     
+                    adaptiveRemindersRow
+
+                    HStack(alignment: .center, spacing: 8) {
+                        Image(systemName: "calendar.badge.checkmark")
+                            .font(Theme.Font.body)
+                            .foregroundColor(.secondary)
+                            .frame(width: 20, alignment: .leading)
+                        Text("Weekly summary", comment: "Toggle: weekly summary notification")
+                            .font(Theme.Font.body)
+                        Spacer()
+                        Toggle("", isOn: Binding(get: { manager.weeklySummaryEnabled },
+                                                 set: { manager.weeklySummaryEnabled = $0 }))
+                            .toggleStyle(.switch)
+                            .labelsHidden()
+                    }
+
+                    toggleRow(icon: "clock.badge.exclamationmark",
+                              title: Text("Last call", comment: "Toggle: last call notification"),
+                              detail: Text("One hour before your day ends, if your goal isn't reached yet.",
+                                           comment: "Explanation of the last call notification"),
+                              isOn: Binding(get: { manager.lastCallEnabled }, set: { manager.lastCallEnabled = $0 }))
+
+                    toggleRow(icon: "video.slash",
+                              title: Text("Hold during calls", comment: "Toggle: no reminders during calls"),
+                              detail: Text("While an app uses your microphone or camera, reminders wait for the call to end.",
+                                           comment: "Explanation of holding reminders during calls"),
+                              isOn: Binding(get: { manager.holdRemindersDuringCalls },
+                                            set: { manager.holdRemindersDuringCalls = $0 }))
+
+                    snoozeRow
+
                     focusModeSection
                     
                     // Toggle Ne pas déranger (manuel si pas de sync)
                     HStack(alignment: .center, spacing: 8) {
                         Image(systemName: "moon.fill")
-                            .font(.system(size: 13))
+                            .font(Theme.Font.body)
                             .foregroundColor(.secondary)
                             .frame(width: 20, alignment: .leading)
                         
                         Text("Do Not Disturb Mode", comment: "Toggle label for Do Not Disturb mode")
-                            .font(.system(size: 13))
+                            .font(Theme.Font.body)
                         
                         Spacer()
                         
+                        // Le réglage manuel reste modifiable quand la synchro
+                        // Concentration est active : les deux se cumulent.
+                        // Le changement reprogramme les rappels (didSet).
                         Toggle("", isOn: Binding(
                             get: { manager.doNotDisturb },
-                            set: { newValue in
-                                // IMPORTANT: Ne jamais désactiver notificationsEnabled ici
-                                if !manager.focusModeAutoSync {
-                                    manager.doNotDisturb = newValue
-                                    manager.scheduleNotifications()
-                                }
-                            }
+                            set: { manager.doNotDisturb = $0 }
                         ))
                         .toggleStyle(.switch)
                         .labelsHidden()
-                        .disabled(manager.focusModeAutoSync)
+                    }
+
+                    if manager.focusModeAutoSync && manager.focusIsActive && !manager.doNotDisturb {
+                        Text("A Focus is on: reminders appear as a badge.",
+                             comment: "Shown when a macOS Focus currently silences reminders")
+                            .font(Theme.Font.caption)
+                            .foregroundColor(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
                 }
             }
-            
-            Divider()
+    }
 
+    @ViewBuilder
+    private var debugSection: some View {
             // Section Debug (si activée — accès via 5 taps sur le numéro de version)
             if manager.debugModeEnabled {
                 VStack(alignment: .leading, spacing: 6) {
                     Text("DEBUG", comment: "Settings section title for debug")
-                        .font(.system(size: 11, weight: .semibold))
+                        .font(Theme.Font.sectionTitle)
                         .foregroundColor(.secondary)
 
                     
                     VStack(alignment: .leading, spacing: 8) {
+                        // Réservé aux builds Debug : le panneau s'ouvre aussi en
+                        // version publiée (5 clics sur la version), et ce bouton
+                        // remplace tout l'historique réel, sans confirmation.
+                        #if DEBUG
                         // Bouton pour générer de fausses données
                         Button(action: {
                             manager.generateFakeHistoryData()
@@ -400,9 +598,9 @@ struct SettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "chart.bar.doc.horizontal.fill")
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                 Text("Generate Fake History Data", comment: "Debug button to generate fake data")
-                                    .font(.system(size: 13, weight: .regular))
+                                    .font(Theme.Font.body)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 8)
@@ -411,7 +609,8 @@ struct SettingsView: View {
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
-                        
+                        #endif
+
                         // Bouton pour tester les notifications
                         Button(action: {
                             manager.testNotification()
@@ -426,14 +625,14 @@ struct SettingsView: View {
                         }) {
                             HStack {
                                 Image(systemName: "bell.badge.fill")
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                 Text("Test Notification", comment: "Debug button to test notification")
-                                    .font(.system(size: 13, weight: .regular))
+                                    .font(Theme.Font.body)
                             }
                             .frame(maxWidth: .infinity, alignment: .leading)
                             .padding(.horizontal, 8)
                             .padding(.vertical, 6)
-                            .background(Color.blue.opacity(0.1))
+                            .background(Theme.water.opacity(0.1))
                             .cornerRadius(6)
                         }
                         .buttonStyle(.plain)
@@ -442,7 +641,7 @@ struct SettingsView: View {
                         // (script, page web, Raycast) est indébuggable.
                         if !deepLinkRouter.log.isEmpty {
                             Text("RECENT DEEP LINKS", comment: "Debug section title for deep link log")
-                                .font(.system(size: 10, weight: .semibold))
+                                .font(Theme.Font.footnoteEmphasis)
                                 .foregroundColor(.secondary)
                                 .padding(.top, 4)
 
@@ -451,8 +650,8 @@ struct SettingsView: View {
                                     HStack(spacing: 6) {
                                         Image(systemName: entry.outcome == "ok"
                                               ? "checkmark.circle.fill" : "xmark.circle.fill")
-                                            .font(.system(size: 9))
-                                            .foregroundColor(entry.outcome == "ok" ? .green : .orange)
+                                            .font(Theme.Font.micro)
+                                            .foregroundColor(entry.outcome == "ok" ? Theme.goal : .orange)
                                         Text(entry.date, style: .time)
                                             .font(.system(size: 9, design: .monospaced))
                                             .foregroundColor(.secondary)
@@ -462,7 +661,7 @@ struct SettingsView: View {
                                             .truncationMode(.middle)
                                         Spacer(minLength: 0)
                                         Text(verbatim: entry.outcome)
-                                            .font(.system(size: 9))
+                                            .font(Theme.Font.micro)
                                             .foregroundColor(.secondary)
                                     }
                                 }
@@ -473,19 +672,22 @@ struct SettingsView: View {
                 
                 Divider()
             }
+    }
 
+    @ViewBuilder
+    private var updatesSection: some View {
             // Section Vérification des mises à jour
             VStack(alignment: .leading, spacing: 6) {
                 Text("UPDATES", comment: "Settings section title for updates")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
                 HStack(alignment: .center, spacing: 8) {
                     Text("Version", comment: "Label for current app version")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .foregroundColor(.secondary)
-                    Text(verbatim: updateChecker.currentAppVersion)
-                        .font(.system(size: 13, weight: .medium))
+                    Text(verbatim: Self.appVersion)
+                        .font(Theme.Font.bodyMedium)
                         .foregroundColor(.primary)
                         .onTapGesture {
                             debugTapCount += 1
@@ -497,11 +699,16 @@ struct SettingsView: View {
                     Spacer()
                     if manager.debugModeEnabled {
                         Image(systemName: "ladybug.fill")
-                            .font(.system(size: 10))
+                            .font(Theme.Font.footnote)
                             .foregroundColor(.orange)
                     }
                 }
                 
+                #if APP_STORE
+                Text("Updates are installed by the App Store.", comment: "Settings: App Store build, no update check")
+                    .font(Theme.Font.caption)
+                    .foregroundColor(.secondary)
+                #else
                 Button(action: { updateChecker.checkForUpdates() }) {
                     HStack(spacing: 6) {
                         if updateChecker.isChecking {
@@ -510,15 +717,15 @@ struct SettingsView: View {
                             Text("Checking…", comment: "Button label while checking for updates")
                         } else {
                             Image(systemName: "arrow.clockwise")
-                                .font(.system(size: 12))
+                                .font(Theme.Font.callout)
                             Text("Check for Updates", comment: "Button to check for app updates")
                         }
                     }
-                    .font(.system(size: 13, weight: .medium))
+                    .font(Theme.Font.bodyMedium)
                     .frame(maxWidth: .infinity)
                     .padding(.vertical, 8)
-                    .background(Color.blue.opacity(0.15))
-                    .foregroundColor(.blue)
+                    .background(Theme.water.opacity(0.15))
+                    .foregroundColor(Theme.water)
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
@@ -530,23 +737,23 @@ struct SettingsView: View {
                         case .upToDate:
                             HStack(spacing: 6) {
                                 Image(systemName: "checkmark.circle.fill")
-                                    .foregroundColor(.green)
+                                    .foregroundColor(Theme.goal)
                                 Text("You're up to date.", comment: "Message when no update is available")
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                     .foregroundColor(.secondary)
                             }
                         case .updateAvailable(let version, let url):
                             VStack(alignment: .leading, spacing: 6) {
                                 HStack(spacing: 6) {
                                     Image(systemName: "arrow.down.circle.fill")
-                                        .foregroundColor(.blue)
+                                        .foregroundColor(Theme.water)
                                     Text(String(format: String(localized: "Version %@ is available.", comment: "Message when update is available"), version))
-                                        .font(.system(size: 12))
+                                        .font(Theme.Font.callout)
                                         .foregroundColor(.primary)
                                 }
                                 Button(action: { updateChecker.openUpdateURL(url) }) {
                                     Text("Open Download Page", comment: "Button to open GitHub release page")
-                                        .font(.system(size: 12, weight: .medium))
+                                        .font(Theme.Font.calloutMedium)
                                 }
                                 .buttonStyle(.plain)
                             }
@@ -555,21 +762,31 @@ struct SettingsView: View {
                                 Image(systemName: "exclamationmark.triangle.fill")
                                     .foregroundColor(.orange)
                                 Text(message)
-                                    .font(.system(size: 12))
+                                    .font(Theme.Font.callout)
                                     .foregroundColor(.secondary)
                             }
                         }
                     }
                     .padding(.top, 4)
                 }
+                #endif
             }
-            
-            Divider()
+    }
 
+    /// Version affichée, avec le numéro de build : « 2.0 (4) ».
+    private static var appVersion: String {
+        let info = Bundle.main.infoDictionary
+        let version = info?["CFBundleShortVersionString"] as? String ?? "?"
+        let build = info?["CFBundleVersion"] as? String ?? "?"
+        return "\(version) (\(build))"
+    }
+
+    @ViewBuilder
+    private var integrationsSection: some View {
             // Section Raycast Extension
             VStack(alignment: .leading, spacing: 6) {
                 Text("INTEGRATIONS", comment: "Settings section title for integrations")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
 
@@ -581,12 +798,12 @@ struct SettingsView: View {
                 }) {
                     HStack(spacing: 8) {
                         Image(systemName: "bolt.fill")
-                            .font(.system(size: 12))
+                            .font(Theme.Font.callout)
                         Text("Raycast Extension", comment: "Button to open Raycast extension page")
-                            .font(.system(size: 13, weight: .medium))
+                            .font(Theme.Font.bodyMedium)
                         Spacer()
                         Image(systemName: "arrow.up.right")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.secondary)
                     }
                     .frame(maxWidth: .infinity)
@@ -602,12 +819,12 @@ struct SettingsView: View {
                 // Désactivé par défaut — n'importe quelle page web peut ouvrir une URL.
                 HStack(alignment: .center, spacing: 8) {
                     Image(systemName: "link")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .foregroundColor(.secondary)
                         .frame(width: 20, alignment: .leading)
 
                     Text("Allow destructive links without confirmation", comment: "Toggle label for destructive deep links")
-                        .font(.system(size: 13))
+                        .font(Theme.Font.body)
                         .fixedSize(horizontal: false, vertical: true)
 
                     Spacer()
@@ -618,36 +835,29 @@ struct SettingsView: View {
                 }
 
                 Text("Applies to hydrobar://reset and hydrobar://set-goal. Adding water and undo are never blocked.", comment: "Explanation for destructive deep links toggle")
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.secondary)
                     .padding(.leading, 28)
             }
+    }
 
-            Divider()
-
+    @ViewBuilder
+    private var languageSection: some View {
             // Section Langue (en bas)
             VStack(alignment: .leading, spacing: 6) {
                 Text("LANGUAGE", comment: "Settings section title for language")
-                    .font(.system(size: 11, weight: .semibold))
+                    .font(Theme.Font.sectionTitle)
                     .foregroundColor(.secondary)
 
                 
                 Picker("", selection: Binding(
                     get: { manager.appLanguage },
                     set: { newValue in
+                        guard newValue != manager.appLanguage else { return }
                         manager.appLanguage = newValue
-                        // Afficher un message informatif
-                        let alert = NSAlert()
-                        alert.messageText = String(localized: "Language Changed", comment: "Language change alert title")
-                        alert.informativeText = String(localized: "The app will restart to apply the new language.", comment: "Language change alert message")
-                        alert.alertStyle = .informational
-                        alert.addButton(withTitle: String(localized: "OK", comment: "OK button"))
-                        alert.runModal()
-                        
-                        // Redémarrer l'app pour appliquer la nouvelle langue
-                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                            NSApplication.shared.terminate(nil)
-                        }
+                        // Hors de la mise à jour de la vue : une alerte modale
+                        // ouverte depuis le setter d'un Binding bloquait le rendu.
+                        DispatchQueue.main.async { promptToApplyLanguage() }
                     }
                 )) {
                     ForEach(AppLanguage.allCases, id: \.self) { language in
@@ -657,42 +867,8 @@ struct SettingsView: View {
                 }
                 .pickerStyle(.menu)
             }
-            
-            // Toggle pour activer le mode debug (caché pour la distribution)
-            // Divider()
-            //     .padding(.vertical, 2)
-            // 
-            // VStack(alignment: .leading, spacing: 8) {
-            //     Toggle(isOn: $manager.debugModeEnabled) {
-            //         HStack {
-            //             Image(systemName: "ladybug.fill")
-            //                 .font(.system(size: 12))
-            //                 .foregroundColor(.orange)
-            //             Text("Debug Mode", comment: "Debug mode toggle label")
-            //                 .font(.system(size: 13, weight: .regular))
-            //         }
-            //     }
-            //     .toggleStyle(.switch)
-            // }
-        }
-        .padding(20)
-        .frame(maxWidth: .infinity, alignment: .leading)
-        } // ScrollView
-        .onAppear {
-            // La source de vérité du lancement au démarrage est le système :
-            // l'utilisateur a pu le changer dans Réglages Système entre-temps.
-            launchAtLogin.refresh()
-
-            // Initialiser presetValues avec la bonne taille
-            if presetValues.count < manager.presetsMl.count {
-                presetValues = Array(repeating: "", count: manager.presetsMl.count)
-            }
-            updateDisplayValues()
-        }
-        .onChange(of: manager.selectedUnit) {
-            updateDisplayValues()
-        }
     }
+
     
     // MARK: - Sections extraites
     // Sorties du `body` pour limiter la complexité que le type-checker SwiftUI
@@ -701,17 +877,17 @@ struct SettingsView: View {
     private var generalSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("GENERAL", comment: "Settings section title for general options")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Theme.Font.sectionTitle)
                 .foregroundColor(.secondary)
 
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "power")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                     .foregroundColor(.secondary)
                     .frame(width: 20, alignment: .leading)
 
                 Text("Launch at login", comment: "Toggle label for launching the app at login")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
 
                 Spacer()
 
@@ -729,10 +905,10 @@ struct SettingsView: View {
                 Button(action: { launchAtLogin.openLoginItemsSettings() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.orange)
                         Text("Approval needed in System Settings", comment: "Warning when the login item awaits user approval")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .underline()
                     }
                 }
@@ -744,7 +920,7 @@ struct SettingsView: View {
             // l'utilisateur croirait l'option active.
             if let failure = launchAtLogin.failureMessage {
                 Text(failure)
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.leading, 28)
@@ -756,10 +932,10 @@ struct SettingsView: View {
             if let issue = manager.lastDataIssue {
                 HStack(alignment: .firstTextBaseline, spacing: 6) {
                     Image(systemName: "exclamationmark.triangle.fill")
-                        .font(.system(size: 11))
+                        .font(Theme.Font.caption)
                         .foregroundColor(.orange)
                     Text(issue)
-                        .font(.system(size: 11))
+                        .font(Theme.Font.caption)
                         .foregroundColor(.orange)
                         .fixedSize(horizontal: false, vertical: true)
                 }
@@ -774,14 +950,44 @@ struct SettingsView: View {
     /// affiché — voir l'en-tête de FocusModeMonitor.swift.
     private var focusModeSection: some View {
         VStack(alignment: .leading, spacing: 6) {
+            // Alternative sans autorisation ni capability : le filtre de
+            // Concentration, réglé mode par mode dans Réglages Système.
+            Button(action: openFocusSettings) {
+                HStack(spacing: 8) {
+                    Image(systemName: "moon.circle")
+                        .font(Theme.Font.body)
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, alignment: .leading)
+                    Text("Choose per Focus in System Settings › Focus › Focus Filters",
+                         comment: "Link to configure the HydroBar Focus filter")
+                        .font(Theme.Font.caption)
+                        .underline()
+                        .fixedSize(horizontal: false, vertical: true)
+                }
+            }
+            .buttonStyle(.plain)
+            .foregroundColor(.secondary)
+
+            if manager.focusFilterQuiet {
+                Text("A Focus filter is showing reminders as a badge.",
+                     comment: "Shown while the HydroBar Focus filter is active")
+                    .font(Theme.Font.caption)
+                    .foregroundColor(.secondary)
+                    .padding(.leading, 28)
+            }
+
+            // La synchro par INFocusStatusCenter demande la capability
+            // Communication Notifications, absente de la build App Store : le
+            // filtre de Concentration ci-dessus fait mieux, sans autorisation.
+            #if !APP_STORE
             HStack(alignment: .center, spacing: 8) {
                 Image(systemName: "moon.stars.fill")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
                     .foregroundColor(.secondary)
                     .frame(width: 20, alignment: .leading)
 
                 Text("Sync with Focus Mode", comment: "Toggle label to sync with macOS Focus Mode")
-                    .font(.system(size: 13))
+                    .font(Theme.Font.body)
 
                 Spacer()
 
@@ -807,10 +1013,10 @@ struct SettingsView: View {
                 Button(action: { focusMonitor.openFocusPrivacySettings() }) {
                     HStack(spacing: 6) {
                         Image(systemName: "exclamationmark.triangle.fill")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .foregroundColor(.orange)
                         Text("Access denied — grant it under Privacy & Security › Focus", comment: "Focus Mode authorization denied")
-                            .font(.system(size: 11))
+                            .font(Theme.Font.caption)
                             .underline()
                             .fixedSize(horizontal: false, vertical: true)
                     }
@@ -820,7 +1026,7 @@ struct SettingsView: View {
 
             case .unavailable:
                 Text("Focus status is unreadable. Check that HydroBar is allowed to send notifications — the Focus status also needs it.", comment: "Focus Mode status unreadable despite authorization")
-                    .font(.system(size: 11))
+                    .font(Theme.Font.caption)
                     .foregroundColor(.orange)
                     .fixedSize(horizontal: false, vertical: true)
                     .padding(.leading, 28)
@@ -828,19 +1034,20 @@ struct SettingsView: View {
             case .authorized, .notRequested:
                 if manager.focusModeAutoSync {
                     Text("Do Not Disturb mode automatically follows macOS Focus Mode", comment: "Explanation text for Focus Mode sync")
-                        .font(.system(size: 11))
+                        .font(Theme.Font.caption)
                         .foregroundColor(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
                         .padding(.leading, 28)
                 }
             }
+            #endif
         }
     }
 
     private var activeHoursSection: some View {
         VStack(alignment: .leading, spacing: 6) {
             Text("ACTIVE HOURS", comment: "Settings section title for active hours")
-                .font(.system(size: 11, weight: .semibold))
+                .font(Theme.Font.sectionTitle)
                 .foregroundColor(.secondary)
 
             HStack(spacing: 8) {
@@ -864,7 +1071,7 @@ struct SettingsView: View {
                 .frame(width: 90)
 
                 Text("to", comment: "Separator between start and end hour")
-                    .font(.system(size: 12))
+                    .font(Theme.Font.callout)
                     .foregroundColor(.secondary)
 
                 Picker("", selection: Binding(
@@ -882,7 +1089,7 @@ struct SettingsView: View {
             }
 
             Text("Used by the pace marker on the ring: it shows where you should be at this time of day.", comment: "Explanation for the active hours setting")
-                .font(.system(size: 11))
+                .font(Theme.Font.caption)
                 .foregroundColor(.secondary)
                 .fixedSize(horizontal: false, vertical: true)
         }
@@ -898,14 +1105,150 @@ struct SettingsView: View {
         return date.formatted(.dateTime.hour().minute())
     }
 
-    private func formatPresetValue(_ preset: Double) -> String {
-        let unit = manager.selectedUnit
-        let value = unit.fromMl(preset)
-        if value.truncatingRemainder(dividingBy: 1) == 0 {
-            return String(format: "%.0f", value)
-        } else {
-            return String(format: "%.1f", value)
+    private func shortcutRow(for action: HotkeyAction) -> some View {
+        HStack(alignment: .center, spacing: 12) {
+            Text(verbatim: action.localizedName)
+                .font(Theme.Font.body)
+                .foregroundColor(.primary)
+                .lineLimit(1)
+                .minimumScaleFactor(0.8)
+                .frame(width: 90, alignment: .leading)
+
+            ShortcutRecorderView(action: action)
+
+            Spacer(minLength: 0)
         }
+    }
+
+    private func openFocusSettings() {
+        if let url = URL(string: "x-apple.systempreferences:com.apple.Focus-Settings.extension") {
+            NSWorkspace.shared.open(url)
+        }
+    }
+
+    // MARK: - Rappels intelligents (F6)
+
+    private var adaptiveRemindersRow: some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: "gauge.with.dots.needle.33percent")
+                    .font(Theme.Font.body)
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+                Text("Adapt to my pace", comment: "Toggle: remind more often when behind schedule")
+                    .font(Theme.Font.body)
+                Spacer()
+                Toggle("", isOn: Binding(get: { manager.adaptiveReminders },
+                                         set: { manager.adaptiveReminders = $0 }))
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+            }
+            Text("Reminders follow your active hours, stop once your goal is reached, and come a bit more often when you're behind.",
+                 comment: "Explanation of how reminders are scheduled")
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, 28)
+        }
+    }
+
+    private func toggleRow(icon: String, title: Text, detail: Text, isOn: Binding<Bool>) -> some View {
+        VStack(alignment: .leading, spacing: 4) {
+            HStack(alignment: .center, spacing: 8) {
+                Image(systemName: icon)
+                    .font(Theme.Font.body)
+                    .foregroundColor(.secondary)
+                    .frame(width: 20, alignment: .leading)
+                title
+                    .font(Theme.Font.body)
+                Spacer()
+                Toggle("", isOn: isOn)
+                    .toggleStyle(.switch)
+                    .labelsHidden()
+            }
+            detail
+                .font(Theme.Font.caption)
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
+                .padding(.leading, 28)
+        }
+    }
+
+    // MARK: - Pause des rappels (F19)
+
+    /// L'état de la pause est toujours visible et annulable : c'est ce qui
+    /// manque au mode Ne pas déranger, qu'on oublie de désactiver.
+    @ViewBuilder
+    private var snoozeRow: some View {
+        HStack(alignment: .center, spacing: 8) {
+            Image(systemName: "zzz")
+                .font(Theme.Font.body)
+                .foregroundColor(.secondary)
+                .frame(width: 20, alignment: .leading)
+
+            if let until = manager.remindersSnoozedUntil {
+                Text(String(format: String(localized: "Paused until %@",
+                                           comment: "Reminders snooze status; %@ is a time"),
+                            until.formatted(date: .omitted, time: .shortened)))
+                    .font(Theme.Font.body)
+                Spacer()
+                Button(String(localized: "Resume", comment: "Button to end the reminders pause")) {
+                    manager.resumeReminders()
+                }
+                .controlSize(.small)
+            } else {
+                Text("Pause reminders", comment: "Label of the snooze menu in settings")
+                    .font(Theme.Font.body)
+                Spacer()
+                Menu {
+                    ForEach(SnoozeOption.allCases) { option in
+                        Button(option.title) { manager.snoozeReminders(option) }
+                    }
+                } label: {
+                    Text("Pause…", comment: "Snooze menu button")
+                }
+                .menuStyle(.borderlessButton)
+                .fixedSize()
+            }
+        }
+    }
+
+    // MARK: - Langue
+
+    /// L'ancienne alerte annonçait un redémarrage, mais l'app se contentait de
+    /// quitter, sans laisser le choix. Relancer soi-même une app sandboxée
+    /// impose un processus auxiliaire ; on laisse plutôt l'utilisateur quitter
+    /// maintenant ou plus tard.
+    private func promptToApplyLanguage() {
+        let alert = NSAlert()
+        alert.messageText = String(localized: "Language Changed", comment: "Language change alert title")
+        alert.informativeText = String(localized: "HydroBar will use the new language the next time it opens.",
+                                       comment: "Language change alert message")
+        alert.alertStyle = .informational
+        alert.addButton(withTitle: String(localized: "Quit Now", comment: "Quit to apply the new language"))
+        alert.addButton(withTitle: String(localized: "Later", comment: "Apply the new language at next launch"))
+        if alert.runModal() == .alertFirstButtonReturn {
+            NSApplication.shared.terminate(nil)
+        }
+    }
+
+    // MARK: - Saisie des quantités
+
+    /// Bornes en millilitres converties dans l'unité affichée.
+    private func displayRange(_ mlRange: ClosedRange<Double>) -> ClosedRange<Double> {
+        let unit = manager.selectedUnit
+        return unit.fromMl(mlRange.lowerBound)...unit.fromMl(mlRange.upperBound)
+    }
+
+    private func formatForInput(_ value: Double) -> String {
+        NumberInput.fieldText(value, fractionDigits: manager.selectedUnit.inputFractionDigits)
+    }
+
+    private func updatePreset(at index: Int, displayValue: Double) {
+        var presets = manager.presetsMl
+        guard presets.indices.contains(index) else { return }
+        presets[index] = manager.mlValue(from: displayValue)
+        manager.presetsMl = presets
     }
     
     private func iconForPreset(at index: Int) -> String {
@@ -939,35 +1282,10 @@ struct SettingsView: View {
             return 16
         }
     }
-    
-    private func updateDisplayValues() {
-        // Mettre à jour les valeurs d'affichage selon l'unité choisie
-        let unit = manager.selectedUnit
-        
-        // Objectif
-        let target = unit.fromMl(manager.targetMl)
-        if target.truncatingRemainder(dividingBy: 1) == 0 {
-            targetValue = String(format: "%.0f", target)
-        } else {
-            targetValue = String(format: "%.1f", target)
-        }
-        
-        // Presets
-        if manager.presetsMl.count >= 3 {
-            for (index, preset) in manager.presetsMl.enumerated() {
-                let value = unit.fromMl(preset)
-                if value.truncatingRemainder(dividingBy: 1) == 0 {
-                    presetValues[index] = String(format: "%.0f", value)
-                } else {
-                    presetValues[index] = String(format: "%.1f", value)
-                }
-            }
-        }
-    }
 }
 
 #Preview {
-    SettingsView(manager: HydrationManager.shared, currentView: .constant(.settings))
+    SettingsView(manager: HydrationManager.shared)
         .padding()
         .background(Color.black)
 }

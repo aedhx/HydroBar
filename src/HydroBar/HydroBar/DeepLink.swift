@@ -23,6 +23,10 @@ enum HydrationLimits {
     /// Garde-fou sur l'index de preset accepté par le parseur.
     /// La borne réelle dépend des presets de l'utilisateur : c'est le routeur qui la vérifie.
     static let maxPresetIndex = 99
+    /// Intervalle personnalisé des rappels, en minutes. Un déclencheur de
+    /// notification répétitif exige au moins 60 secondes : en dessous, le
+    /// système lève une exception et l'app plante.
+    static let reminderMinutes: ClosedRange<Int> = 5...480
 }
 
 // MARK: - Actions
