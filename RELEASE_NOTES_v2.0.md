@@ -129,8 +129,6 @@ History is no longer cut off after 30 days. v1 deleted older data; v2 keeps all 
 
 ## Installation
 
-**Mac App Store**: search for HydroBar, or follow the link on the [GitHub page](https://github.com/aedhx/HydroBar). Updates then come through the App Store.
-
 **Direct download**:
 
 1. Download **HydroBar-v2.0.dmg** from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
@@ -143,4 +141,8 @@ If macOS says the app "is damaged" or "cannot be opened", the build you download
 xattr -cr /Applications/HydroBar.app
 ```
 
-**Requirements:** macOS 15.1 or later.
+Coming from 1.x? Replace the old app in Applications: your settings and history are picked up on first launch.
+
+The desktop widget and the Control Center button are not available in the direct download: macOS only loads them from a build signed by Apple. They come with the **Mac App Store** version, which is on its way; the link will be on [hydrobar.adx.cool](https://hydrobar.adx.cool/) once it is live.
+
+**Requirements:** macOS 15.1 or later, on Apple Silicon or Intel.
