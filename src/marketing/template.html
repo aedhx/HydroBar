@@ -27,11 +27,11 @@
       radial-gradient(700px 500px at 10% 10%, rgba(100, 210, 255, .10), transparent 70%),
       linear-gradient(160deg, #0d1018 0%, #07080c 60%);
   }
-  .copy { position: absolute; left: 88px; top: 0; bottom: 0; width: 470px; display: flex; flex-direction: column; justify-content: center; }
+  .copy { position: absolute; left: 72px; top: 0; bottom: 0; width: 470px; display: flex; flex-direction: column; justify-content: center; }
   .copy .icon { width: 84px; height: 84px; border-radius: 19px; margin-bottom: 34px; box-shadow: 0 12px 40px rgba(10, 132, 255, .35); }
-  .copy h1 { text-wrap: balance; font-size: 54px; line-height: 1.08; font-weight: 750; letter-spacing: -.02em; }
-  .copy p { text-wrap: pretty; margin-top: 22px; font-size: 23px; line-height: 1.42; color: var(--ink-2); font-weight: 450; }
-  :lang(ja) .copy h1, :lang(zh-Hans) .copy h1 { font-size: 46px; line-height: 1.25; letter-spacing: 0; }
+  .copy h1 { text-wrap: balance; font-size: 62px; line-height: 1.08; font-weight: 750; letter-spacing: -.02em; }
+  .copy p { text-wrap: pretty; margin-top: 24px; font-size: 27px; line-height: 1.42; color: var(--ink-2); font-weight: 450; }
+  :lang(ja) .copy h1, :lang(zh-Hans) .copy h1 { font-size: 52px; line-height: 1.25; letter-spacing: 0; }
   :lang(ja) .copy p, :lang(zh-Hans) .copy p { font-size: 21px; line-height: 1.6; }
   /* Coupures entre groupes de mots, pas au milieu d'un mot japonais. */
   :lang(ja) .copy h1, :lang(ja) .copy p { word-break: auto-phrase; }
@@ -474,9 +474,11 @@ const screens = {
 
 // L'interface est agrandie pour rester lisible dans les miniatures de l'App
 // Store, sans changer la taille du bureau.
-const ZOOM = { today: 1.3, bottle: 1.12, notification: 1.4, stats: 1.12, days: 1.1, everywhere: 1.15 };
+// Le Store affiche les captures en vignettes d'environ 600 px : l'interface doit
+// occuper l'image, sinon ses textes deviennent illisibles.
+const ZOOM = { today: 1.52, bottle: 1.32, notification: 2, stats: 1.3, days: 1.3, everywhere: 1.55 };
 const zoom = D.hero ? D.hero.zoom : (ZOOM[D.screen] || 1);
-const box = D.hero ? D.hero.desk : { width: 800, height: 756, top: 72, right: 64 };
+const box = D.hero ? D.hero.desk : { width: 840, height: 852, top: 24, right: 32 };
 desk.style.zoom = zoom;
 desk.style.width = `${box.width / zoom}px`;
 desk.style.height = `${box.height / zoom}px`;

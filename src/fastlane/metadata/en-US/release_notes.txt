@@ -1,8 +1,1 @@
-HydroBar is now on the Mac App Store.
-
-• Reminders that tell you where you are, with your presets as buttons
-• Work days and days off, each with their own hours, reminders and goal
-• No reminders while you're on a call
-• Bottle mode, presets that learn, a goal for each day of the week
-• Monthly recap, a year at a glance, when you drink during the day
-• Shortcuts, Siri, widget and Control Center
+Keyboard shortcuts that use the numeric keypad, the arrow keys or the navigation keys now show their real name in Settings, instead of a code.

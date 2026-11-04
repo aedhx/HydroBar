@@ -85,7 +85,7 @@ Pour les mises à jour suivantes, seule l'étape 1 est à refaire.
   fiche : le badge devient « Download on the Mac App Store ». Les boutons « free » continuent
   de mener au DMG de GitHub, gratuit ; le Store, lui, est à 1,99 €. Idéalement, remplace alors le badge par l'illustration officielle d'Apple
   (developer.apple.com › App Store › Marketing Resources).
-- **Version** : « Version 2.0.1 » dans la section Download, et dans le menu de l'icône (section Everywhere).
+- **Version** : « Version 2.0.2 » dans la section Download, et dans le menu de l'icône (section Everywhere).
 
 ## Choix de design
 

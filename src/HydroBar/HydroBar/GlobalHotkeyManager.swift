@@ -96,6 +96,14 @@ struct Shortcut: Codable, Equatable {
         VirtualKeyCodes.f10: "F10",
         VirtualKeyCodes.f11: "F11",
         VirtualKeyCodes.f12: "F12",
+        // Codes Carbon (kVK_…) des touches qui n'avaient pas de nom : elles
+        // s'affichaient « Key(67) ». Le pavé numérique ne dépend pas de la
+        // disposition du clavier, contrairement aux touches de ponctuation.
+        65: ".", 67: "*", 69: "+", 71: "⌧", 75: "/", 78: "-", 81: "=",
+        82: "0", 83: "1", 84: "2", 85: "3", 86: "4", 87: "5", 88: "6", 89: "7", 91: "8", 92: "9",
+        123: "←", 124: "→", 125: "↓", 126: "↑",
+        115: "↖", 119: "↘", 116: "⇞", 121: "⇟", 117: "⌦",
+        105: "F13", 107: "F14", 113: "F15", 106: "F16", 64: "F17", 79: "F18", 80: "F19", 90: "F20",
     ]
 
     private static func keyCodeToSymbol(_ keyCode: Int) -> String? {
