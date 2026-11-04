@@ -1,8 +1,1 @@
-HydroBar llega al Mac App Store.
-
-• Recordatorios que te dicen cómo vas, con tus preajustes como botones
-• Días laborables y días libres, cada uno con sus horas, recordatorios y objetivo
-• Sin recordatorios durante una llamada
-• Modo botella, preajustes que aprenden, un objetivo para cada día de la semana
-• Resumen del mes, tu año de un vistazo, a qué horas bebes
-• Atajos, Siri, widget y Centro de control
+Los atajos de teclado que usan el teclado numérico, las flechas o las teclas de navegación ahora muestran el nombre real de la tecla en Ajustes, en lugar de un código.

@@ -136,7 +136,7 @@ function build(locale, screen) {
     }
     case 'everywhere':
       return { ...common, menu: {
-        version: `${t('Version')} 2.0.1`,
+        version: `${t('Version')} 2.0.2`,
         add: s.presets.map((p) => t('Add %@', fmt(p))),
         undo: t('Undo'),
         dayOff: t('Today Is a Day Off'),

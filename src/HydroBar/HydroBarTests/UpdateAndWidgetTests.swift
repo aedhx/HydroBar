@@ -80,7 +80,17 @@ private func snapshot(at date: Date, presets: [Double]? = nil) -> HydrationSnaps
     #expect(Shortcut(keyCode: VirtualKeyCodes.f5, modifiers: 0).displayString == "F5")
 }
 
+@Test func namesKeypadArrowAndNavigationKeys() {
+    // Le raccourci qui s'affichait « ⌃ ⌘ Key(67) » : la touche * du pavé numérique.
+    let controlCommand = Int(NSEvent.ModifierFlags([.control, .command]).rawValue)
+    #expect(Shortcut(keyCode: 67, modifiers: controlCommand).displayString == "⌃ ⌘ *")
+    #expect(Shortcut(keyCode: 88, modifiers: 0).displayString == "6")
+    #expect(Shortcut(keyCode: 0x7E, modifiers: 0).displayString == "↑")
+    #expect(Shortcut(keyCode: 117, modifiers: 0).displayString == "⌦")
+    #expect(Shortcut(keyCode: 105, modifiers: 0).displayString == "F13")
+}
+
 @Test func fallsBackToTheRawCodeForUnmappedKeys() {
-    // 0x7E : flèche haut, absente de la table des symboles.
-    #expect(Shortcut(keyCode: 0x7E, modifiers: 0).displayString == "Key(126)")
+    // 0x7F : aucun nom connu.
+    #expect(Shortcut(keyCode: 0x7F, modifiers: 0).displayString == "Key(127)")
 }

@@ -41,7 +41,7 @@ async function shoot(browser, data, file, { width = 1440, height = 900, clip, sc
   fs.mkdirSync(path.dirname(file), { recursive: true });
   // JPEG : accepté par App Store Connect, et dix fois plus léger qu'un PNG ici.
   const jpeg = file.endsWith('.jpg');
-  await page.screenshot({ path: file, clip, ...(jpeg ? { type: 'jpeg', quality: 90 } : {}) });
+  await page.screenshot({ path: file, clip, ...(jpeg ? { type: 'jpeg', quality: 95 } : {}) });
   await page.close();
 }
 

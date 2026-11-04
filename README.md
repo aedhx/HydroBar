@@ -31,7 +31,7 @@ HydroBar 2.0 is the biggest update since the first release, and the first built 
 - A new **monochrome menu bar icon**, livelier animations and a real **Settings window**.
 - **Your data is safer**: one entry per drink, an unlimited history, CSV export and JSON backup. Two bugs that could erase your history are fixed.
 
-Full details in the [release notes](docs/releases/RELEASE_NOTES_v2.0.md); the latest changes are in [2.0.1](docs/releases/RELEASE_NOTES_v2.0.1.md).
+Full details in the [release notes](docs/releases/RELEASE_NOTES_v2.0.md); the latest changes are in [2.0.1](docs/releases/RELEASE_NOTES_v2.0.1.md) and [2.0.2](docs/releases/RELEASE_NOTES_v2.0.2.md).
 
 ---
 
@@ -163,7 +163,7 @@ Read the [privacy policy](PRIVACY.md).
 
 Free, and the same app.
 
-1. Download `HydroBar-v2.0.1.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
+1. Download `HydroBar-v2.0.2.dmg` from the [Releases](https://github.com/aedhx/HydroBar/releases) page.
 2. Open it and drag **HydroBar** into Applications.
 3. Open it. HydroBar is signed with an Apple Developer ID and notarized by Apple.
 
@@ -191,7 +191,7 @@ You need Xcode 16 or later; the Control Center button and the Liquid Glass prese
 | Script | What it does |
 |---|---|
 | `./src/scripts/build-dmg.sh` | Release build, packaged as a DMG and a ZIP (ad-hoc signed unless given a certificate) |
-| `./src/scripts/notarize-release.sh v2.0.1` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
+| `./src/scripts/notarize-release.sh v2.0.2` | Signs the app CI built for a release with Developer ID through the Xcode account, has Apple notarize it, and repackages the DMG and the ZIP |
 | `./src/scripts/package-dmg.sh` | Puts a signed app in the disk image, with its window layout |
 | `./src/scripts/deploy-website.sh` | Publishes `src/website/` to hydrobar.adx.cool |
 | `./src/scripts/build-appstore.sh` | Mac App Store build (no update check, no network), archived and uploaded |
