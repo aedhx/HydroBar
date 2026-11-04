@@ -157,8 +157,7 @@ Read the [privacy policy](PRIVACY.md).
 
 ### Mac App Store
 
-<!-- Replace with the App Store link once the app is live: https://apps.apple.com/app/idXXXXXXXXXX -->
-Coming soon, for €1.99 (one-time). The link will be here and on [hydrobar.adx.cool](https://hydrobar.adx.cool/). This version adds the desktop widget, the Control Center button and automatic updates, and buying it supports HydroBar's development.
+[**Download on the Mac App Store**](https://apps.apple.com/app/id6822246305), €1.99, once. This version adds the desktop widget, the Control Center button and automatic updates, and buying it supports HydroBar's development.
 
 ### Direct download
 

@@ -8,7 +8,7 @@ détaillée de ce qui a été livré jusqu'à la 2.0 ; les identifiants `F…` y
 ## Où on en est
 
 - **2.0.1 publiée** sur GitHub, signée et notarisée, gratuite. Version Mac App
-  Store (build 5) en attente de validation, à 1,99 €.
+  Store (build 5) approuvée et en vente à 1,99 € depuis le 4 novembre 2026.
 - **Livré depuis la 2.0** : journal des prises, rappels calés sur la journée,
   notifications actionnables, jours off, mode gourde, statistiques, Raccourcis et
   Siri, widget et bouton du Centre de contrôle (version du Store), export et
